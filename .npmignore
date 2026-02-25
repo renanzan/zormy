@@ -1,0 +1,47 @@
+# Development files
+.git/
+.gitignore
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+test/
+tests/
+*.test.js
+*.spec.js
+coverage/
+.nyc_output/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+
+# Documentation (keep README.md)
+docs/
+*.md
+!README.md
+
+# Development configs
+.eslintrc*
+.prettierrc*
+.editorconfig
+tsconfig.json
+jest.config.js
+
+# Build tools
+webpack.config.js
+rollup.config.js
+babel.config.js
+
+# Environment
+.env*
+!.env.example
+
+# Temporary
+*.tmp
+*.temp
+*.log
