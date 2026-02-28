@@ -1,0 +1,103 @@
+---
+title: Playground
+---
+
+# Playground
+
+Experimente criar wizards complexos e veja como um Schema se transforma em um Wizard multi-step em tempo real.
+
+<Playground />
+
+## Como Usar
+
+1. **Defina os Steps**: Liste os steps do wizard no array `steps`
+2. **Defina os Campos**: Para cada step, defina os campos com:
+   - `key`: Chave única do campo
+   - `schema`: Schema Zod (use `z.` para acessar os validadores)
+   - `defaultValue` (opcional): Valor padrão do campo
+
+3. **Aplique o Schema**: Clique em "Aplicar Schema" para ver o wizard renderizado
+
+## Exemplo Básico
+
+```json
+{
+	"steps": ["personal", "contact"],
+	"fields": {
+		"personal": [
+			{ "key": "name", "schema": "z.string().min(3)" },
+			{ "key": "age", "schema": "z.number().min(18)" }
+		],
+		"contact": [
+			{ "key": "email", "schema": "z.string().email()" },
+			{ "key": "phone", "schema": "z.string().optional()" }
+		]
+	}
+}
+```
+
+## Exemplo Avançado
+
+```json
+{
+	"steps": ["account", "profile", "preferences"],
+	"fields": {
+		"account": [
+			{ "key": "username", "schema": "z.string().min(3).max(20)" },
+			{ "key": "email", "schema": "z.string().email()" },
+			{ "key": "password", "schema": "z.string().min(8)" }
+		],
+		"profile": [
+			{ "key": "firstName", "schema": "z.string().min(1)" },
+			{ "key": "lastName", "schema": "z.string().min(1)" },
+			{ "key": "bio", "schema": "z.string().max(500).optional()" }
+		],
+		"preferences": [
+			{ "key": "newsletter", "schema": "z.boolean()", "defaultValue": false },
+			{ "key": "theme", "schema": "z.enum(['light', 'dark', 'auto'])" }
+		]
+	}
+}
+```
+
+## Schemas Disponíveis
+
+### Tipos Básicos
+
+- `z.string()` - String
+- `z.number()` - Número
+- `z.boolean()` - Boolean
+- `z.date()` - Data
+
+### Validações de String
+
+- `z.string().min(n)` - Mínimo de caracteres
+- `z.string().max(n)` - Máximo de caracteres
+- `z.string().email()` - Formato de email
+- `z.string().url()` - Formato de URL
+- `z.string().regex(/pattern/)` - Padrão regex
+
+### Validações de Número
+
+- `z.number().min(n)` - Valor mínimo
+- `z.number().max(n)` - Valor máximo
+- `z.number().int()` - Apenas inteiros
+- `z.number().positive()` - Apenas positivos
+
+### Modificadores
+
+- `.optional()` - Campo opcional
+- `.nullable()` - Permite null
+- `.default(value)` - Valor padrão
+
+### Outros
+
+- `z.enum(['val1', 'val2'])` - Enum
+- `z.array(z.string())` - Array de strings
+
+## Dicas
+
+- Use valores padrão para campos opcionais
+- Combine validações (ex: `z.string().min(3).max(100)`)
+- Use `.optional()` para campos que podem ser vazios
+- Teste diferentes schemas para ver como a validação funciona

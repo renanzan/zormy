@@ -1,0 +1,82 @@
+{
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": false,
+  "editor.detectIndentation": false,
+  "editor.rulers": [80],
+  "explorer.compactFolders": false,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSaveMode": "file",
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+		"source.fixAll.eslint": "explicit"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+  "[tsx]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+
+  "prettier.requireConfig": true,
+  "prettier.enable": true,
+  "prettier.ignorePath": ".prettierignore",
+  "prettier.useEditorConfig": false,
+  "prettier.documentSelectors": ["**/*.{js,jsx,ts,tsx,json,css,scss,md}"],
+
+  "typescript.format.enable": false,
+  "javascript.format.enable": false,
+  "typescript.tsdk": "./node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.preferences.useAliasesForRenames": false,
+
+  "conventionalCommits.promptBody": false,
+  "conventionalCommits.showNewVersionNotes": false,
+  "conventionalCommits.promptFooter": false,
+  "conventionalCommits.promptScopes": false,
+  "conventionalCommits.promptCI": false,
+
+  "files.exclude": {
+    // "**/node_modules": true,
+    // "**/.prettierignore": true,
+    // "**/.prettierrc.json": true,
+    // "**/.eslintignore": true,
+    // "**/.eslintrc.json": true,
+    // "**/.gitignore": true,
+    // "**/.next": true,
+    // "**/next-env.d.ts": true,
+    // "**/next.config.js": true,
+    // "**/postcss.config.js": true,
+    // "**/next-i18next.config.js": true,
+    // "**/Dockerfile": false,
+    // "**/.dockerignore": true,
+    // "**/cypress.config.ts": true,
+    // "**/jest.config.ts": true,
+    // "**/jest.setup.ts": true,
+    // "**/jest.global.setup.ts": true,
+    // "**/coverage": true,
+    // "**/.scannerwork": true,
+    // "**/.swc": true,
+    // "**/.npmrc": true
+  },
+
+	// https://gist.github.com/rupeshtiwari/6860fbc1b3e2f6711c780070d6f59748
+  "material-icon-theme.folders.associations": {
+    "zormy": "Core"
+  }
+}

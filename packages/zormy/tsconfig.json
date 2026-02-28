@@ -1,0 +1,23 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"composite": true,
+		"declaration": true,
+		"declarationMap": true,
+		"outDir": "./dist",
+		"rootDir": "./",
+		"jsx": "react-jsx",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"types": ["node", "vitest/globals", "@testing-library/jest-dom"],
+		"tsBuildInfoFile": ".tsbuildinfo",
+		"skipLibCheck": true,
+		"noUnusedLocals": false,
+		"verbatimModuleSyntax": false,
+		"paths": {
+			"~/formy/*": ["./src/*"]
+		}
+	},
+	"include": ["src/**/*.ts", "src/**/*.tsx", "index.ts", "__tests__/**/*.test-d.ts", "__tests__/**/*.test.tsx"],
+	"exclude": ["node_modules", "**/node_modules", "dist", "**/*.tsbuildinfo", "__test__"]
+}

@@ -1,0 +1,37 @@
+---
+description: Qualidade de código do zormy — complexidade, tipagem, hooks e abstrações
+globs: packages/zormy/**/*.ts packages/zormy/**/*.tsx
+alwaysApply: false
+---
+
+# Qualidade de código no Zormy
+
+## Complexidade
+
+- **Reduzir complexidade ciclomática e cognitiva** sem sacrificar legibilidade.
+- Preferir early returns, extrair funções com nomes claros, evitar aninhamento excessivo.
+- Em condicionais longas ou repetidas, considerar helpers ou constantes nomeadas.
+
+## Fluxos assíncronos
+
+- Manter **fluxos assíncronos legíveis**: nomes de funções que indiquem async (ex.: `loadInitialValues`, `saveStepData`).
+- Tratar loading, erro e sucesso de forma explícita; evitar misturar muitas operações async no mesmo bloco.
+- Preferir `async/await` com try/catch claro; documentar rejeições e comportamentos em borda.
+
+## Tipagem forte
+
+- Preservar **tipagem forte** em todo o pacote: evitar `any` em APIs públicas; usar genéricos quando o tipo depende do uso.
+- Tipos exportados devem refletir o contrato real (ex.: `FieldsToObject`, `WizardFormValues`); revisar após mudanças.
+- Garantir que exemplos na doc e no AI_SPEC.md estejam corretos em relação aos tipos atuais.
+
+## Hooks
+
+- **Simplificar hooks complexos** quando possível: extrair lógica para sub-hooks ou funções puras.
+- Um hook deve ter uma responsabilidade clara; estado e efeitos devem ser fáceis de seguir.
+- Documentar dependências (arrays de useEffect/useMemo) e condições de execução quando não forem óbvias.
+
+## Abstrações
+
+- **Revisão crítica de abstrações**: questionar se cada camada/helper/classe é necessária.
+- Remover ou simplificar abstrações que não reduzem duplicação nem melhoram clareza.
+- Preferir composição e funções pequenas a hierarquias profundas ou indireção excessiva.

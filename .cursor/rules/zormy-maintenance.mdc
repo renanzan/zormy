@@ -1,0 +1,39 @@
+---
+description: Manutenção do pacote zormy — documentação, contratos e experiência do desenvolvedor
+alwaysApply: true
+---
+
+# Manutenção do pacote Zormy
+
+## Documentação obrigatória
+
+Ao alterar código do pacote (`packages/zormy`):
+
+1. **apps/docs** — Atualizar a documentação em `apps/docs/content/` de forma consistente com a mudança:
+   - Get Started, API Reference, Examples, Tips e demais páginas afetadas.
+   - Pensar na experiência do desenvolvedor que usa o pacote (clareza, exemplos, casos comuns).
+
+2. **TSDoc/JSDoc** — Manter comentários de API atualizados no código:
+   - Devem ser **explicativos e úteis** para o desenvolvedor e ao mesmo tempo **enxutos** (evitar verbosidade).
+   - `@param`, `@returns`, `@example` em funções e tipos públicos exportados; descrições objetivas; exemplos que compilam e refletem o uso real.
+
+3. **AI_SPEC.md** — Se a API ou os padrões de uso mudarem, atualizar `packages/zormy/AI_SPEC.md`:
+   - Tabela de exportações, fluxos (form simples, wizard, campos aninhados/dependentes).
+   - Seção "O que evitar" e exemplos de código.
+
+## Contratos e breaking changes
+
+- **Evitar quebrar contratos existentes** ao refatorar: assinaturas públicas, props de componentes, retornos de hooks e tipos exportados.
+- Se uma mudança quebra a API pública: documentar no changelog, considerar deprecation gradual e avisar na doc (apps/docs e AI_SPEC.md).
+
+## Testes unitários
+
+- **Atualizar ou criar testes** sempre que houver mudanças que afetem, direta ou indiretamente, os contratos do pacote (comportamento, assinaturas, tipos, integração entre módulos).
+- Testes existentes devem continuar passando; cobrir novos comportamentos e regressões em mudanças de contrato.
+
+## Referência rápida
+
+- Documentação do produto: `apps/docs/content/`
+- API do pacote: `packages/zormy/src/`, exports em `packages/zormy/src/index.ts`
+- Spec para IA: `packages/zormy/AI_SPEC.md`
+- Testes: `packages/zormy/__tests__/` (e testes colados ao código quando fizer sentido)

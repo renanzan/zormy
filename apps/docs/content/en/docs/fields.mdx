@@ -1,0 +1,163 @@
+---
+title: Fields
+description: Reusable fields in Zormy — key, schema, render, dependencies and nesting
+---
+
+import { Callout } from "nextra/components";
+
+# Fields
+
+In Zormy, fields are **reusable components** that encapsulate:
+
+- **Key** — unique identifier in the form (e.g. `"name"`, `"user.email"`)
+- **Schema** — Zod validation (static or dynamic)
+- **Render** — how the field is displayed in the UI
+
+## Creating a field: `field(key)`
+
+Use the fluent builder `field("key")`:
+
+<CodeExample
+	code={`import { z } from "zod";
+import { field, Form, formyResolver, useForm } from "zormy";
+
+const NameField = field("name")
+  .schema(z.string().min(3, "At least 3 characters"))
+  .render(({ register, fieldState }) => (
+    <div>
+      <label>Name</label>
+      <input {...register()} />
+      {fieldState.error && <span>{fieldState.error.message}</span>}
+    </div>
+  ));
+
+function App() {
+  const form = useForm({
+    resolver: formyResolver({ fields: [NameField] }),
+    defaultValues: { name: "" },
+  });
+  return (
+    <Form methods={form} onSubmit={form.handleSubmit((d) => console.log(d))}>
+      <NameField />
+      <button type="submit">Submit</button>
+    </Form>
+  );
+}
+
+export default App;`}
+	editorHeight={360}
+/>
+
+In `render`, you get `register`, `fieldState`, `control`, `getValues`, `setValue`, `watch` and other react-hook-form helpers, typed for that field. Use `register()` with no arguments to use the field key; to override: `register({ name: "other.key" })`.
+
+## Abstract field: `abstractField()`
+
+When several fields share the same type and UI, create a **template** with `abstractField()` and derive fields with `.extend({ key })`:
+
+```tsx
+import { z } from "zod";
+import { abstractField } from "zormy";
+
+const BaseTextField = abstractField()
+	.schema(z.string().min(3))
+	.render(({ register, fieldState }) => (
+		<div>
+			<input {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
+
+const NameField = BaseTextField.extend({ key: "name" });
+const EmailField = BaseTextField.extend({ key: "email" });
+```
+
+You can also override `schema`, `render`, `dependsOn` or `props` in `.extend()`.
+
+## Fields with dependencies: `.dependsOn()`
+
+For schemas that depend on other fields, use `.dependsOn(OtherField)` and `.schema()` with a **function** that receives `formValues`:
+
+```tsx
+const HasPasswordField = field("hasPassword")
+	.schema(z.boolean())
+	.render(({ register }) => (
+		<label>
+			<input type="checkbox" {...register()} />
+			Has password?
+		</label>
+	));
+
+const PasswordField = field("password")
+	.dependsOn(HasPasswordField)
+	.schema((formValues) => {
+		if (formValues?.hasPassword) {
+			return z.string().min(8, "Password must be at least 8 characters");
+		}
+		return z.string().optional();
+	})
+	.render(({ register, fieldState, watch }) => {
+		if (!watch("hasPassword")) return null;
+		return (
+			<div>
+				<input type="password" {...register()} />
+				{fieldState.error && <span>{fieldState.error.message}</span>}
+			</div>
+		);
+	});
+```
+
+<Callout type="warning">
+	Include **all** fields (including those used in `dependsOn`) in the `fields` array of `formyResolver` and, in wizards, in the correct step. Otherwise, types and validation may be inconsistent.
+</Callout>
+
+## Nested fields (dot notation)
+
+Keys with a dot create nested structure in the form. The resolver builds the nested Zod schema automatically:
+
+```tsx
+const UserNameField = field("user.name")
+	.schema(z.string().min(3))
+	.render(({ register, fieldState }) => (
+		<div>
+			<label>Name</label>
+			<input {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
+
+// defaultValues must reflect the structure:
+// defaultValues: { user: { name: "" } }
+```
+
+Use the same pattern for `address.street`, `profile.bio`, etc.
+
+## Hook `useField` (optional)
+
+To access form context with strong typing for a specific field, use `useField(key)` inside `<Form>` or `FormProvider`:
+
+```tsx
+import { useField } from "zormy";
+
+function CustomNameInput() {
+	const { register, fieldState } = useField("name");
+	return (
+		<div>
+			<input {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	);
+}
+```
+
+In most cases, defining the field with `field("name").schema(...).render(...)` and using the generated component is enough.
+
+## Summary
+
+| Concept | Usage |
+|---------|-------|
+| Simple field | `field("key").schema(z...).render(...)` |
+| Reusable template | `abstractField().schema(...).render(...)` + `.extend({ key })` |
+| Conditional schema | `.dependsOn(OtherField).schema((formValues) => z...)` |
+| Nested structure | Key `"a.b.c"` and `defaultValues: { a: { b: { c: "" } } }` |
+
+For Zod rules (min, max, email, refine, etc.) and error messages, see [Zod Integration](/en/docs/zod-integration). For the full field API, see [API Reference](/en/docs/api-reference).

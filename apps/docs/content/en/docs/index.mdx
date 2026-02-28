@@ -1,0 +1,49 @@
+---
+title: Introduction
+description: Overview of Zormy documentation
+---
+
+import { Callout, Cards } from "nextra/components";
+import { Rocket, Download, Box, FileStack, GitBranch, Code } from "lucide-react";
+
+# Zormy Documentation
+
+**Zormy** is a library for building **typed, reusable** forms in React with TypeScript, Zod and React Hook Form.
+
+## Why Zormy?
+
+<Cards>
+	<Cards.Card title="Get Started" href="/en/docs/get-started" icon={<Rocket />}>
+		Your first form and wizard in minutes
+	</Cards.Card>
+	<Cards.Card title="Installation" href="/en/docs/installation" icon={<Download />}>
+		Install commands and dependencies
+	</Cards.Card>
+	<Cards.Card title="Fields" href="/en/docs/fields" icon={<Box />}>
+		Reusable fields, dependencies and nesting
+	</Cards.Card>
+	<Cards.Card title="Forms" href="/en/docs/forms" icon={<FileStack />}>
+		Form, useForm, formyResolver and validation mode
+	</Cards.Card>
+	<Cards.Card title="Wizards" href="/en/docs/wizards" icon={<GitBranch />}>
+		Multi-step forms, conditional steps and auto-save
+	</Cards.Card>
+	<Cards.Card title="API Reference" href="/en/docs/api-reference" icon={<Code />}>
+		Full package API
+	</Cards.Card>
+</Cards>
+
+## Main features
+
+- **Strong typing** — type inference from Zod schemas and fields
+- **Declarative validation** — static or dynamic schemas per field ([Zod Integration](/en/docs/zod-integration))
+- **Reusable fields** — define once, use in multiple forms and wizards
+- **Wizards** — multi-step flows with per-step validation and navigation
+
+<Callout type="info">
+	New here? Start with [Get Started](/en/docs/get-started) and [Installation](/en/docs/installation). Then explore [Fields](/en/docs/fields), [Forms](/en/docs/forms) and [Wizards](/en/docs/wizards).
+</Callout>
+
+- [**Examples**](/en/examples) — ready-to-copy forms and wizards
+- [**Playground**](/en/playground) — try wizards in real time
+- [**Tips**](/en/docs/tips) — best practices and common pitfalls

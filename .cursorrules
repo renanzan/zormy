@@ -1,0 +1,17 @@
+Você está trabalhando no monorepo do **Zormy** (biblioteca de formulários tipados para React).
+
+Regras de manutenção (persistentes) vivem em:
+- `.cursor/rules/zormy-maintenance.mdc` (sempre aplicar)
+- `.cursor/rules/zormy-code-quality.mdc` (aplicar ao editar `packages/zormy/**/*.ts(x)`)
+
+Diretrizes essenciais
+- Manter **apps/docs** (`apps/docs/content/`) e **TSDoc** do código sempre atualizados ao mudar APIs/contratos.
+- Manter **AI_SPEC** (`packages/zormy/AI_SPEC.md`) consistente com a API pública e padrões de uso.
+- Priorizar **tipagem forte** (evitar `any` em API pública), e evitar quebrar contratos em refactors.
+- Reduzir complexidade ciclomática/cognitiva sem perder legibilidade; simplificar hooks complexos quando possível.
+- Em mudanças que afetem contratos, **atualizar/criar testes unitários** (garantir regressões cobertas).
+
+Arquivos de referência
+- Exports públicos: `packages/zormy/src/index.ts`
+- Spec para IA: `packages/zormy/AI_SPEC.md`
+- Docs do produto: `apps/docs/content/`

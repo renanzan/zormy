@@ -1,0 +1,127 @@
+---
+title: Forms
+description: Formulários no Zormy — Form, useForm, formyResolver e modo de validação
+---
+
+import { Callout } from "nextra/components";
+
+# Forms
+
+Formulários no Zormy são montados com **react-hook-form** (via `useForm`) e o **resolver** `formyResolver`, que monta o schema Zod a partir dos campos e integra com a validação.
+
+## Fluxo básico
+
+1. Defina os **campos** com `field("key").schema(...).render(...)` (veja [Fields](/docs/fields)).
+2. Crie o **resolver** com `formyResolver({ fields: [Field1, Field2, ...] })`.
+3. Crie o **form** com `useForm({ resolver, defaultValues, mode })`.
+4. Envolva a UI em **`<Form methods={form}>`** e renderize os campos.
+
+<CodeExample
+	code={`import { z } from "zod";
+import { field, Form, formyResolver, useForm } from "zormy";
+
+const NameField = field("name")
+  .schema(z.string().min(3))
+  .render(({ register, fieldState }) => (
+    <div>
+      <input {...register()} />
+      {fieldState.error && <span>{fieldState.error.message}</span>}
+    </div>
+  ));
+
+const EmailField = field("email")
+  .schema(z.string().email())
+  .render(({ register, fieldState }) => (
+    <div>
+      <input type="email" {...register()} />
+      {fieldState.error && <span>{fieldState.error.message}</span>}
+    </div>
+  ));
+
+function MyForm() {
+  const form = useForm({
+    resolver: formyResolver({ fields: [NameField, EmailField] }),
+    defaultValues: { name: "", email: "" },
+    mode: "onChange",
+  });
+
+  return (
+    <Form methods={form} onSubmit={form.handleSubmit((data) => console.log(data))}>
+      <NameField />
+      <EmailField />
+      <button type="submit">Enviar</button>
+    </Form>
+  );
+}
+
+export default MyForm;`}
+	editorHeight={400}
+/>
+
+## `formyResolver({ fields })`
+
+O resolver recebe um **array de componentes de campo**. Ele:
+
+- Monta o schema Zod (flat ou aninhado a partir das chaves com ponto)
+- Suporta schemas dinâmicos (função que recebe `formValues`)
+- Retorna um resolver compatível com `useForm`
+
+<Callout type="info">
+	O array `fields` deve conter **exatamente** os campos que serão renderizados no formulário (ou no step, no caso de wizards). Inclua também os campos usados em `dependsOn` de outros campos.
+</Callout>
+
+## Componente `Form`
+
+`<Form methods={form}>` fornece o contexto do react-hook-form (equivalente a `FormProvider`) e, por padrão, renderiza um elemento `<form>`. Qualquer prop HTML de `<form>` (como `onSubmit`, `className`) pode ser passada.
+
+| Prop | Tipo | Descrição |
+|------|------|------------|
+| `methods` | `UseFormReturn` | Instância retornada por `useForm` |
+| `contextOnly` | `boolean` | Se `true`, não renderiza `<form>`, apenas o contexto (útil para wrappers customizados ou Radix Slot) |
+| `children` | `ReactNode` | Conteúdo do formulário |
+
+**Exemplo com `contextOnly`** (sem elemento `<form>`):
+
+```tsx
+<Form methods={form} contextOnly>
+	<CustomWrapper>
+		<NameField />
+		<button type="button" onClick={form.handleSubmit(handleSubmit)}>Enviar</button>
+	</CustomWrapper>
+</Form>
+```
+
+Quando `contextOnly` é `true`, props HTML passadas ao `Form` **não** são repassadas automaticamente ao filho — você controla o wrapper.
+
+## Modo de validação (`mode`)
+
+O **quando** os campos são validados é definido pela opção `mode` do `useForm` (e do `useWizard`):
+
+| Valor | Comportamento |
+|-------|----------------|
+| `"onChange"` | Valida a cada alteração (padrão comum) |
+| `"onBlur"` | Valida ao sair do campo |
+| `"onSubmit"` | Valida apenas no submit |
+| `"onTouched"` | Valida após o campo ser “tocado” e depois a cada alteração |
+| `"all"` | Valida em onChange e onBlur |
+
+```tsx
+const form = useForm({
+	resolver: formyResolver({ fields: [NameField] }),
+	defaultValues: { name: "" },
+	mode: "onBlur", // valida ao sair do campo
+});
+```
+
+## `defaultValues`
+
+Devem cobrir **todas as chaves** dos campos (incluindo aninhadas). Exemplos:
+
+- Campos `"name"` e `"email"` → `defaultValues: { name: "", email: "" }`
+- Campo `"user.name"` → `defaultValues: { user: { name: "" } }`
+
+## Re-exports do react-hook-form
+
+O Zormy re-exporta `useForm`, `Controller`, `SubmitHandler` e `FormProvider` para uso direto. Na prática, use `useForm` e `<Form>` do Zormy para manter tipagem e contexto alinhados. Para controles customizados (ex.: date picker), use `Controller` do Zormy com o `control` do seu `useForm`.
+
+Para a API completa de `Form` e `formyResolver`, veja [Referência API](/docs/api-reference).

@@ -1,0 +1,302 @@
+---
+title: Dicas e Boas Práticas
+description: Dicas úteis para trabalhar com Zormy de forma eficiente
+---
+
+import { Callout } from "nextra/components";
+
+# Dicas e Boas Práticas
+
+Guia com dicas práticas para usar o Zormy de forma eficiente e evitar problemas comuns.
+
+## Organização de Código
+
+<Callout type="tip" emoji="💡">
+	Organize seus campos em arquivos separados para facilitar reutilização e manutenção
+</Callout>
+
+### Estrutura Recomendada
+
+```
+src/
+  fields/
+    user/
+      name.tsx
+      email.tsx
+      password.tsx
+    address/
+      street.tsx
+      city.tsx
+  forms/
+    login.tsx
+    register.tsx
+  wizards/
+    checkout.tsx
+```
+
+### Campos Reutilizáveis
+
+Crie campos base que podem ser estendidos:
+
+```tsx
+// fields/base/TextField.tsx
+export const BaseTextField = abstractField()
+	.schema(z.string())
+	.render(({ register, fieldState, label }) => (
+		<div>
+			<label>{label}</label>
+			<input {...register()} />
+			{fieldState.error && <span className="error">{fieldState.error.message}</span>}
+		</div>
+	));
+
+// fields/user/NameField.tsx
+export const NameField = BaseTextField.extend({
+	key: "name",
+	schema: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
+});
+```
+
+## Validação
+
+<Cards>
+	<Cards.Card title="Schemas Estáticos" href="/docs/zod-integration">
+		Use schemas estáticos quando a validação não depende de outros campos
+	</Cards.Card>
+
+    <Cards.Card title="Schemas Dinâmicos" href="/docs/zod-integration">
+    	Use schemas dinâmicos para validações que dependem de outros campos
+    </Cards.Card>
+
+    <Cards.Card title="Mensagens Customizadas" href="/docs/zod-integration">
+    	Sempre forneça mensagens de erro claras e em português
+    </Cards.Card>
+
+</Cards>
+
+### Validação em Tempo Real
+
+Configure o modo de validação apropriado:
+
+```tsx
+// Validação imediata (melhor UX)
+const form = useForm({
+	resolver: formyResolver({ fields: [NameField] }),
+	mode: "onChange", // Valida em cada mudança
+});
+
+// Validação ao sair do campo (melhor performance)
+const form = useForm({
+	resolver: formyResolver({ fields: [NameField] }),
+	mode: "onBlur", // Valida ao sair do campo
+});
+```
+
+## Wizards
+
+<Callout type="info">
+	Divida formulários complexos em steps menores para melhorar a experiência do usuário
+</Callout>
+
+### Steps Condicionais
+
+Use `shouldIncludeStep` para steps que aparecem condicionalmente:
+
+```tsx
+const wizard = useWizard({
+	steps: ["personal", "address", "payment"],
+	fields: {
+		/* ... */
+	},
+	shouldIncludeStep: (step, formValues) => {
+		if (step === "address") {
+			return formValues.needsShipping === true;
+		}
+		return true;
+	},
+});
+```
+
+### Auto Save
+
+Implemente auto save para formulários longos:
+
+```tsx
+const wizard = useWizard({
+	steps: ["step1", "step2", "step3"],
+	fields: {
+		/* ... */
+	},
+	autoSave: async ({ step, validChangedData }) => {
+		await saveToServer(step, validChangedData);
+	},
+});
+```
+
+## Performance
+
+### Lazy Loading de Campos
+
+Carregue campos pesados apenas quando necessário:
+
+```tsx
+const HeavyField = field("heavy")
+	.schema(z.string())
+	.render(({ register }) => {
+		// Componente pesado carregado apenas quando necessário
+		const HeavyComponent = lazy(() => import("./HeavyComponent"));
+		return (
+			<Suspense fallback={<div>Carregando...</div>}>
+				<HeavyComponent {...register()} />
+			</Suspense>
+		);
+	});
+```
+
+### Memoização
+
+Os componentes retornados por `field(...).schema(...).render(...)` já têm referência estável. Para envolver em `React.memo` (por exemplo, para evitar re-renders do pai), use o componente já construído:
+
+```tsx
+const NameField = field("name")
+	.schema(z.string())
+	.render(({ register }) => <input {...register()} />);
+
+const MemoizedNameField = React.memo(NameField);
+```
+
+### Testes automatizados de rerender
+
+O Zormy possui testes automatizados que garantem que **updates em um campo não disparem re-renders em massa em campos independentes**. Esses testes criam formulários grandes (com dezenas de campos) e simulam várias atualizações em um único campo, verificando que:
+
+- apenas o campo atualizado (e seus dependentes diretos) são impactados;
+- campos totalmente irrelevantes mantêm o mesmo número de renderizações.
+
+Se você adicionar lógica que observe o formulário inteiro (por exemplo, usando `watch()` em muitos lugares), considere escrever testes semelhantes para garantir que não introduziu rerenders desnecessários.
+
+### Métricas de eficiência (re-renders e validação)
+
+A suíte de performance do Zormy cobre duas métricas: **quantidade de re-renders** (ciclo de vida) e **tempo de execução da validação Zod**.
+
+- **Re-renders**: testes com **React.Profiler** e `vi.fn()` em `onRender` garantem que, ao atualizar um campo, apenas aquele campo (ou o container necessário) re-renderize, preservando o comportamento uncontrolled do React Hook Form. Há também um teste de estresse com **1000 campos** e `setValue` no primeiro e no último para detectar degradação de escalabilidade.
+- **Validação**: o modo **Benchmark do Vitest** (`pnpm test:bench`) executa o resolver (formyResolver) em massa e mede *Execution Time* e *Ops/sec*, para avaliar o custo do Zod na lib.
+- **Diagnóstico**: se os números estiverem altos, use o **React Render Tracker** para analisar o grafo de dependências e identificar onde os re-renders "vazam" (por exemplo, resolver validando o formulário inteiro e causando re-render em muitos inputs).
+
+Detalhes em `packages/zormy/__tests__/performance/README.md`.
+
+## TypeScript
+
+<Callout type="info">
+	A inferência de tipos costuma ser suficiente. Use tipos explícitos quando precisar expor o tipo do campo em APIs ou para melhor documentação.
+</Callout>
+
+### Tipos Explícitos (opcional)
+
+```tsx
+// ✅ Inferência automática (recomendado na maioria dos casos)
+const NameField = field("name")
+	.schema(z.string())
+	.render(({ register }) => <input {...register()} />);
+
+// ✅ Tipo explícito (útil para exportar ou documentar a API do campo)
+const NameField: FieldComponent<"name", z.ZodString> = field("name")
+	.schema(z.string())
+	.render(({ register }) => <input {...register()} />);
+```
+
+### Inferência de Tipos
+
+Aproveite a inferência automática do TypeScript:
+
+```tsx
+// O tipo é inferido automaticamente
+const form = useForm({
+	resolver: formyResolver({ fields: [NameField, EmailField] }),
+	defaultValues: { name: "", email: "" },
+});
+
+// form.watch() retorna o tipo correto
+const values = form.watch(); // { name: string, email: string }
+```
+
+## Debugging
+
+### Logs Úteis
+
+```tsx
+const form = useForm({
+	resolver: formyResolver({ fields: [NameField] }),
+	defaultValues: { name: "" },
+});
+
+// Ver valores atuais
+console.log("Valores:", form.getValues());
+
+// Ver erros
+console.log("Erros:", form.formState.errors);
+
+// Ver estado do campo (dentro do render do campo)
+const NameField = field("name")
+	.schema(z.string())
+	.render(({ register, fieldState }) => {
+		console.log("Estado do campo:", fieldState);
+		return <input {...register()} />;
+	});
+```
+
+## Erros Comuns
+
+<Callout type="error">Evite esses erros comuns ao usar Zormy</Callout>
+
+### 1. Esquecer de usar Form ou FormProvider
+
+```tsx
+// ❌ Erro: campos não funcionarão
+<form>
+  <NameField />
+</form>
+
+// ✅ Correto - usando Form (recomendado)
+<Form methods={form}>
+  <NameField />
+</Form>
+
+// ✅ Correto - usando FormProvider diretamente
+<FormProvider {...form}>
+  <form>
+    <NameField />
+  </form>
+</FormProvider>
+```
+
+### 2. Chaves de campos incorretas
+
+```tsx
+// ❌ Erro: chave não corresponde ao defaultValues
+const NameField = field("userName");
+const form = useForm({
+	defaultValues: { name: "" }, // Deveria ser userName
+});
+
+// ✅ Correto
+const NameField = field("name");
+const form = useForm({
+	defaultValues: { name: "" },
+});
+```
+
+### 3. Dependências não configuradas
+
+```tsx
+// ❌ Erro: campo não será revalidado quando dependência mudar
+const PasswordField = field("password").schema((formValues) => {
+	// Usa formValues.hasPassword mas não declara dependência
+});
+
+// ✅ Correto
+const PasswordField = field("password")
+	.dependsOn(HasPasswordField)
+	.schema((formValues) => {
+		// Agora será revalidado quando HasPasswordField mudar
+	});
+```

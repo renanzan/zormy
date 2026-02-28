@@ -1,0 +1,25 @@
+{
+	"name": "@zormy/test-build",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"react": "catalog:",
+		"react-dom": "catalog:",
+		"react-hook-form": "^7.71.2",
+		"zod": "^3.25.28",
+		"zormy": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
+		"@vitejs/plugin-react": "catalog:",
+		"typescript": "catalog:",
+		"vite": "catalog:"
+	}
+}

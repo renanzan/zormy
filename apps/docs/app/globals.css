@@ -1,0 +1,281 @@
+@import "tailwindcss";
+
+/* Optional: import Nextra theme styles */
+@import "nextra-theme-docs/style.css";
+@import "tw-animate-css";
+
+/* Dark mode: class-based */
+@custom-variant dark (&:is(.dark *));
+
+/* ========== Design tokens (HSL triples: use com hsl(var(--x))) ========== */
+:root {
+	--background: 222 47% 6%;
+	--foreground: 210 40% 96%;
+
+	--card: 222 47% 8%;
+	--card-foreground: 210 40% 96%;
+
+	--popover: 222 47% 8%;
+	--popover-foreground: 210 40% 96%;
+
+	--primary: 217 91% 60%;
+	--primary-foreground: 222 47% 6%;
+
+	--secondary: 222 40% 14%;
+	--secondary-foreground: 210 40% 96%;
+
+	--muted: 222 40% 14%;
+	--muted-foreground: 215 20% 55%;
+
+	--accent: 260 70% 58%;
+	--accent-foreground: 210 40% 98%;
+
+	--destructive: 0 84% 60%;
+	--destructive-foreground: 210 40% 98%;
+
+	--border: 222 30% 18%;
+	--input: 222 30% 18%;
+	--ring: 217 91% 60%;
+
+	--radius: 0.75rem;
+
+	--gradient-blue: 217 91% 60%;
+	--gradient-purple: 260 70% 58%;
+
+	/* Sidebar (compat) */
+	--sidebar-background: 222 47% 8%;
+	--sidebar-foreground: 210 40% 96%;
+	--sidebar-primary: 217 91% 60%;
+	--sidebar-primary-foreground: 222 47% 6%;
+	--sidebar-accent: 222 40% 14%;
+	--sidebar-accent-foreground: 210 40% 96%;
+	--sidebar-border: 222 30% 18%;
+	--sidebar-ring: 217 91% 60%;
+}
+
+.dark {
+	--background: 222 47% 6%;
+	--foreground: 210 40% 96%;
+	--card: 222 47% 8%;
+	--card-foreground: 210 40% 96%;
+	--popover: 222 47% 8%;
+	--popover-foreground: 210 40% 96%;
+	--primary: 217 91% 60%;
+	--primary-foreground: 222 47% 6%;
+	--secondary: 222 40% 14%;
+	--secondary-foreground: 210 40% 96%;
+	--muted: 222 40% 14%;
+	--muted-foreground: 215 20% 55%;
+	--accent: 260 70% 58%;
+	--accent-foreground: 210 40% 98%;
+	--destructive: 0 84% 60%;
+	--destructive-foreground: 210 40% 98%;
+	--border: 222 30% 18%;
+	--input: 222 30% 18%;
+	--ring: 217 91% 60%;
+	--sidebar-background: 222 47% 8%;
+	--sidebar-foreground: 210 40% 96%;
+	--sidebar-primary: 217 91% 60%;
+	--sidebar-primary-foreground: 222 47% 6%;
+	--sidebar-accent: 222 40% 14%;
+	--sidebar-accent-foreground: 210 40% 96%;
+	--sidebar-border: 222 30% 18%;
+	--sidebar-ring: 217 91% 60%;
+}
+
+/* ========== Tailwind v4 @theme (utilities a partir dos tokens) ========== */
+@theme {
+	/* Cores semânticas → bg-background, text-foreground, etc. (HSL) */
+	--color-border: hsl(var(--border));
+	--color-input: hsl(var(--input));
+	--color-ring: hsl(var(--ring));
+	--color-background: hsl(var(--background));
+	--color-foreground: hsl(var(--foreground));
+	--color-primary: hsl(var(--primary));
+	--color-primary-foreground: hsl(var(--primary-foreground));
+	--color-secondary: hsl(var(--secondary));
+	--color-secondary-foreground: hsl(var(--secondary-foreground));
+	--color-destructive: hsl(var(--destructive));
+	--color-destructive-foreground: hsl(var(--destructive-foreground));
+	--color-muted: hsl(var(--muted));
+	--color-muted-foreground: hsl(var(--muted-foreground));
+	--color-accent: hsl(var(--accent));
+	--color-accent-foreground: hsl(var(--accent-foreground));
+	--color-popover: hsl(var(--popover));
+	--color-popover-foreground: hsl(var(--popover-foreground));
+	--color-card: hsl(var(--card));
+	--color-card-foreground: hsl(var(--card-foreground));
+	--color-sidebar: hsl(var(--sidebar-background));
+	--color-sidebar-foreground: hsl(var(--sidebar-foreground));
+	--color-sidebar-primary: hsl(var(--sidebar-primary));
+	--color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+	--color-sidebar-accent: hsl(var(--sidebar-accent));
+	--color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+	--color-sidebar-border: hsl(var(--sidebar-border));
+	--color-sidebar-ring: hsl(var(--sidebar-ring));
+
+	/* Border radius */
+	--radius-lg: var(--radius);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-sm: calc(var(--radius) - 4px);
+
+	/* Accordion */
+	--animate-accordion-down: accordion-down 0.2s ease-out;
+	--animate-accordion-up: accordion-up 0.2s ease-out;
+	@keyframes accordion-down {
+		from {
+			height: 0;
+		}
+		to {
+			height: var(--radix-accordion-content-height);
+		}
+	}
+	@keyframes accordion-up {
+		from {
+			height: var(--radix-accordion-content-height);
+		}
+		to {
+			height: 0;
+		}
+	}
+
+	/* Animações do projeto */
+	--animate-fade-in-up: fade-in-up 0.6s ease-out both;
+	--animate-fade-in-up-delay-1: fade-in-up 0.6s ease-out 0.1s both;
+	--animate-fade-in-up-delay-2: fade-in-up 0.6s ease-out 0.2s both;
+	--animate-fade-in-up-delay-3: fade-in-up 0.6s ease-out 0.3s both;
+	--animate-fade-in-up-delay-4: fade-in-up 0.6s ease-out 0.4s both;
+	--animate-pulse-glow: pulse-glow 3s ease-in-out infinite;
+	--animate-float: float 4s ease-in-out infinite;
+
+	@keyframes fade-in-up {
+		from {
+			opacity: 0;
+			transform: translateY(24px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+	@keyframes pulse-glow {
+		0%,
+		100% {
+			box-shadow: 0 0 20px hsl(var(--primary) / 0.1);
+		}
+		50% {
+			box-shadow: 0 0 40px hsl(var(--primary) / 0.2);
+		}
+	}
+	@keyframes float {
+		0%,
+		100% {
+			transform: translateY(0);
+		}
+		50% {
+			transform: translateY(-6px);
+		}
+	}
+}
+
+/* ========== Base ========== */
+@layer base {
+	* {
+		border-color: hsl(var(--border));
+		outline-color: hsl(var(--ring));
+	}
+	body {
+		background-color: hsl(var(--background));
+		color: hsl(var(--foreground));
+	}
+	html {
+		scroll-behavior: smooth;
+	}
+}
+
+/* ========== Utilities ========== */
+@layer utilities {
+	.text-gradient {
+		background-image: linear-gradient(
+			135deg,
+			hsl(var(--gradient-blue)) 0%,
+			hsl(var(--gradient-purple)) 100%
+		);
+		background-clip: text;
+		color: transparent;
+	}
+
+	.bg-gradient-hero {
+		background: radial-gradient(
+			ellipse 80% 50% at 50% -20%,
+			hsl(var(--gradient-blue) / 0.15) 0%,
+			transparent 70%
+		);
+	}
+
+	.glass {
+		background: hsl(var(--card) / 0.6);
+		backdrop-filter: blur(24px);
+		border: 1px solid hsl(var(--border) / 0.6);
+	}
+
+	.glow-border {
+		position: relative;
+	}
+	.glow-border::before {
+		content: "";
+		position: absolute;
+		inset: -1px;
+		border-radius: inherit;
+		padding: 1px;
+		background: linear-gradient(
+			135deg,
+			hsl(var(--gradient-blue) / 0.4),
+			hsl(var(--gradient-purple) / 0.2),
+			transparent
+		);
+		-webkit-mask:
+			linear-gradient(#fff 0 0) content-box,
+			linear-gradient(#fff 0 0);
+		mask:
+			linear-gradient(#fff 0 0) content-box,
+			linear-gradient(#fff 0 0);
+		-webkit-mask-composite: xor;
+		mask-composite: exclude;
+		pointer-events: none;
+		opacity: 0;
+		transition: opacity 0.3s;
+	}
+	.glow-border:hover::before {
+		opacity: 1;
+	}
+}
+
+/* ========== Code block styling ========== */
+.code-block {
+	font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+	font-size: 0.85rem;
+	line-height: 1.7;
+}
+
+.code-keyword {
+	color: hsl(260 70% 68%);
+}
+.code-string {
+	color: hsl(120 50% 60%);
+}
+.code-function {
+	color: hsl(200 80% 65%);
+}
+.code-type {
+	color: hsl(35 90% 65%);
+}
+.code-comment {
+	color: hsl(215 20% 40%);
+}
+.code-bracket {
+	color: hsl(210 40% 70%);
+}
+.code-punctuation {
+	color: hsl(215 20% 55%);
+}

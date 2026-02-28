@@ -1,0 +1,163 @@
+---
+title: Fields
+description: Campos reutilizáveis no Zormy — chave, schema, render, dependências e aninhamento
+---
+
+import { Callout } from "nextra/components";
+
+# Fields
+
+Campos no Zormy são **componentes reutilizáveis** que encapsulam:
+
+- **Chave** — identificador único no formulário (ex: `"name"`, `"user.email"`)
+- **Schema** — validação Zod (estática ou dinâmica)
+- **Renderização** — como o campo é exibido na UI
+
+## Criando um campo: `field(key)`
+
+Use o builder fluente `field("chave")`:
+
+<CodeExample
+	code={`import { z } from "zod";
+import { field, Form, formyResolver, useForm } from "zormy";
+
+const NameField = field("name")
+  .schema(z.string().min(3, "Mínimo 3 caracteres"))
+  .render(({ register, fieldState }) => (
+    <div>
+      <label>Nome</label>
+      <input {...register()} />
+      {fieldState.error && <span>{fieldState.error.message}</span>}
+    </div>
+  ));
+
+function App() {
+  const form = useForm({
+    resolver: formyResolver({ fields: [NameField] }),
+    defaultValues: { name: "" },
+  });
+  return (
+    <Form methods={form} onSubmit={form.handleSubmit((d) => console.log(d))}>
+      <NameField />
+      <button type="submit">Enviar</button>
+    </Form>
+  );
+}
+
+export default App;`}
+	editorHeight={360}
+/>
+
+No `render`, você recebe `register`, `fieldState`, `control`, `getValues`, `setValue`, `watch` e outras funções do react-hook-form, tipadas para esse campo. Use `register()` sem argumentos para usar a chave do campo; para sobrescrever: `register({ name: "outra.chave" })`.
+
+## Campo abstrato: `abstractField()`
+
+Quando vários campos compartilham o mesmo tipo e UI, crie um **template** com `abstractField()` e derive campos com `.extend({ key })`:
+
+```tsx
+import { z } from "zod";
+import { abstractField } from "zormy";
+
+const BaseTextField = abstractField()
+	.schema(z.string().min(3))
+	.render(({ register, fieldState }) => (
+		<div>
+			<input {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
+
+const NameField = BaseTextField.extend({ key: "name" });
+const EmailField = BaseTextField.extend({ key: "email" });
+```
+
+Você pode sobrescrever também `schema`, `render`, `dependsOn` ou `props` no `.extend()`.
+
+## Campos com dependências: `.dependsOn()`
+
+Para schemas que dependem de outros campos, use `.dependsOn(OutroCampo)` e `.schema()` com uma **função** que recebe `formValues`:
+
+```tsx
+const HasPasswordField = field("hasPassword")
+	.schema(z.boolean())
+	.render(({ register }) => (
+		<label>
+			<input type="checkbox" {...register()} />
+			Possui senha?
+		</label>
+	));
+
+const PasswordField = field("password")
+	.dependsOn(HasPasswordField)
+	.schema((formValues) => {
+		if (formValues?.hasPassword) {
+			return z.string().min(8, "Senha deve ter pelo menos 8 caracteres");
+		}
+		return z.string().optional();
+	})
+	.render(({ register, fieldState, watch }) => {
+		if (!watch("hasPassword")) return null;
+		return (
+			<div>
+				<input type="password" {...register()} />
+				{fieldState.error && <span>{fieldState.error.message}</span>}
+			</div>
+		);
+	});
+```
+
+<Callout type="warning">
+	Inclua **todos** os campos (incluindo os usados em `dependsOn`) no array `fields` do `formyResolver` e, em wizards, no step correto. Caso contrário, tipo e validação podem ficar inconsistentes.
+</Callout>
+
+## Campos aninhados (dot notation)
+
+Chaves com ponto criam estrutura aninhada no formulário. O resolver monta o schema Zod aninhado automaticamente:
+
+```tsx
+const UserNameField = field("user.name")
+	.schema(z.string().min(3))
+	.render(({ register, fieldState }) => (
+		<div>
+			<label>Nome</label>
+			<input {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
+
+// defaultValues deve refletir a estrutura:
+// defaultValues: { user: { name: "" } }
+```
+
+Use o mesmo padrão para `address.street`, `profile.bio`, etc.
+
+## Hook `useField` (opcional)
+
+Para acessar o contexto do formulário com tipagem forte para um campo específico, use `useField(key)` dentro de `<Form>` ou `FormProvider`:
+
+```tsx
+import { useField } from "zormy";
+
+function CustomNameInput() {
+	const { register, fieldState } = useField("name");
+	return (
+		<div>
+			<input {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	);
+}
+```
+
+Na maioria dos casos, definir o campo com `field("name").schema(...).render(...)` e usar o componente gerado é suficiente.
+
+## Resumo
+
+| Conceito | Uso |
+|----------|-----|
+| Campo simples | `field("key").schema(z...).render(...)` |
+| Template reutilizável | `abstractField().schema(...).render(...)` + `.extend({ key })` |
+| Schema condicional | `.dependsOn(OutroCampo).schema((formValues) => z...)` |
+| Estrutura aninhada | Chave `"a.b.c"` e `defaultValues: { a: { b: { c: "" } } }` |
+
+Para regras Zod (min, max, email, refine, etc.) e mensagens de erro, veja [Integração Zod](/docs/zod-integration). Para a API completa de campos, veja [Referência API](/docs/api-reference).

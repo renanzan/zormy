@@ -1,37 +1,10 @@
-# Dependencies
-node_modules/
+node_modules
 
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Build
-dist/
-build/
+# TypeScript build info
 *.tsbuildinfo
+.tsbuildinfo
+.next/tsconfig.tsbuildinfo
 
-# Environment
-.env
-.env.local
-.env.*.local
-
-# Testing
-coverage/
-.nyc_output/
-
-# Temporary
-*.tmp
-*.temp
+**/*.temp*
+**/dist
+**/coverage
