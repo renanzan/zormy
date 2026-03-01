@@ -1,13 +1,13 @@
 import { z } from "zod";
 import { FormProvider, useForm } from "react-hook-form";
-import { field, formyResolver } from "zormy";
+import { field, zormyResolver } from "zormy";
 
 import type { FieldsToObject } from "zormy";
 
 // Teste básico: importar do pacote compilado
 console.log("✅ Imports do zormy funcionando:", {
 	field: typeof field,
-	formyResolver: typeof formyResolver,
+	zormyResolver: typeof zormyResolver,
 });
 
 // Os tipos serão inferidos automaticamente dos campos
@@ -56,8 +56,8 @@ const AgeField = field("age")
 const fields = [NameField, EmailField, AgeField];
 
 function App() {
-	// Usar formyResolver com os campos criados
-	const resolver = formyResolver({
+	// Usar zormyResolver com os campos criados
+	const resolver = zormyResolver({
 		fields,
 	});
 

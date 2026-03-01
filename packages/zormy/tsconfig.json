@@ -15,9 +15,15 @@
 		"noUnusedLocals": false,
 		"verbatimModuleSyntax": false,
 		"paths": {
-			"~/formy/*": ["./src/*"]
+			"~/zormy/*": ["./src/*"]
 		}
 	},
-	"include": ["src/**/*.ts", "src/**/*.tsx", "index.ts", "__tests__/**/*.test-d.ts", "__tests__/**/*.test.tsx"],
+	"include": [
+		"src/**/*.ts",
+		"src/**/*.tsx",
+		"index.ts",
+		"__tests__/**/*.test-d.ts",
+		"__tests__/**/*.test.tsx"
+	],
 	"exclude": ["node_modules", "**/node_modules", "dist", "**/*.tsbuildinfo", "__test__"]
 }

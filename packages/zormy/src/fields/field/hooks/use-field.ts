@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback } from "react";
 import { get, useFormContext } from "react-hook-form";
 
@@ -19,10 +21,10 @@ import type {
 } from "../../../resolver/types/nested-helpers";
 
 /**
- * Tipo customizado para o método register do formy.
+ * Tipo customizado para o método register do zormy.
  * Permite sobrescrever o nome do campo se necessário.
  */
-type FormyRegister = (
+type ZormyRegister = (
 	options?: RegisterOptions & {
 		name?: string;
 	}
@@ -78,7 +80,7 @@ export type UseFieldReturn<
 	"register" | "getValues" | "setValue" | "watch"
 > & {
 	/** Método register customizado que usa a chave do campo por padrão */
-	register: FormyRegister;
+	register: ZormyRegister;
 	/** Estado do campo incluindo erros de validação */
 	fieldState: FieldState<Key, Schema, DepsTypes>;
 	/** Control tipado para uso com Controller do react-hook-form.
@@ -276,7 +278,7 @@ export const useField = <
 	) as UseFieldReturn<Key, Schema, DepsTypes>["watch"];
 
 	// Quando a chave contém pontos, o react-hook-form espera uma estrutura aninhada
-	// mas o formy tipa como KeyToNested<Key, TypeOf<Schema>>. Precisamos fazer o control
+	// mas o zormy tipa como KeyToNested<Key, TypeOf<Schema>>. Precisamos fazer o control
 	// ser compatível com paths aninhados para que o Controller possa inferir corretamente.
 	const control = context.control as Key extends `${string}.${string}`
 		? Control<FormType>

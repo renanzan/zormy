@@ -33,7 +33,7 @@ type FormResolverArgs<Fields extends readonly FieldComponentBase[]> = {
  *
  * @example
  * ```tsx
- * const resolver = formyResolver({
+ * const resolver = zormyResolver({
  *   fields: [NameField, EmailField, PasswordField]
  * });
  * const form = useForm({
@@ -42,7 +42,7 @@ type FormResolverArgs<Fields extends readonly FieldComponentBase[]> = {
  * });
  * ```
  */
-export function formyResolver<Fields extends readonly FieldComponentBase[]>(
+export function zormyResolver<Fields extends readonly FieldComponentBase[]>(
 	args: FormResolverArgs<Fields>
 ): Resolver<FieldsToObject<Fields>> {
 	// Cria um objeto shape com todos os schemas dos campos

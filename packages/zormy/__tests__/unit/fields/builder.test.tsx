@@ -8,7 +8,7 @@ import { abstractField, field } from "../../../src/fields/field/builder/builder"
 /**
  * Testes do builder de campos (field builder).
  *
- * Estes testes demonstram como criar campos usando a API fluente do formy
+ * Estes testes demonstram como criar campos usando a API fluente do zormy
  * e servem como documentação de exemplos de uso.
  */
 describe("field builder - API fluente para criar campos", () => {

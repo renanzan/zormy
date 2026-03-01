@@ -12,8 +12,8 @@ Este diretório concentra **métricas de eficiência** da lib (Zod + RHF): quant
 ## 2. Velocidade (validação Zod)
 
 - **`validation.bench.ts`**: benchmarks com o modo **Benchmark do Vitest** (`vitest bench`).
-  - Executa a função de validação (resolver do formyResolver) em massa (dados válidos e inválidos).
-  - Objetivo: medir *Execution Time* e *Ops/sec* para avaliar o overhead do Zod na integração.
+  - Executa a função de validação (resolver do zormyResolver) em massa (dados válidos e inválidos).
+  - Objetivo: medir _Execution Time_ e _Ops/sec_ para avaliar o overhead do Zod na integração.
 
 **Como rodar os benchmarks:**
 
@@ -36,15 +36,15 @@ Se os números de re-renders ou tempo estiverem altos, use o **React Render Trac
 - **No Vitest**: o teste "formulário com 1000 campos" em `form-rerenders.test.tsx` já cobre setValue no primeiro e no último campo e verifica ausência de degradação extrema.
 - **Página de teste + DevTools/Playwright**: para análise manual com Chrome DevTools (aba Performance) ou Playwright:
   - Crie uma página que renderize um formulário com 1000 campos gerados pela lib.
-  - Meça o *Scripting Time* ao digitar no campo #1 e no campo #1000.
+  - Meça o _Scripting Time_ ao digitar no campo #1 e no campo #1000.
   - Objetivo: se o campo #1000 for muito mais lento que o #1, há possível problema de escalabilidade na manipulação de estado.
 
 ## Resumo
 
-| Objetivo                         | Ferramenta              | Arquivo / Ação                          |
-|----------------------------------|-------------------------|-----------------------------------------|
-| Regressão de re-renders          | Vitest + Profiler/vi.fn | `form-rerenders.test.tsx`               |
-| Custo da validação Zod           | Vitest Bench            | `validation.bench.ts` + `pnpm test:bench` |
-| Causa raiz de muitos re-renders  | React Render Tracker    | Uso manual em dev                       |
-| Escalabilidade (1000 campos)     | Vitest + perf.now       | Teste em `form-rerenders.test.tsx`      |
-| Escalabilidade (manual/E2E)     | DevTools / Playwright   | Página de teste com 1000 campos         |
+| Objetivo                        | Ferramenta              | Arquivo / Ação                            |
+| ------------------------------- | ----------------------- | ----------------------------------------- |
+| Regressão de re-renders         | Vitest + Profiler/vi.fn | `form-rerenders.test.tsx`                 |
+| Custo da validação Zod          | Vitest Bench            | `validation.bench.ts` + `pnpm test:bench` |
+| Causa raiz de muitos re-renders | React Render Tracker    | Uso manual em dev                         |
+| Escalabilidade (1000 campos)    | Vitest + perf.now       | Teste em `form-rerenders.test.tsx`        |
+| Escalabilidade (manual/E2E)     | DevTools / Playwright   | Página de teste com 1000 campos           |

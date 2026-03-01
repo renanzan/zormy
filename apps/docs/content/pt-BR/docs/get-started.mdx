@@ -8,7 +8,8 @@ import { Callout, Cards } from "nextra/components";
 # Começando
 
 <Callout type="info" emoji="🚀">
-	Zormy é uma biblioteca para criar formulários tipados e reutilizáveis com TypeScript, Zod e React Hook Form. Comece em minutos!
+	Zormy é uma biblioteca para criar formulários tipados e reutilizáveis com TypeScript, Zod e React
+	Hook Form. Comece em minutos!
 </Callout>
 
 Se ainda não instalou, veja [Instalação](/docs/installation).
@@ -16,36 +17,36 @@ Se ainda não instalou, veja [Instalação](/docs/installation).
 ## Primeiro formulário
 
 1. **Defina um campo** com `field("chave").schema(zodSchema).render(...)`.
-2. **Crie o formulário** com `useForm` e `formyResolver({ fields: [...] })`.
+2. **Crie o formulário** com `useForm` e `zormyResolver({ fields: [...] })`.
 3. **Renderize** dentro de `<Form methods={form}>`.
 
 <CodeExample
 	code={`import { z } from "zod";
-import { field, Form, formyResolver, useForm } from "zormy";
+import { field, Form, zormyResolver, useForm } from "zormy";
 
 const NameField = field("name")
-  .schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
-  .render(({ register, fieldState }) => (
-    <div>
-      <label>Nome</label>
-      <input {...register()} />
-      {fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
-    </div>
-  ));
+.schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
+.render(({ register, fieldState }) => (
+<div>
+<label>Nome</label>
+<input {...register()} />
+{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
+</div>
+));
 
 function App() {
-  const form = useForm({
-    resolver: formyResolver({ fields: [NameField] }),
-    defaultValues: { name: "" },
-    mode: "onChange",
-  });
+const form = useForm({
+resolver: zormyResolver({ fields: [NameField] }),
+defaultValues: { name: "" },
+mode: "onChange",
+});
 
-  return (
-    <Form methods={form} onSubmit={form.handleSubmit((data) => alert(JSON.stringify(data)))}>
-      <NameField />
-      <button type="submit">Enviar</button>
-    </Form>
-  );
+return (
+<Form methods={form} onSubmit={form.handleSubmit((data) => alert(JSON.stringify(data)))}>
+<NameField />
+<button type="submit">Enviar</button>
+</Form>
+);
 }
 
 export default App;`}
@@ -63,66 +64,66 @@ Para um fluxo em múltiplos passos, use `createWizardConfig`, `createWizardCompo
 import { createWizardComponents, createWizardConfig, field, useWizard } from "zormy";
 
 const NameField = field("name")
-  .schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
-  .render(({ register, fieldState }) => (
-    <div>
-      <label>Nome</label>
-      <input {...register()} />
-      {fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
-    </div>
-  ));
+.schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
+.render(({ register, fieldState }) => (
+<div>
+<label>Nome</label>
+<input {...register()} />
+{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
+</div>
+));
 
 const EmailField = field("email")
-  .schema(z.string().email("Email inválido"))
-  .render(({ register, fieldState }) => (
-    <div>
-      <label>Email</label>
-      <input type="email" {...register()} />
-      {fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
-    </div>
-  ));
+.schema(z.string().email("Email inválido"))
+.render(({ register, fieldState }) => (
+<div>
+<label>Email</label>
+<input type="email" {...register()} />
+{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
+</div>
+));
 
 const wizardConfig = createWizardConfig({
-  steps: ["personal", "contact"] as const,
-  fields: {
-    personal: [NameField],
-    contact: [EmailField],
-  },
+steps: ["personal", "contact"] as const,
+fields: {
+personal: [NameField],
+contact: [EmailField],
+},
 });
 
 const { Wizard, Step } = createWizardComponents(wizardConfig);
 
 function MyWizard() {
-  const wizard = useWizard({
-    ...wizardConfig,
-    defaultValues: { name: "", email: "" },
-    onSubmit: (data) => console.log("Dados finais:", data),
-  });
+const wizard = useWizard({
+...wizardConfig,
+defaultValues: { name: "", email: "" },
+onSubmit: (data) => console.log("Dados finais:", data),
+});
 
-  return (
-    <Wizard methods={wizard} onSubmit={wizard.handleSubmit()}>
-      <Step step="personal">
-        <NameField />
-      </Step>
-      <Step step="contact">
-        <EmailField />
-      </Step>
-      <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem" }}>
-        {!wizard.isFirstStep && (
-          <button type="button" onClick={wizard.back}>
-            Voltar
-          </button>
-        )}
-        {wizard.isLastStep ? (
-          <button type="submit">Finalizar</button>
-        ) : (
-          <button type="button" onClick={wizard.next}>
-            Próximo
-          </button>
-        )}
-      </div>
-    </Wizard>
-  );
+return (
+<Wizard methods={wizard} onSubmit={wizard.handleSubmit()}>
+<Step step="personal">
+<NameField />
+</Step>
+<Step step="contact">
+<EmailField />
+</Step>
+<div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem" }}>
+{!wizard.isFirstStep && (
+<button type="button" onClick={wizard.back}>
+Voltar
+</button>
+)}
+{wizard.isLastStep ? (
+<button type="submit">Finalizar</button>
+) : (
+<button type="button" onClick={wizard.next}>
+Próximo
+</button>
+)}
+</div>
+</Wizard>
+);
 }
 
 export default MyWizard;`}
@@ -138,7 +139,7 @@ A configuração do wizard (`createWizardConfig`) deve ficar **fora do component
 		Campos reutilizáveis: chave, schema, render, dependências e campos aninhados
 	</Cards.Card>
 	<Cards.Card title="Forms" href="/docs/forms">
-		Form, useForm, formyResolver e modo de validação
+		Form, useForm, zormyResolver e modo de validação
 	</Cards.Card>
 	<Cards.Card title="Wizards" href="/docs/wizards">
 		Steps, navegação, steps condicionais e auto-save

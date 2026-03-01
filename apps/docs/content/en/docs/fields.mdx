@@ -19,29 +19,29 @@ Use the fluent builder `field("key")`:
 
 <CodeExample
 	code={`import { z } from "zod";
-import { field, Form, formyResolver, useForm } from "zormy";
+import { field, Form, zormyResolver, useForm } from "zormy";
 
 const NameField = field("name")
-  .schema(z.string().min(3, "At least 3 characters"))
-  .render(({ register, fieldState }) => (
-    <div>
-      <label>Name</label>
-      <input {...register()} />
-      {fieldState.error && <span>{fieldState.error.message}</span>}
-    </div>
-  ));
+.schema(z.string().min(3, "At least 3 characters"))
+.render(({ register, fieldState }) => (
+<div>
+<label>Name</label>
+<input {...register()} />
+{fieldState.error && <span>{fieldState.error.message}</span>}
+</div>
+));
 
 function App() {
-  const form = useForm({
-    resolver: formyResolver({ fields: [NameField] }),
-    defaultValues: { name: "" },
-  });
-  return (
-    <Form methods={form} onSubmit={form.handleSubmit((d) => console.log(d))}>
-      <NameField />
-      <button type="submit">Submit</button>
-    </Form>
-  );
+const form = useForm({
+resolver: zormyResolver({ fields: [NameField] }),
+defaultValues: { name: "" },
+});
+return (
+<Form methods={form} onSubmit={form.handleSubmit((d) => console.log(d))}>
+<NameField />
+<button type="submit">Submit</button>
+</Form>
+);
 }
 
 export default App;`}
@@ -107,7 +107,9 @@ const PasswordField = field("password")
 ```
 
 <Callout type="warning">
-	Include **all** fields (including those used in `dependsOn`) in the `fields` array of `formyResolver` and, in wizards, in the correct step. Otherwise, types and validation may be inconsistent.
+	Include **all** fields (including those used in `dependsOn`) in the `fields` array of
+	`zormyResolver` and, in wizards, in the correct step. Otherwise, types and validation may be
+	inconsistent.
 </Callout>
 
 ## Nested fields (dot notation)
@@ -153,11 +155,11 @@ In most cases, defining the field with `field("name").schema(...).render(...)` a
 
 ## Summary
 
-| Concept | Usage |
-|---------|-------|
-| Simple field | `field("key").schema(z...).render(...)` |
-| Reusable template | `abstractField().schema(...).render(...)` + `.extend({ key })` |
-| Conditional schema | `.dependsOn(OtherField).schema((formValues) => z...)` |
-| Nested structure | Key `"a.b.c"` and `defaultValues: { a: { b: { c: "" } } }` |
+| Concept            | Usage                                                          |
+| ------------------ | -------------------------------------------------------------- |
+| Simple field       | `field("key").schema(z...).render(...)`                        |
+| Reusable template  | `abstractField().schema(...).render(...)` + `.extend({ key })` |
+| Conditional schema | `.dependsOn(OtherField).schema((formValues) => z...)`          |
+| Nested structure   | Key `"a.b.c"` and `defaultValues: { a: { b: { c: "" } } }`     |
 
 For Zod rules (min, max, email, refine, etc.) and error messages, see [Zod Integration](/en/docs/zod-integration). For the full field API, see [API Reference](/en/docs/api-reference).

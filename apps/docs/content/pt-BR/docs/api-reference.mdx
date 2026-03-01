@@ -68,36 +68,66 @@ Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
 
     ### `Form`
 
-    Componente de formulário integrado ao react-hook-form que fornece o contexto automaticamente. O **modo de validação** (quando os campos são validados) é configurado no `useForm`, via a opção `mode`: `"onChange"` (padrão), `"onBlur"`, `"onSubmit"`, `"onTouched"` ou `"all"`.
+    Componente de formulário integrado ao react-hook-form. Aceita **dois modos**:
+
+    - **`methods`**: você passa o retorno de `useForm` ou `useZormy` (controle externo).
+    - **`fields`**: você passa o array de campos; o Form usa `useZormy` internamente. Opcionalmente passe `defaultValues`, `mode`, `onSubmit`, etc.
 
     | Propriedade | Tipo | Obrigatório | Descrição |
     |-------------|------|-------------|-----------|
-    | `methods` | `UseFormReturn<TFieldValues>` | ✅ | Instância de useForm do react-hook-form |
-    | `contextOnly` | `boolean` | ❌ | Se true, fornece apenas o contexto sem envolver em `<form>` (props HTML passadas ao `Form` **não** são repassadas automaticamente ao filho) |
+    | `methods` | `UseFormReturn<TFieldValues>` | * | Instância de useForm (obrigatório quando não usa `fields`) |
+    | `fields` | `readonly FieldComponentBase[]` | * | Array de campos; Form usa useZormy internamente (obrigatório quando não usa `methods`) |
+    | `defaultValues` | `DeepPartial<FormValues>` | ❌ | Valores iniciais (apenas com `fields`) |
+    | `mode` | `"onChange"` \| `"onBlur"` \| `"onSubmit"` \| ... | ❌ | Modo de validação (apenas com `fields`) |
+    | `onSubmit` | `(data: FormValues) => void` | ❌ | Callback chamado com os dados validados no submit |
+    | `contextOnly` | `boolean` | ❌ | Se true, fornece apenas o contexto sem envolver em `<form>` |
     | `children` | `ReactNode` | ❌ | Conteúdo do formulário |
-    | `...formProps` | `ComponentPropsWithoutRef<"form">` | ❌ | Props adicionais do elemento `<form>` (ignoradas quando `contextOnly` é `true`) |
+    | `...formProps` | `ComponentPropsWithoutRef<"form">` | ❌ | Props do elemento `<form>` |
 
-    **Retorna:** Componente React que fornece `FormProvider` e renderiza `<form>` (ou apenas contexto se `contextOnly={true}`)
-
-    **Exemplo:**
+    **Exemplo com `methods`:**
     ```tsx
-    const form = useForm({
-      resolver: formyResolver({ fields: [NameField] }),
-      defaultValues: { name: "" },
-      mode: "onChange" // ou "onBlur" | "onSubmit" | "onTouched" | "all"
-    });
-
-    // Modo padrão: renderiza <form>
-    <Form methods={form} onSubmit={form.handleSubmit(handleSubmit)}>
+    const form = useZormy({ fields: [NameField], defaultValues: { name: "" } });
+    <Form methods={form} onSubmit={(data) => console.log(data)}>
       <NameField />
       <button type="submit">Enviar</button>
     </Form>
+    ```
 
-    // Modo contextOnly: apenas fornece contexto
-    <Form methods={form} contextOnly>
-      <CustomFormWrapper>
-        <NameField />
-      </CustomFormWrapper>
+    **Exemplo com `fields` (Form cria o form internamente):**
+    ```tsx
+    <Form
+      fields={[NameField, EmailField]}
+      defaultValues={{ name: "", email: "" }}
+      mode="onChange"
+      onSubmit={(data) => console.log(data)}
+    >
+      <NameField />
+      <EmailField />
+      <button type="submit">Enviar</button>
+    </Form>
+    ```
+
+    ### `useZormy({ fields, ...useFormOptions })`
+
+    Hook que integra um array de campos ao `useForm` do react-hook-form, injetando automaticamente o `zormyResolver`. Evita passar `resolver` manualmente e preserva a inferência de tipos a partir dos campos.
+
+    | Propriedade | Tipo | Obrigatório | Descrição |
+    |-------------|------|-------------|-----------|
+    | `fields` | `readonly FieldComponentBase[]` | ✅ | Array de componentes de campo |
+    | `...useFormOptions` | `Omit<UseFormProps, 'resolver'>` | ❌ | Demais opções do `useForm` (defaultValues, mode, etc.) — não passe `resolver` |
+
+    **Retorna:** `UseFormReturn<FieldsToObject<TFieldValues>, TContext, TTransformedValues>`
+
+    **Exemplo:**
+    ```tsx
+    const form = useZormy({
+      fields: [NameField, EmailField],
+      defaultValues: { name: "", email: "" },
+      mode: "onChange",
+    });
+    <Form methods={form} onSubmit={form.handleSubmit(handleSubmit)}>
+      <NameField />
+      <EmailField />
     </Form>
     ```
 
@@ -106,7 +136,7 @@ Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
   <Tabs.Tab>
     ## Resolvers
 
-    ### `formyResolver({ fields })`
+    ### `zormyResolver({ fields })`
 
     Cria um resolver para react-hook-form baseado em um array de campos. Suporta schemas flat e aninhados (chaves com pontos, ex: `"user.email"`). Schemas dinâmicos (função que recebe `formValues`) são avaliados no momento da validação.
 
@@ -118,7 +148,7 @@ Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
 
     **Exemplo:**
     ```tsx
-    const resolver = formyResolver({
+    const resolver = zormyResolver({
       fields: [NameField, EmailField]
     });
 
@@ -323,6 +353,7 @@ Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
     ### `AutoSaveStatus`
 
     Status do auto save: `"idle" | "saving" | "saved" | "error"`.
+
   </Tabs.Tab>
 </Tabs>
 
@@ -335,14 +366,15 @@ O Zormy exporta alguns tipos e componentes úteis do react-hook-form:
 Componente do react-hook-form para controlar componentes não controlados ou bibliotecas de UI.
 
 **Exemplo:**
+
 ```tsx
 import { Controller } from "zormy";
 
 <Controller
-  control={control}
-  name="fieldName"
-  render={({ field }) => <CustomInput {...field} />}
-/>
+	control={control}
+	name="fieldName"
+	render={({ field }) => <CustomInput {...field} />}
+/>;
 ```
 
 ### `SubmitHandler<TFieldValues>`
@@ -350,11 +382,12 @@ import { Controller } from "zormy";
 Tipo para handlers de submit do formulário.
 
 **Exemplo:**
+
 ```tsx
 import type { SubmitHandler } from "zormy";
 
 const handleSubmit: SubmitHandler<FormData> = (data) => {
-  console.log(data);
+	console.log(data);
 };
 ```
 

@@ -11,7 +11,7 @@ export default defineConfig({
 		exclude: [...configDefaults.exclude, "**/*.zod4.test.ts", "**/*.zod4.test.tsx"],
 		typecheck: {
 			enabled: true,
-			include: ["__tests__/**/*.test-d.ts"],
+			include: ["__tests__/**/*.test-d.ts", "__tests__/**/*.test-d.tsx"],
 			exclude: ["__tests__/**/*.zod4.test-d.ts"],
 			tsconfig: "./tsconfig.json",
 		},

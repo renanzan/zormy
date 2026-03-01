@@ -10,7 +10,9 @@ import { Callout, Tabs } from "nextra/components";
 Exemplos práticos de uso do Zormy com componentes React funcionando em tempo real.
 
 <Callout type="info" emoji="💡">
-	Todos os exemplos abaixo são funcionais e podem ser copiados diretamente para seu projeto! Para conceitos (campos, formulários, wizards), veja [Começando](/docs/get-started), [Fields](/docs/fields), [Forms](/docs/forms) e [Wizards](/docs/wizards).
+	Todos os exemplos abaixo são funcionais e podem ser copiados diretamente para seu projeto! Para
+	conceitos (campos, formulários, wizards), veja [Começando](/docs/get-started),
+	[Fields](/docs/fields), [Forms](/docs/forms) e [Wizards](/docs/wizards).
 </Callout>
 
 ## Exemplos Disponíveis
@@ -40,41 +42,41 @@ Exemplo básico de um formulário com validação. Você pode editar e rodar ao 
 
 <CodeExample
 	code={`import { z } from "zod";
-import { field, Form, formyResolver, useForm } from "zormy";
+import { field, Form, zormyResolver, useForm } from "zormy";
 
 const NameField = field("name")
-  .schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
-  .render(({ register, fieldState }) => (
-    <div>
-      <label>Nome</label>
-      <input {...register()} />
-      {fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
-    </div>
-  ));
+.schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
+.render(({ register, fieldState }) => (
+<div>
+<label>Nome</label>
+<input {...register()} />
+{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
+</div>
+));
 
 const EmailField = field("email")
-  .schema(z.string().email("Email inválido"))
-  .render(({ register, fieldState }) => (
-    <div>
-      <label>Email</label>
-      <input type="email" {...register()} />
-      {fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
-    </div>
-  ));
+.schema(z.string().email("Email inválido"))
+.render(({ register, fieldState }) => (
+<div>
+<label>Email</label>
+<input type="email" {...register()} />
+{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
+</div>
+));
 
 function SimpleForm() {
-  const form = useForm({
-    resolver: formyResolver({ fields: [NameField, EmailField] }),
-    defaultValues: { name: "", email: "" },
-  });
+const form = useForm({
+resolver: zormyResolver({ fields: [NameField, EmailField] }),
+defaultValues: { name: "", email: "" },
+});
 
-  return (
-    <Form methods={form} onSubmit={form.handleSubmit((data) => alert(JSON.stringify(data, null, 2)))}>
-      <NameField />
-      <EmailField />
-      <button type="submit">Enviar</button>
-    </Form>
-  );
+return (
+<Form methods={form} onSubmit={form.handleSubmit((data) => alert(JSON.stringify(data, null, 2)))}>
+<NameField />
+<EmailField />
+<button type="submit">Enviar</button>
+</Form>
+);
 }
 
 export default SimpleForm;`}
@@ -91,53 +93,53 @@ Exemplo de campo que depende de outro campo. Marque "Possui senha?" e preencha (
 
 <CodeExample
 	code={`import { z } from "zod";
-import { field, Form, formyResolver, useForm } from "zormy";
+import { field, Form, zormyResolver, useForm } from "zormy";
 
 const HasPasswordField = field("hasPassword")
-  .schema(z.boolean())
-  .render(({ register }) => (
-    <div>
-      <label>
-        <input type="checkbox" {...register()} />
-        Possui senha?
-      </label>
-    </div>
-  ));
+.schema(z.boolean())
+.render(({ register }) => (
+<div>
+<label>
+<input type="checkbox" {...register()} />
+Possui senha?
+</label>
+</div>
+));
 
 const PasswordField = field("password")
-  .dependsOn(HasPasswordField)
-  .schema((formValues) => {
-    const hasPassword = formValues?.hasPassword;
-    if (hasPassword) {
-      return z.string().min(8, "Senha deve ter pelo menos 8 caracteres");
-    }
-    return z.string().optional();
-  })
-  .render(({ register, fieldState, watch }) => {
-    const hasPassword = watch("hasPassword");
-    if (!hasPassword) return null;
-    return (
-      <div>
-        <label>Senha</label>
-        <input type="password" {...register()} />
-        {fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
-      </div>
-    );
-  });
+.dependsOn(HasPasswordField)
+.schema((formValues) => {
+const hasPassword = formValues?.hasPassword;
+if (hasPassword) {
+return z.string().min(8, "Senha deve ter pelo menos 8 caracteres");
+}
+return z.string().optional();
+})
+.render(({ register, fieldState, watch }) => {
+const hasPassword = watch("hasPassword");
+if (!hasPassword) return null;
+return (
+<div>
+<label>Senha</label>
+<input type="password" {...register()} />
+{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
+</div>
+);
+});
 
 function DependentFieldsForm() {
-  const form = useForm({
-    resolver: formyResolver({ fields: [HasPasswordField, PasswordField] }),
-    defaultValues: { hasPassword: false, password: "" },
-  });
+const form = useForm({
+resolver: zormyResolver({ fields: [HasPasswordField, PasswordField] }),
+defaultValues: { hasPassword: false, password: "" },
+});
 
-  return (
-    <Form methods={form} onSubmit={form.handleSubmit((data) => alert(JSON.stringify(data, null, 2)))}>
-      <HasPasswordField />
-      <PasswordField />
-      <button type="submit">Enviar</button>
-    </Form>
-  );
+return (
+<Form methods={form} onSubmit={form.handleSubmit((data) => alert(JSON.stringify(data, null, 2)))}>
+<HasPasswordField />
+<PasswordField />
+<button type="submit">Enviar</button>
+</Form>
+);
 }
 
 export default DependentFieldsForm;`}
@@ -152,7 +154,7 @@ Exemplo de campos com estrutura aninhada:
 
 ```tsx
 import { z } from "zod";
-import { field, Form, formyResolver, useForm } from "zormy";
+import { field, Form, useForm, zormyResolver } from "zormy";
 
 const UserNameField = field("user.name")
 	.schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
@@ -176,12 +178,15 @@ const UserEmailField = field("user.email")
 
 function NestedFieldsForm() {
 	const form = useForm({
-		resolver: formyResolver({ fields: [UserNameField, UserEmailField] }),
+		resolver: zormyResolver({ fields: [UserNameField, UserEmailField] }),
 		defaultValues: { user: { name: "", email: "" } },
 	});
 
 	return (
-		<Form methods={form} onSubmit={form.handleSubmit((data) => alert(JSON.stringify(data, null, 2)))}>
+		<Form
+			methods={form}
+			onSubmit={form.handleSubmit((data) => alert(JSON.stringify(data, null, 2)))}
+		>
 			<UserNameField />
 			<UserEmailField />
 			<button type="submit">Enviar</button>
@@ -193,19 +198,15 @@ function NestedFieldsForm() {
 ## Wizard Multi-Step
 
 <Callout type="info">
-	Wizards permitem dividir formulários complexos em steps menores e mais gerenciáveis. Use `createWizardConfig` e `createWizardComponents` para tipagem forte.
+	Wizards permitem dividir formulários complexos em steps menores e mais gerenciáveis. Use
+	`createWizardConfig` e `createWizardComponents` para tipagem forte.
 </Callout>
 
 Exemplo completo de um wizard com múltiplos steps:
 
 ```tsx
 import { z } from "zod";
-import { 
-	createWizardComponents, 
-	createWizardConfig, 
-	field, 
-	useWizard 
-} from "zormy";
+import { createWizardComponents, createWizardConfig, field, useWizard } from "zormy";
 
 const NameField = field("name")
 	.schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
@@ -304,12 +305,7 @@ Exemplo de wizard com steps que aparecem/desaparecem baseado em valores:
 
 ```tsx
 import { z } from "zod";
-import { 
-	createWizardComponents, 
-	createWizardConfig, 
-	field, 
-	useWizard 
-} from "zormy";
+import { createWizardComponents, createWizardConfig, field, useWizard } from "zormy";
 
 const WantToContributeField = field("wantToContribute")
 	.schema(z.boolean())
@@ -421,12 +417,12 @@ Exemplo de wizard com auto save:
 
 ```tsx
 import { z } from "zod";
-import { 
-	createWizardComponents, 
-	createWizardConfig, 
-	field, 
-	useAutoSaveContext, 
-	useWizard 
+import {
+	createWizardComponents,
+	createWizardConfig,
+	field,
+	useAutoSaveContext,
+	useWizard,
 } from "zormy";
 
 const NameField = field("name")

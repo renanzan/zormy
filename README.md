@@ -160,7 +160,7 @@ Zormy requer as seguintes dependências peer:
 
 ```tsx
 import { z } from "zod";
-import { field, Form, formyResolver, useForm } from "zormy";
+import { field, Form, useForm, zormyResolver } from "zormy";
 
 // 1. Defina o campo
 const NameField = field("name")
@@ -176,7 +176,7 @@ const NameField = field("name")
 // 2. Use no formulário
 function App() {
 	const form = useForm({
-		resolver: formyResolver({ fields: [NameField] }),
+		resolver: zormyResolver({ fields: [NameField] }),
 		defaultValues: { name: "" },
 	});
 

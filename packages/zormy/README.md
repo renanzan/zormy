@@ -19,86 +19,100 @@ npm install zormy zod react-hook-form @hookform/resolvers
 ### Formulário simples
 
 ```tsx
-import { field, Form, formyResolver, useForm } from "zormy";
 import { z } from "zod";
+import { field, Form, useForm, zormyResolver } from "zormy";
 
 const NameField = field("name")
-  .schema(z.string().min(3, "Mínimo 3 caracteres"))
-  .render(({ register, fieldState }) => (
-    <div>
-      <input {...register()} />
-      {fieldState.error && <span>{fieldState.error.message}</span>}
-    </div>
-  ));
+	.schema(z.string().min(3, "Mínimo 3 caracteres"))
+	.render(({ register, fieldState }) => (
+		<div>
+			<input {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
 
 function MyForm() {
-  const form = useForm({
-    resolver: formyResolver({ fields: [NameField] }),
-    defaultValues: { name: "" },
-    mode: "onChange", // ou "onBlur" | "onSubmit" | "onTouched" | "all"
-  });
+	const form = useForm({
+		resolver: zormyResolver({ fields: [NameField] }),
+		defaultValues: { name: "" },
+		mode: "onChange", // ou "onBlur" | "onSubmit" | "onTouched" | "all"
+	});
 
-  return (
-    <Form methods={form} onSubmit={form.handleSubmit((data) => console.log(data))}>
-      <NameField />
-      <button type="submit">Enviar</button>
-    </Form>
-  );
+	return (
+		<Form methods={form} onSubmit={form.handleSubmit((data) => console.log(data))}>
+			<NameField />
+			<button type="submit">Enviar</button>
+		</Form>
+	);
 }
 ```
 
 ### Wizard multi-step
 
 ```tsx
-import { createWizardConfig, createWizardComponents, useWizard, field } from "zormy";
 import { z } from "zod";
+import { createWizardComponents, createWizardConfig, field, useWizard } from "zormy";
 
-const NameField = field("name").schema(z.string().min(3)).render(({ register, fieldState }) => (
-  <div>
-    <input {...register()} />
-    {fieldState.error && <span>{fieldState.error.message}</span>}
-  </div>
-));
+const NameField = field("name")
+	.schema(z.string().min(3))
+	.render(({ register, fieldState }) => (
+		<div>
+			<input {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
 
-const EmailField = field("email").schema(z.string().email()).render(({ register, fieldState }) => (
-  <div>
-    <input type="email" {...register()} />
-    {fieldState.error && <span>{fieldState.error.message}</span>}
-  </div>
-));
+const EmailField = field("email")
+	.schema(z.string().email())
+	.render(({ register, fieldState }) => (
+		<div>
+			<input type="email" {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
 
 const config = createWizardConfig({
-  steps: ["personal", "contact"] as const,
-  fields: {
-    personal: [NameField],
-    contact: [EmailField],
-  },
+	steps: ["personal", "contact"] as const,
+	fields: {
+		personal: [NameField],
+		contact: [EmailField],
+	},
 });
 
 const { Wizard, Step } = createWizardComponents(config);
 
 function MyWizard() {
-  const wizard = useWizard({
-    ...config,
-    defaultValues: { name: "", email: "" },
-    mode: "onChange", // opcional: modo de validação do wizard
-    onSubmit: (data) => console.log(data),
-  });
+	const wizard = useWizard({
+		...config,
+		defaultValues: { name: "", email: "" },
+		mode: "onChange", // opcional: modo de validação do wizard
+		onSubmit: (data) => console.log(data),
+	});
 
-  return (
-    <Wizard methods={wizard} onSubmit={wizard.handleSubmit()}>
-      <Step step="personal"><NameField /></Step>
-      <Step step="contact"><EmailField /></Step>
-      <div>
-        {!wizard.isFirstStep && <button type="button" onClick={wizard.back}>Voltar</button>}
-        {wizard.isLastStep ? (
-          <button type="submit">Finalizar</button>
-        ) : (
-          <button type="button" onClick={() => void wizard.next()}>Próximo</button>
-        )}
-      </div>
-    </Wizard>
-  );
+	return (
+		<Wizard methods={wizard} onSubmit={wizard.handleSubmit()}>
+			<Step step="personal">
+				<NameField />
+			</Step>
+			<Step step="contact">
+				<EmailField />
+			</Step>
+			<div>
+				{!wizard.isFirstStep && (
+					<button type="button" onClick={wizard.back}>
+						Voltar
+					</button>
+				)}
+				{wizard.isLastStep ? (
+					<button type="submit">Finalizar</button>
+				) : (
+					<button type="button" onClick={() => void wizard.next()}>
+						Próximo
+					</button>
+				)}
+			</div>
+		</Wizard>
+	);
 }
 ```
 
@@ -108,7 +122,7 @@ function MyWizard() {
 - **Validação**: schemas Zod estáticos ou dinâmicos (por valores do formulário)
 - **Campos reutilizáveis**: `field("key")` e `abstractField()` com `.extend()`
 - **Wizards**: steps, validação por etapa, steps condicionais, auto-save opcional
-- **Resolver**: `formyResolver({ fields })` com suporte a chaves aninhadas (`"user.email"`)
+- **Resolver**: `zormyResolver({ fields })` com suporte a chaves aninhadas (`"user.email"`)
 
 ## Documentação
 

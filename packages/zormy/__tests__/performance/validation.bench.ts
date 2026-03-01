@@ -2,16 +2,16 @@ import { z } from "zod";
 import { bench, describe } from "vitest";
 
 import { field } from "../../src/fields/field/builder/builder";
-import { formyResolver } from "../../src/resolver/resolver";
+import { zormyResolver } from "../../src/resolver/resolver";
 
 /**
- * Benchmark da validação Zod via formyResolver (Zormy + RHF).
+ * Benchmark da validação Zod via zormyResolver (Zormy + RHF).
  *
  * Objetivo: medir Execution Time e Ops/sec do custo da validação Zod na lib.
  * Execute com: pnpm test -- --bench __tests__/performance/validation.bench.ts
  * ou: pnpm exec vitest bench --run
  */
-describe("validação Zod (formyResolver)", () => {
+describe("validação Zod (zormyResolver)", () => {
 	const NameField = field("name")
 		.schema(z.string().min(2, "Mínimo 2 caracteres"))
 		.render(() => null);
@@ -25,7 +25,7 @@ describe("validação Zod (formyResolver)", () => {
 		.render(() => null);
 
 	const fields = [NameField, EmailField, AgeField] as const;
-	const resolver = formyResolver({ fields });
+	const resolver = zormyResolver({ fields });
 
 	const validData = {
 		name: "João Silva",
@@ -41,21 +41,13 @@ describe("validação Zod (formyResolver)", () => {
 
 	bench("validação com dados válidos (1000x em sequência)", async () => {
 		for (let i = 0; i < 1000; i++) {
-			await resolver(
-				{ ...validData, name: validData.name + i },
-				{} as never,
-				{} as never
-			);
+			await resolver({ ...validData, name: validData.name + i }, {} as never, {} as never);
 		}
 	});
 
 	bench("validação com dados inválidos (1000x em sequência)", async () => {
 		for (let i = 0; i < 1000; i++) {
-			await resolver(
-				{ ...invalidData, age: invalidData.age + i },
-				{} as never,
-				{} as never
-			);
+			await resolver({ ...invalidData, age: invalidData.age + i }, {} as never, {} as never);
 		}
 	});
 

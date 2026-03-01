@@ -64,12 +64,7 @@ function computeChangeState(
 	const hasChangesValue = hasRealChanges(currentValues, referenceValues);
 	let nextStatus = currentStatus;
 	if (hasChangesValue && !isSaving && currentStatus === "saved") nextStatus = "idle";
-	else if (
-		!hasChangesValue &&
-		!isSaving &&
-		hasSavedValuesBefore &&
-		currentStatus === "idle"
-	)
+	else if (!hasChangesValue && !isSaving && hasSavedValuesBefore && currentStatus === "idle")
 		nextStatus = "saved";
 	return { hasChanges: hasChangesValue, nextStatus };
 }
@@ -93,7 +88,7 @@ export type AutoSaveStatus =
  *
  * O hook expõe métodos para atualizar o status quando chamadas de API são feitas.
  *
- * @internal Para uso interno do formy.
+ * @internal Para uso interno do zormy.
  * @param wizard - Instância do wizard que contém o estado do formulário
  * @returns Objeto com status, lastSaved, hasChanges e métodos para controlar o salvamento
  */

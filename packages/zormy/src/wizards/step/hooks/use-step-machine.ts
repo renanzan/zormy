@@ -82,7 +82,7 @@ export type UseStepMachineReturn<Steps extends readonly string[]> = {
  * Fornece controle sobre qual step está ativo e métodos para navegar entre steps.
  * Suporta tanto modo controlado (via prop `controlledStep`) quanto não controlado (estado interno).
  *
- * @internal Para uso interno do formy.
+ * @internal Para uso interno do zormy.
  * @template Steps - Array de strings literais representando os steps do wizard
  *
  * @param args - Argumentos do hook

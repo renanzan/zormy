@@ -19,29 +19,29 @@ Use o builder fluente `field("chave")`:
 
 <CodeExample
 	code={`import { z } from "zod";
-import { field, Form, formyResolver, useForm } from "zormy";
+import { field, Form, zormyResolver, useForm } from "zormy";
 
 const NameField = field("name")
-  .schema(z.string().min(3, "Mínimo 3 caracteres"))
-  .render(({ register, fieldState }) => (
-    <div>
-      <label>Nome</label>
-      <input {...register()} />
-      {fieldState.error && <span>{fieldState.error.message}</span>}
-    </div>
-  ));
+.schema(z.string().min(3, "Mínimo 3 caracteres"))
+.render(({ register, fieldState }) => (
+<div>
+<label>Nome</label>
+<input {...register()} />
+{fieldState.error && <span>{fieldState.error.message}</span>}
+</div>
+));
 
 function App() {
-  const form = useForm({
-    resolver: formyResolver({ fields: [NameField] }),
-    defaultValues: { name: "" },
-  });
-  return (
-    <Form methods={form} onSubmit={form.handleSubmit((d) => console.log(d))}>
-      <NameField />
-      <button type="submit">Enviar</button>
-    </Form>
-  );
+const form = useForm({
+resolver: zormyResolver({ fields: [NameField] }),
+defaultValues: { name: "" },
+});
+return (
+<Form methods={form} onSubmit={form.handleSubmit((d) => console.log(d))}>
+<NameField />
+<button type="submit">Enviar</button>
+</Form>
+);
 }
 
 export default App;`}
@@ -107,7 +107,9 @@ const PasswordField = field("password")
 ```
 
 <Callout type="warning">
-	Inclua **todos** os campos (incluindo os usados em `dependsOn`) no array `fields` do `formyResolver` e, em wizards, no step correto. Caso contrário, tipo e validação podem ficar inconsistentes.
+	Inclua **todos** os campos (incluindo os usados em `dependsOn`) no array `fields` do
+	`zormyResolver` e, em wizards, no step correto. Caso contrário, tipo e validação podem ficar
+	inconsistentes.
 </Callout>
 
 ## Campos aninhados (dot notation)
@@ -153,11 +155,11 @@ Na maioria dos casos, definir o campo com `field("name").schema(...).render(...)
 
 ## Resumo
 
-| Conceito | Uso |
-|----------|-----|
-| Campo simples | `field("key").schema(z...).render(...)` |
+| Conceito              | Uso                                                            |
+| --------------------- | -------------------------------------------------------------- |
+| Campo simples         | `field("key").schema(z...).render(...)`                        |
 | Template reutilizável | `abstractField().schema(...).render(...)` + `.extend({ key })` |
-| Schema condicional | `.dependsOn(OutroCampo).schema((formValues) => z...)` |
-| Estrutura aninhada | Chave `"a.b.c"` e `defaultValues: { a: { b: { c: "" } } }` |
+| Schema condicional    | `.dependsOn(OutroCampo).schema((formValues) => z...)`          |
+| Estrutura aninhada    | Chave `"a.b.c"` e `defaultValues: { a: { b: { c: "" } } }`     |
 
 Para regras Zod (min, max, email, refine, etc.) e mensagens de erro, veja [Integração Zod](/docs/zod-integration). Para a API completa de campos, veja [Referência API](/docs/api-reference).

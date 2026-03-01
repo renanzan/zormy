@@ -34,14 +34,14 @@ import type { TriggerOptions, UseWizardFormArgs, UseWizardFormReturn } from "../
  * Combina react-hook-form com navegação entre steps, fornecendo validação
  * por step, estado de cada step e métodos de navegação.
  *
- * Este hook é a camada base do sistema de wizards do formy. Ele gerencia:
+ * Este hook é a camada base do sistema de wizards do zormy. Ele gerencia:
  * - Navegação entre steps (controlada ou não controlada)
  * - Validação por step usando schemas Zod dinâmicos
  * - Estado de cada step (dirty, touched, errors, valid)
  * - Limpeza automática de erros de steps não ativos
  * - Rastreamento de steps visitados
  *
- * @internal Para uso interno do formy.
+ * @internal Para uso interno do zormy.
  * @template TFieldValues - Tipo dos valores do formulário
  * @template Steps - Array de strings literais representando os steps do wizard
  *

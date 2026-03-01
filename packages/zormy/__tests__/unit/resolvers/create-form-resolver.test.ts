@@ -2,7 +2,7 @@ import { z } from "zod";
 import { describe, expect, it } from "vitest";
 
 import { field } from "../../../src/fields/field/builder/builder";
-import { formyResolver } from "../../../src/resolver/resolver";
+import { zormyResolver } from "../../../src/resolver/resolver";
 
 /**
  * Testes do resolver de formulário.
@@ -21,7 +21,7 @@ describe("createFormResolver - resolver para react-hook-form", () => {
 				.schema(z.string().email())
 				.render(() => null);
 
-			const resolver = formyResolver({
+			const resolver = zormyResolver({
 				fields: [NameField, EmailField],
 			});
 
@@ -37,7 +37,7 @@ describe("createFormResolver - resolver para react-hook-form", () => {
 				.schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
 				.render(() => null);
 
-			const resolver = formyResolver({
+			const resolver = zormyResolver({
 				fields: [NameField],
 			});
 
@@ -58,7 +58,7 @@ describe("createFormResolver - resolver para react-hook-form", () => {
 				.schema(z.string().email("Email inválido"))
 				.render(() => null);
 
-			const resolver = formyResolver({
+			const resolver = zormyResolver({
 				fields: [NameField, EmailField],
 			});
 
@@ -80,7 +80,7 @@ describe("createFormResolver - resolver para react-hook-form", () => {
 				.schema(z.string().email())
 				.render(() => null);
 
-			const resolver = formyResolver({
+			const resolver = zormyResolver({
 				fields: [UserNameField, UserEmailField],
 			});
 
@@ -101,7 +101,7 @@ describe("createFormResolver - resolver para react-hook-form", () => {
 				.schema(z.string().min(3))
 				.render(() => null);
 
-			const resolver = formyResolver({
+			const resolver = zormyResolver({
 				fields: [UserNameField],
 			});
 
@@ -122,7 +122,7 @@ describe("createFormResolver - resolver para react-hook-form", () => {
 				.schema(z.string().min(11))
 				.render(() => null);
 
-			const resolver = formyResolver({
+			const resolver = zormyResolver({
 				fields: [DeepField],
 			});
 
@@ -146,7 +146,7 @@ describe("createFormResolver - resolver para react-hook-form", () => {
 				.schema(z.string().email())
 				.render(() => null);
 
-			const resolver = formyResolver({
+			const resolver = zormyResolver({
 				fields: [NameField, UserEmailField],
 			});
 
@@ -174,7 +174,7 @@ describe("createFormResolver - resolver para react-hook-form", () => {
 				})
 				.render(() => null);
 
-			const resolver = formyResolver({
+			const resolver = zormyResolver({
 				fields: [AgeField],
 			});
 
@@ -189,7 +189,7 @@ describe("createFormResolver - resolver para react-hook-form", () => {
 
 	describe("casos especiais", () => {
 		it("deve criar resolver para array vazio de campos", async () => {
-			const resolver = formyResolver({
+			const resolver = zormyResolver({
 				fields: [],
 			});
 
@@ -203,7 +203,7 @@ describe("createFormResolver - resolver para react-hook-form", () => {
 				.schema(z.preprocess((value) => (!value ? undefined : Number(value)), z.number().min(18)))
 				.render(() => null);
 
-			const resolver = formyResolver({
+			const resolver = zormyResolver({
 				fields: [AgeField],
 			});
 

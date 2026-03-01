@@ -28,28 +28,28 @@ Schemas estáticos são definidos uma vez e não mudam baseado em outros campos:
 
 <CodeExample
 	code={`import { z } from "zod";
-import { field, Form, formyResolver, useForm } from "zormy";
+import { field, Form, zormyResolver, useForm } from "zormy";
 
 const NameField = field("name")
-  .schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
-  .render(({ register, fieldState }) => (
-    <div>
-      <input {...register()} />
-      {fieldState.error && <span>{fieldState.error.message}</span>}
-    </div>
-  ));
+.schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
+.render(({ register, fieldState }) => (
+<div>
+<input {...register()} />
+{fieldState.error && <span>{fieldState.error.message}</span>}
+</div>
+));
 
 function App() {
-  const form = useForm({
-    resolver: formyResolver({ fields: [NameField] }),
-    defaultValues: { name: "" },
-  });
-  return (
-    <Form methods={form} onSubmit={form.handleSubmit((d) => console.log(d))}>
-      <NameField />
-      <button type="submit">Enviar</button>
-    </Form>
-  );
+const form = useForm({
+resolver: zormyResolver({ fields: [NameField] }),
+defaultValues: { name: "" },
+});
+return (
+<Form methods={form} onSubmit={form.handleSubmit((d) => console.log(d))}>
+<NameField />
+<button type="submit">Enviar</button>
+</Form>
+);
 }
 
 export default App;`}
@@ -151,7 +151,7 @@ O modo de validação é controlado pelo `mode` do `useForm` ou `useWizard`:
 
 ```tsx
 const form = useForm({
-	resolver: formyResolver({ fields: [NameField] }),
+	resolver: zormyResolver({ fields: [NameField] }),
 	mode: "onChange", // Valida em cada mudança
 	// mode: "onBlur"   // Valida ao sair do campo
 	// mode: "onSubmit" // Valida apenas no submit
@@ -185,7 +185,7 @@ const ConfirmPasswordField = field("confirmPassword")
 
 ## Validação Assíncrona
 
-O `formyResolver` utiliza o `zodResolver` do @hookform/resolvers, que suporta schemas com `.refine()` ou `.superRefine()` assíncronos (retornando `Promise`). Para validações assíncronas (ex.: verificar se email já existe), use `.refine()` com função assíncrona:
+O `zormyResolver` utiliza o `zodResolver` do @hookform/resolvers, que suporta schemas com `.refine()` ou `.superRefine()` assíncronos (retornando `Promise`). Para validações assíncronas (ex.: verificar se email já existe), use `.refine()` com função assíncrona:
 
 ```tsx
 const EmailField = field("email")

@@ -6,19 +6,21 @@
  *
  * Principais exportações:
  * - {@link field} e {@link abstractField}: builders para campos reutilizáveis
- * - {@link formyResolver}: resolver para react-hook-form baseado em campos
+ * - {@link zormyResolver}: resolver para react-hook-form baseado em campos
  * - {@link Form}: componente de formulário com contexto
+ * - {@link useZormy}: hook que integra campos ao useForm com zormyResolver
  * - {@link useWizard}, {@link createWizardConfig}, {@link createWizardComponents}: wizards multi-step
  *
  * @packageDocumentation
  */
 
 export { abstractField, field, useField } from "./fields";
-export { formyResolver } from "./resolver/resolver";
+export { zormyResolver } from "./resolver/resolver";
 
-export type { FieldKey, FieldsToObject, FieldValue } from "./fields/field/types/extractors";
+export type { FieldKey, FieldValue, FieldsToObject } from "./fields/field/types/extractors";
 
 export { Form } from "./components/Form";
+export { useZormy } from "./form/hooks/useZormy";
 
 export { createWizardComponents } from "./wizards/wizard/builder/components";
 export { createWizardConfig } from "./wizards/wizard/builder/config";

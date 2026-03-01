@@ -81,13 +81,13 @@ Configure o modo de validação apropriado:
 ```tsx
 // Validação imediata (melhor UX)
 const form = useForm({
-	resolver: formyResolver({ fields: [NameField] }),
+	resolver: zormyResolver({ fields: [NameField] }),
 	mode: "onChange", // Valida em cada mudança
 });
 
 // Validação ao sair do campo (melhor performance)
 const form = useForm({
-	resolver: formyResolver({ fields: [NameField] }),
+	resolver: zormyResolver({ fields: [NameField] }),
 	mode: "onBlur", // Valida ao sair do campo
 });
 ```
@@ -179,7 +179,7 @@ Se você adicionar lógica que observe o formulário inteiro (por exemplo, usand
 A suíte de performance do Zormy cobre duas métricas: **quantidade de re-renders** (ciclo de vida) e **tempo de execução da validação Zod**.
 
 - **Re-renders**: testes com **React.Profiler** e `vi.fn()` em `onRender` garantem que, ao atualizar um campo, apenas aquele campo (ou o container necessário) re-renderize, preservando o comportamento uncontrolled do React Hook Form. Há também um teste de estresse com **1000 campos** e `setValue` no primeiro e no último para detectar degradação de escalabilidade.
-- **Validação**: o modo **Benchmark do Vitest** (`pnpm test:bench`) executa o resolver (formyResolver) em massa e mede *Execution Time* e *Ops/sec*, para avaliar o custo do Zod na lib.
+- **Validação**: o modo **Benchmark do Vitest** (`pnpm test:bench`) executa o resolver (zormyResolver) em massa e mede _Execution Time_ e _Ops/sec_, para avaliar o custo do Zod na lib.
 - **Diagnóstico**: se os números estiverem altos, use o **React Render Tracker** para analisar o grafo de dependências e identificar onde os re-renders "vazam" (por exemplo, resolver validando o formulário inteiro e causando re-render em muitos inputs).
 
 Detalhes em `packages/zormy/__tests__/performance/README.md`.
@@ -187,7 +187,8 @@ Detalhes em `packages/zormy/__tests__/performance/README.md`.
 ## TypeScript
 
 <Callout type="info">
-	A inferência de tipos costuma ser suficiente. Use tipos explícitos quando precisar expor o tipo do campo em APIs ou para melhor documentação.
+	A inferência de tipos costuma ser suficiente. Use tipos explícitos quando precisar expor o tipo do
+	campo em APIs ou para melhor documentação.
 </Callout>
 
 ### Tipos Explícitos (opcional)
@@ -211,7 +212,7 @@ Aproveite a inferência automática do TypeScript:
 ```tsx
 // O tipo é inferido automaticamente
 const form = useForm({
-	resolver: formyResolver({ fields: [NameField, EmailField] }),
+	resolver: zormyResolver({ fields: [NameField, EmailField] }),
 	defaultValues: { name: "", email: "" },
 });
 
@@ -225,7 +226,7 @@ const values = form.watch(); // { name: string, email: string }
 
 ```tsx
 const form = useForm({
-	resolver: formyResolver({ fields: [NameField] }),
+	resolver: zormyResolver({ fields: [NameField] }),
 	defaultValues: { name: "" },
 });
 
