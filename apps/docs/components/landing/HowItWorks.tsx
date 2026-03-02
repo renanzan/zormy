@@ -1,36 +1,8 @@
-import { motion } from "framer-motion";
+"use client";
 
-const steps = [
-	{
-		number: "01",
-		title: "Defina seus campos com Zod",
-		code: `const EmailField = field({
-  schema: z.string().email(),
-  render: ({ value, onChange, error }) => (
-    <input value={value} onChange={onChange} />
-  ),
-})`,
-	},
-	{
-		number: "02",
-		title: "Componha seu formulário",
-		code: `const MyForm = createForm({
-  fields: {
-    email: EmailField,
-    name: NameField,
-  },
-})`,
-	},
-	{
-		number: "03",
-		title: "Tipagem e validação automáticas",
-		code: `<MyForm onSubmit={(data) => {
-  // data: { email: string; name: string }
-  // Totalmente tipado e validado!
-  saveUser(data)
-}} />`,
-	},
-];
+import { useParams } from "next/navigation";
+import { motion } from "framer-motion";
+import { getLandingT } from "@/translations/landing";
 
 const highlightMini = (code: string) => {
 	return code.split("\n").map((line, i) => {
@@ -49,6 +21,42 @@ const highlightMini = (code: string) => {
 };
 
 const HowItWorks = () => {
+	const params = useParams();
+	const lang = (params?.lang as string) ?? "en";
+	const t = getLandingT(lang);
+
+	const steps = [
+		{
+			number: "01",
+			title: t.howStep1Title,
+			code: `const EmailField = field({
+  schema: z.string().email(),
+  render: ({ value, onChange, error }) => (
+    <input value={value} onChange={onChange} />
+  ),
+})`,
+		},
+		{
+			number: "02",
+			title: t.howStep2Title,
+			code: `const MyForm = createForm({
+  fields: {
+    email: EmailField,
+    name: NameField,
+  },
+})`,
+		},
+		{
+			number: "03",
+			title: t.howStep3Title,
+			code: `<MyForm onSubmit={(data) => {
+  // data: { email: string; name: string }
+  ${t.howStep3Comment}
+  saveUser(data)
+}} />`,
+		},
+	];
+
 	return (
 		<section className="relative py-20 lg:py-32 overflow-hidden">
 			{/* Animated background */}
@@ -67,10 +75,10 @@ const HowItWorks = () => {
 					className="text-center mb-16"
 				>
 					<h2 className="text-3xl sm:text-4xl font-bold mb-4">
-						Como <span className="text-gradient">funciona</span>
+						{t.howTitle}<span className="text-gradient">{t.howTitleHighlight}</span>
 					</h2>
 					<p className="text-muted-foreground text-lg max-w-xl mx-auto">
-						Três passos simples para formulários perfeitos
+						{t.howSubtitle}
 					</p>
 				</motion.div>
 

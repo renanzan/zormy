@@ -6,6 +6,7 @@ import {
 	FileStack,
 	GitBranch,
 	FileCheck,
+	Layers,
 	Lightbulb,
 	Code,
 } from "lucide-react";
@@ -54,6 +55,12 @@ const DOCS_ITEMS: MetaRecord = {
 		<span className="flex items-center gap-2">
 			<FileCheck className={iconClass} aria-hidden />
 			Integração Zod
+		</span>
+	),
+	"form-design": (
+		<span className="flex items-center gap-2">
+			<Layers className={iconClass} aria-hidden />
+			Design de formulários
 		</span>
 	),
 	tips: (

@@ -1,0 +1,76 @@
+---
+title: Design de formulários
+description: Abordagem inspirada em atomic design aplicada a formulários com Zormy
+---
+
+import { Callout, Cards } from "nextra/components";
+
+# Design de formulários
+
+O Zormy propõe uma **nova forma de lidar com formulários**: em vez de tratar cada tela como um bloco monolítico (schemas soltos, inputs acoplados à página), você constrói formulários a partir de **unidades reutilizáveis e composáveis** — uma abordagem inspirada no **atomic design**, mas aplicada ao domínio de formulários.
+
+## Por que uma abordagem em camadas?
+
+- **Consistência** — mesmos campos (nome, e-mail, endereço) com mesma validação e UI em todo o app.
+- **Reutilização** — um campo definido uma vez é usado em vários formulários e wizards.
+- **Manutenção** — alterar regra ou layout em um lugar reflete em todos os usos.
+- **Tipagem e DX** — TypeScript e Zod fluem dos campos para o formulário inteiro, sem duplicar tipos.
+
+A ideia é pensar em **átomos** (campos primitivos), **moléculas** (grupos de campos), **organismos** (formulários ou seções) e **templates** (wizards, fluxos multi-step), e organizar o projeto para aproveitar isso ao máximo.
+
+## Camadas no Zormy
+
+### Átomos — campos primitivos
+
+São os **blocos mínimos**: um campo com chave, schema Zod e função de render. Podem ser concretos (`field("name")`) ou **abstratos** (`abstractField()`), para derivar vários campos a partir do mesmo “molde”.
+
+- **Campo concreto**: `field("email").schema(z.string().email()).render(...)` — um campo específico.
+- **Campo abstrato**: `abstractField().schema(z.string()).render(...)` + `.extend({ key: "name" })` — template reutilizável (nome, e-mail, descrição, etc.).
+
+Use átomos para inputs simples (texto, número, checkbox, select) que aparecem em vários contextos.
+
+### Moléculas — grupos de campos
+
+Conjuntos de campos que **sempre aparecem juntos** e formam um bloco semântico. Exemplos: endereço (rua, cidade, CEP), telefone com DDD, data de nascimento com validação de idade.
+
+- **Implementação**: definir cada subcampo com `field("address.street")`, `field("address.city")`, etc., e exportar um **array** ou um **componente que renderiza o grupo** para usar em formulários e wizards.
+- Os campos continuam sendo átomos no resolver; a “molécula” é uma convenção de organização e composição na UI.
+
+### Organismos — formulários e seções
+
+Um **formulário completo** ou uma **seção grande** (ex.: “Dados pessoais”, “Pagamento”). Montados combinando átomos e moléculas, com um array de campos único para `zormyResolver` e `<Form>` (ou um step do wizard).
+
+Aqui entram decisões de UX: quais campos em qual ordem, validação por etapa (em wizards), botões de enviar/voltar/próximo.
+
+### Templates — wizards e fluxos multi-step
+
+**Templates** definem a **estrutura do fluxo**: quantos passos, quais campos em cada passo, navegação (próximo/voltar), steps condicionais (`shouldIncludeStep`), auto-save, etc.
+
+- `createWizardConfig({ steps, fields })` + `createWizardComponents` + `useWizard` descrevem o template.
+- Os **campos** de cada step são os mesmos átomos e moléculas usados em outros formulários; só a composição e a ordem mudam.
+
+### Páginas — fluxos concretos
+
+A **página** é a instância concreta: um wizard de checkout, um cadastro em múltiplas etapas, um formulário de contato. Usa os templates (wizard ou form) com `defaultValues`, `onSubmit`, `onStepSubmit` e a UI final (layout, textos, redirecionamentos).
+
+---
+
+## Resumo das camadas
+
+| Camada     | No Zormy                                                                 | Exemplo                                      |
+| ---------- | ------------------------------------------------------------------------ | -------------------------------------------- |
+| **Átomo**  | `field(key)` ou `abstractField().extend({ key })` com schema + render    | `NameField`, `EmailField`, `BaseTextField`   |
+| **Molécula** | Vários campos agrupados (mesmo array ou componente que renderiza vários) | Endereço (rua, cidade, CEP)                  |
+| **Organismo** | Form ou seção: array de campos + `<Form>` / step                          | Formulário de cadastro, step “Dados pessoais” |
+| **Template** | Config de wizard: steps + fields por step                                | `createWizardConfig` do checkout             |
+| **Página** | Wizard/Form instanciado com defaultValues e callbacks                    | Página “Checkout”, “Cadastro de usuário”     |
+
+<Callout type="info">
+	Camadas são uma **forma de organizar** o código e o pensamento. O Zormy não exige pastas ou nomes específicos; você pode adotar essa hierarquia na estrutura de pastas e na documentação do projeto.
+</Callout>
+
+## Próximos passos
+
+- [**Estrutura de projeto**](/docs/tips#estrutura-de-projeto-recomendada) — sugestão de pastas e onde colocar átomos, moléculas e formulários.
+- [**Fields**](/docs/fields) — campos concretos, abstratos e dependências.
+- [**Wizards**](/docs/wizards) — templates multi-step com Zormy.

@@ -1,18 +1,13 @@
+"use client";
+
 import { useState } from "react";
+import { useParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { ArrowRight, Check, Copy, Github } from "lucide-react";
 import Link from "next/link";
-
-const highlights = [
-	"Inferência automática de tipos",
-	"Validação declarativa com Zod",
-	"Campos reutilizáveis",
-	"Wizards multi-step",
-	"Campos aninhados",
-	"Dependências dinâmicas",
-];
+import { getLandingT } from "@/translations/landing";
 
 const FloatingOrb = ({ className, delay = 0 }: { className: string; delay?: number }) => (
 	<motion.div
@@ -32,6 +27,10 @@ const FloatingOrb = ({ className, delay = 0 }: { className: string; delay?: numb
 );
 
 const HeroSection = () => {
+	const params = useParams();
+	const lang = (params?.lang as string) ?? "en";
+	const t = getLandingT(lang);
+	const base = `/${lang}`;
 	const [copied, setCopied] = useState(false);
 	const installCmd = "pnpm add zormy zod react-hook-form";
 
@@ -40,6 +39,8 @@ const HeroSection = () => {
 		setCopied(true);
 		setTimeout(() => setCopied(false), 2000);
 	};
+
+	const highlights = t.heroHighlights;
 
 	return (
 		<section id="hero" className="relative pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden">
@@ -59,7 +60,7 @@ const HeroSection = () => {
 					transition={{ duration: 0.5 }}
 				>
 					<Badge className="mb-6 px-4 py-1.5 text-sm font-medium bg-primary/10 text-primary border-primary/20 hover:bg-primary/15 animate-pulse-glow">
-						🧠 Formulários inteligentes
+						🧠 {t.heroBadge}
 					</Badge>
 				</motion.div>
 
@@ -70,7 +71,7 @@ const HeroSection = () => {
 					transition={{ duration: 0.5, delay: 0.1 }}
 					className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6 max-w-4xl mx-auto"
 				>
-					Construa formulários <span className="text-gradient">tipados e reutilizáveis</span>
+					{t.heroTitle}<span className="text-gradient">{t.heroTitleHighlight}</span>
 				</motion.h1>
 
 				{/* Subtitle */}
@@ -80,8 +81,7 @@ const HeroSection = () => {
 					transition={{ duration: 0.5, delay: 0.2 }}
 					className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
 				>
-					Zormy combina Zod e React Hook Form para criar formulários e wizards dinâmicos com campos
-					componentizados, tipagem forte e validação automática.
+					{t.heroSubtitle}
 				</motion.p>
 
 				{/* CTAs */}
@@ -96,8 +96,8 @@ const HeroSection = () => {
 						className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 h-12 text-base"
 						asChild
 					>
-						<Link href="/docs/get-started">
-							Começar Agora <ArrowRight className="ml-1 h-4 w-4" />
+						<Link href={`${base}/docs/get-started`}>
+							{t.heroCta} <ArrowRight className="ml-1 h-4 w-4" />
 						</Link>
 					</Button>
 

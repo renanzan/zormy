@@ -3,7 +3,7 @@ title: Dicas e Boas Práticas
 description: Dicas úteis para trabalhar com Zormy de forma eficiente
 ---
 
-import { Callout } from "nextra/components";
+import { Callout, Cards } from "nextra/components";
 
 # Dicas e Boas Práticas
 
@@ -12,39 +12,61 @@ Guia com dicas práticas para usar o Zormy de forma eficiente e evitar problemas
 ## Organização de Código
 
 <Callout type="tip" emoji="💡">
-	Organize seus campos em arquivos separados para facilitar reutilização e manutenção
+	O Zormy se beneficia de uma estrutura que reflita as camadas de [Design de formulários](/docs/form-design): átomos (campos primitivos), moléculas (grupos), organismos (formulários/seções) e templates (wizards). Organize pastas e exports para aproveitar ao máximo a reutilização.
 </Callout>
 
-### Estrutura Recomendada
+### Estrutura de projeto recomendada
+
+Uma forma de organizar o projeto de forma **contextual** e alinhada ao Zormy:
 
 ```
 src/
-  fields/
+  fields/                    # Átomos e moléculas
+    base/                    # Campos abstratos (templates reutilizáveis)
+      TextField.tsx          # abstractField() para texto
+      SelectField.tsx        # abstractField() para select
+      CheckboxField.tsx
     user/
-      name.tsx
-      email.tsx
-      password.tsx
-    address/
-      street.tsx
-      city.tsx
-  forms/
+      NameField.tsx          # BaseTextField.extend({ key: "name", schema: ... })
+      EmailField.tsx
+      PasswordField.tsx
+    address/                 # Molécula: grupo de campos que sempre aparecem juntos
+      AddressFields.tsx      # export { StreetField, CityField, ZipField } + opcionalmente <AddressSection />
+      index.ts               # re-export para importar de um único lugar
+  forms/                     # Organismos: formulários completos
     login.tsx
     register.tsx
-  wizards/
-    checkout.tsx
+    contact.tsx
+  wizards/                   # Templates e páginas de wizard
+    checkout/
+      config.ts              # createWizardConfig({ steps, fields })
+      CheckoutWizard.tsx     # useWizard + Wizard + Step (página)
+    onboarding/
+      config.ts
+      OnboardingWizard.tsx
 ```
 
-### Campos Reutilizáveis
+**Por que essa estrutura?**
 
-Crie campos base que podem ser estendidos:
+- **`fields/base/`** — Campos **abstratos** (`abstractField()`) definidos uma vez; em outros arquivos você só faz `.extend({ key, schema? })`. Facilita manter consistência de UI e validação base.
+- **`fields/user/`, `fields/address/`** — Campos **concretos** por domínio. Moléculas como endereço podem exportar vários campos + um componente de seção que os renderiza juntos.
+- **`forms/`** — Cada arquivo monta um formulário: array de campos + `<Form>` (ou `useZormy`) + UI da página. Reutiliza campos de `fields/`.
+- **`wizards/`** — Por fluxo: `config.ts` com `createWizardConfig` (fora do componente) e o componente do wizard que usa `useWizard` e renderiza `<Wizard>` + `<Step>`.
+
+### Campos abstratos (átomos reutilizáveis)
+
+Use **`abstractField()`** quando vários campos compartilham o mesmo tipo e a mesma UI, mudando só a chave (e às vezes o schema):
 
 ```tsx
 // fields/base/TextField.tsx
+import { z } from "zod";
+import { abstractField } from "zormy";
+
 export const BaseTextField = abstractField()
 	.schema(z.string())
-	.render(({ register, fieldState, label }) => (
+	.render(({ register, fieldState }) => (
 		<div>
-			<label>{label}</label>
+			<label>{/* pode vir de props se usar .props() */}</label>
 			<input {...register()} />
 			{fieldState.error && <span className="error">{fieldState.error.message}</span>}
 		</div>
@@ -55,7 +77,106 @@ export const NameField = BaseTextField.extend({
 	key: "name",
 	schema: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
 });
+
+// fields/user/EmailField.tsx
+export const EmailField = BaseTextField.extend({
+	key: "email",
+	schema: z.string().email("E-mail inválido"),
+});
 ```
+
+Assim, qualquer mudança no layout ou comportamento do “texto” (label, erro, acessibilidade) é feita em um único lugar.
+
+### Moléculas: grupos de campos complexos
+
+Para blocos que **sempre aparecem juntos** (ex.: endereço), defina cada subcampo como átomo e exporte o conjunto — e opcionalmente um componente de seção que os renderiza:
+
+```tsx
+// fields/address/AddressFields.tsx
+import { z } from "zod";
+import { field } from "zormy";
+
+export const StreetField = field("address.street")
+	.schema(z.string().min(1, "Rua obrigatória"))
+	.render(({ register, fieldState }) => (
+		<div>
+			<label>Rua</label>
+			<input {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
+
+export const CityField = field("address.city")
+	.schema(z.string().min(1, "Cidade obrigatória"))
+	.render(({ register, fieldState }) => (
+		<div>
+			<label>Cidade</label>
+			<input {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
+
+export const ZipField = field("address.zip")
+	.schema(z.string().regex(/^\d{5}-?\d{3}$/, "CEP inválido"))
+	.render(({ register, fieldState }) => (
+		<div>
+			<label>CEP</label>
+			<input {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
+
+// Opcional: componente de seção para usar em formulários/wizards
+export function AddressSection() {
+	return (
+		<fieldset>
+			<legend>Endereço</legend>
+			<StreetField />
+			<CityField />
+			<ZipField />
+		</fieldset>
+	);
+}
+```
+
+Nos formulários ou steps do wizard, use o array `[StreetField, CityField, ZipField]` no resolver e renderize `<AddressSection />` (ou os três campos soltos). Os campos continuam sendo átomos para o Zormy; a “molécula” é organização e composição na UI.
+
+### Quando usar `field()` vs `abstractField()`
+
+| Situação | Use |
+| -------- | --- |
+| Campo único, específico (ex.: "aceito termos") | `field("acceptTerms").schema(...).render(...)` |
+| Vários campos com mesma UI e tipo (nome, e-mail, descrição) | `abstractField().schema(...).render(...)` + `.extend({ key })` em cada um |
+| Grupo de campos que sempre vêm juntos (endereço, telefone com DDD) | Vários `field("...")` no mesmo arquivo + export de array ou componente de seção |
+| Schema ou UI depende de outro campo | `field("...").dependsOn(OutroCampo).schema((formValues) => ...).render(...)` |
+
+### Estrutura por feature (alternativa)
+
+Se o app for organizado **por feature** em vez de por tipo (fields/forms/wizards), você pode manter a mesma ideia dentro de cada feature:
+
+```
+src/
+  features/
+    auth/
+      fields/
+        EmailField.tsx
+        PasswordField.tsx
+      LoginForm.tsx
+      RegisterForm.tsx
+    checkout/
+      fields/
+        AddressFields.tsx
+        PaymentFields.tsx
+      checkoutWizardConfig.ts
+      CheckoutWizard.tsx
+  shared/
+    fields/
+      base/
+        TextField.tsx
+        SelectField.tsx
+```
+
+Campos **compartilhados** (nome, e-mail, endereço usado em mais de uma feature) ficam em `shared/fields/` ou em um módulo `fields/` na raiz; campos **específicos** da feature ficam dentro da pasta da feature. O importante é: um campo definido uma vez é importado e reutilizado nos formulários e wizards, sem duplicar schema nem UI.
 
 ## Validação
 

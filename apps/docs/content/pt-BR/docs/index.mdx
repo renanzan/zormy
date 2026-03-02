@@ -3,12 +3,12 @@ title: Introdução
 description: Visão geral da documentação do Zormy
 ---
 
-import { Box, Code, Download, FileStack, GitBranch, Rocket } from "lucide-react";
+import { Box, Code, Download, FileStack, GitBranch, Layers, Rocket } from "lucide-react";
 import { Callout, Cards } from "nextra/components";
 
 # Documentação do Zormy
 
-O **Zormy** é uma biblioteca para criar formulários **tipados e reutilizáveis** em React, combinando TypeScript, Zod e React Hook Form.
+O **Zormy** é uma biblioteca para criar formulários **tipados e reutilizáveis** em React, combinando TypeScript, Zod e React Hook Form. Ele propõe uma forma de lidar com formulários inspirada no **atomic design**: construir telas a partir de **átomos** (campos), **moléculas** (grupos de campos), **organismos** (formulários) e **templates** (wizards). Veja [Design de formulários](/docs/form-design) para essa abordagem e [Dicas](/docs/tips) para estrutura de projeto.
 
 ## Por que Zormy?
 
@@ -27,6 +27,9 @@ O **Zormy** é uma biblioteca para criar formulários **tipados e reutilizáveis
 	</Cards.Card>
 	<Cards.Card title="Wizards" href="/docs/wizards" icon={<GitBranch />}>
 		Formulários multi-step, steps condicionais e auto-save
+	</Cards.Card>
+	<Cards.Card title="Design de formulários" href="/docs/form-design" icon={<Layers />}>
+		Abordagem atomic design para formulários e organização do projeto
 	</Cards.Card>
 	<Cards.Card title="Referência API" href="/docs/api-reference" icon={<Code />}>
 		API completa do pacote

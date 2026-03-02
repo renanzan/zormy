@@ -49,10 +49,17 @@ export type MergeFieldWithDeps<FieldType, DepsTypes> =
 export type KeyToPath<Key extends string> = Key;
 
 /**
+ * Valor inferido de uma dependência para uso em formValues.
+ * Para string (chave) usa `any` para simplificar uso; para Field usa FieldValue.
+ */
+type DependencyValue<Dep> = Dep extends string ? any : FieldValue<Dep>;
+
+/**
  * Converte uma dependência em um tipo objeto aninhado baseado na sua key.
  *
  * Se a key contém pontos (ex: "user.email"), cria um objeto aninhado.
  * Se a key é simples (ex: "name"), cria uma propriedade simples.
+ * Para dependência string (ex: "hasPassword"), o valor é `any` para evitar erros de tipagem.
  *
  * @template Dep - Tipo da dependência (FieldComponent, string ou função lazy)
  *
@@ -61,11 +68,14 @@ export type KeyToPath<Key extends string> = Key;
  * const UserEmailField = field("user.email").schema(z.string()).render(...);
  * type Nested = FieldToNested<typeof UserEmailField>;
  * // Resultado: { user: { email: string } }
+ *
+ * type ByKey = FieldToNested<"hasPassword">;
+ * // Resultado: { hasPassword: any }
  * ```
  */
 export type FieldToNested<Dep> = Dep extends Dependency
 	? DependencyKey<Dep> extends string
-		? KeyToNested<DependencyKey<Dep>, FieldValue<Dep>>
+		? KeyToNested<DependencyKey<Dep>, DependencyValue<Dep>>
 		: Record<string, never>
 	: Record<string, never>;
 

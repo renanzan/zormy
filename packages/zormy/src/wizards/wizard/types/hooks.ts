@@ -66,10 +66,19 @@ export type UseWizardFormArgs<
 	defaultValues?: DefaultValues<TFieldValues>;
 	/** Modo de validação do react-hook-form (padrão: "onChange") */
 	mode?: "onChange" | "onBlur" | "onSubmit" | "onTouched" | "all";
-	/** Callback chamado quando o formulário é submetido (no último step) */
+	/** Callback chamado quando o formulário é submetido (no último step) — recebe todos os dados preenchidos no wizard */
 	onSubmit?: (data: TFieldValues) => void;
-	/** Callback chamado quando um step é submetido */
-	onStepSubmit?: (data: Partial<TFieldValues>, step: Steps[number]) => void;
+	/**
+	 * Callback chamado ao avançar de step (ao clicar em "Próximo" ou ao finalizar).
+	 * @param data - Dados validados do step atual
+	 * @param step - Nome do step que foi concluído
+	 * @param allDataSoFar - Todos os dados preenchidos até o momento (steps anteriores + atual)
+	 */
+	onStepSubmit?: (
+		data: Partial<TFieldValues>,
+		step: Steps[number],
+		allDataSoFar: Partial<TFieldValues>
+	) => void;
 };
 
 /**

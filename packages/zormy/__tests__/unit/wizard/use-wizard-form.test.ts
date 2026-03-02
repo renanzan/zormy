@@ -182,10 +182,49 @@ describe("useWizardForm", () => {
 			await result.current.next();
 		});
 
-		expect(onStepSubmit).toHaveBeenCalledWith(expect.objectContaining({ name: "John" }), "step1");
+		expect(onStepSubmit).toHaveBeenCalledWith(
+			expect.objectContaining({ name: "John" }),
+			"step1",
+			expect.objectContaining({ name: "John" })
+		);
 	});
 
-	it("deve chamar onSubmit no último step", async () => {
+	it("deve chamar onStepSubmit com allDataSoFar acumulando a cada step", async () => {
+		const onStepSubmit = vi.fn();
+		const { result } = renderHook(() =>
+			useWizardForm({
+				steps: ["step1", "step2"] as const,
+				schema: ({ step }) => {
+					if (step === "step1") return z.object({ name: z.string().min(3) });
+					return z.object({ email: z.string().email() });
+				},
+				defaultValues: { name: "", email: "" },
+				onStepSubmit,
+			})
+		);
+
+		act(() => result.current.setValue("name", "John"));
+		await act(async () => await result.current.next());
+		expect(onStepSubmit).toHaveBeenCalledTimes(1);
+		expect(onStepSubmit).toHaveBeenNthCalledWith(
+			1,
+			expect.objectContaining({ name: "John" }),
+			"step1",
+			expect.objectContaining({ name: "John" })
+		);
+
+		act(() => result.current.setValue("email", "john@example.com"));
+		await act(async () => await result.current.next());
+		expect(onStepSubmit).toHaveBeenCalledTimes(2);
+		expect(onStepSubmit).toHaveBeenNthCalledWith(
+			2,
+			expect.objectContaining({ email: "john@example.com" }),
+			"step2",
+			expect.objectContaining({ name: "John", email: "john@example.com" })
+		);
+	});
+
+	it("deve chamar onSubmit no último step com todos os dados acumulados", async () => {
 		const onSubmit = vi.fn();
 		const { result } = renderHook(() =>
 			useWizardForm({
@@ -196,15 +235,23 @@ describe("useWizardForm", () => {
 					}
 					return z.object({ email: z.string().email() });
 				},
-				defaultValues: { name: "John", email: "john@example.com" },
+				defaultValues: { name: "", email: "" },
 				onSubmit,
 			})
 		);
 
+		// Passa pelo step1 para acumular valores
 		act(() => {
-			result.current.goToStep("step2");
+			result.current.setValue("name", "John");
+		});
+		await act(async () => {
+			await result.current.next();
 		});
 
+		// Passa pelo step2 e finaliza (onSubmit recebe todos os dados acumulados)
+		act(() => {
+			result.current.setValue("email", "john@example.com");
+		});
 		await act(async () => {
 			await result.current.next();
 		});

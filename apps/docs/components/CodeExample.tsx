@@ -1,24 +1,30 @@
 "use client";
 
-import { Sandpack } from "@codesandbox/sandpack-react";
+import { SANDPACK_PREVIEW_STYLES } from "@/lib/sandpack-preview-styles";
 import { cn } from "@/lib/utils";
+import { Sandpack } from "@codesandbox/sandpack-react";
+
+const STYLES_IMPORT = 'import "./styles.css";';
+
+// Script de configuração convertido em Data URI para ser aceito no externalResources
+const TAILWIND_CONFIG = `
+  tailwind.config = {
+    corePlugins: {
+      preflight: false,
+    }
+  }
+`;
+const TAILWIND_CONFIG_URL = `data:text/javascript;base64,${btoa(TAILWIND_CONFIG)}`;
 
 interface CodeExampleProps {
-	/** Código do componente principal (deve ter `export default` para o template react-ts) */
 	code: string;
 	files?: Record<string, string>;
 	template?: "react" | "react-ts" | "vanilla" | "vanilla-ts";
 	dependencies?: Record<string, string>;
-	/** Altura do editor em px (padrão: 420) */
 	editorHeight?: number;
-	/** Classe CSS do container (estilo alinhado aos blocos de código da doc) */
 	className?: string;
 }
 
-/**
- * Bloco de código executável com Sandpack. Mantém o estilo visual dos blocos
- * de código da documentação (borda, cantos arredondados, overflow).
- */
 export function CodeExample({
 	code,
 	files,
@@ -27,9 +33,16 @@ export function CodeExample({
 	editorHeight = 420,
 	className,
 }: CodeExampleProps) {
+	const appCode = files?.["/App.tsx"] ?? code;
+	const appCodeWithStyles =
+		appCode.includes(STYLES_IMPORT) || appCode.includes('import "./styles.css"')
+			? appCode
+			: `${STYLES_IMPORT}\n\n${appCode}`;
+
 	const defaultFiles = {
-		"/App.tsx": code,
 		...files,
+		"/styles.css": SANDPACK_PREVIEW_STYLES,
+		"/App.tsx": appCodeWithStyles,
 	};
 
 	return (
@@ -47,11 +60,14 @@ export function CodeExample({
 				options={{
 					showLineNumbers: true,
 					showInlineErrors: true,
-					showNavigator: true,
-					showTabs: true,
+					showNavigator: false,
+					showTabs: false,
 					closableTabs: false,
+					showRefreshButton: true,
 					editorHeight,
 					editorWidthPercentage: 55,
+					// Injetamos o script do Tailwind e logo depois a nossa configuração via Data URI
+					externalResources: ["https://cdn.tailwindcss.com", TAILWIND_CONFIG_URL],
 				}}
 				customSetup={{
 					dependencies: {

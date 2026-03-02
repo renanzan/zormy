@@ -155,7 +155,7 @@ export function createField<
 				NewSchema,
 				NewProps
 			>,
-			defaultProps: mergedDefaultProps as Partial<NewProps> | undefined,
+			defaultProps: mergedDefaultProps as unknown as Partial<NewProps> | undefined,
 		});
 	};
 

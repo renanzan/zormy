@@ -1,176 +1,85 @@
 ---
-title: Exemplos
-description: Exemplos práticos de uso do Zormy com código completo
+title: Examples
+description: Practical examples of using Zormy with complete code
 ---
 
 import { Callout, Tabs } from "nextra/components";
 
-# Exemplos Práticos
+import { dependentFieldsCode } from "./snippets/dependent-fields";
+import { simpleFormCode } from "./snippets/simple-form";
 
-Exemplos práticos de uso do Zormy com componentes React funcionando em tempo real.
+# Practical Examples
+
+Practical examples of using Zormy with React components working in real-time.
 
 <Callout type="info" emoji="💡">
-	Todos os exemplos abaixo são funcionais e podem ser copiados diretamente para seu projeto! Para
-	conceitos (campos, formulários, wizards), veja [Começando](/docs/get-started),
-	[Fields](/docs/fields), [Forms](/docs/forms) e [Wizards](/docs/wizards).
+	All examples below are functional and can be copied directly into your project! For concepts
+	(fields, forms, wizards), see [Getting Started](/docs/get-started), [Fields](/docs/fields),
+	[Forms](/docs/forms), and [Wizards](/docs/wizards).
 </Callout>
 
-## Exemplos Disponíveis
+## Available Examples
 
 <Cards>
-	<Cards.Card title="Formulário Simples" href="#formulário-simples">
-		Formulário básico com validação de nome e email
+	<Cards.Card title="Simple Form" href="#simple-form">
+		Basic form with name and email validation
 	</Cards.Card>
 
-    <Cards.Card title="Campos com Dependências" href="#campos-com-dependências">
-    	Campos que aparecem baseados em outros campos
+    <Cards.Card title="Dependent Fields" href="#dependent-fields">
+    	Fields that appear based on other fields
     </Cards.Card>
 
-    <Cards.Card title="Campos Aninhados" href="#campos-aninhados">
-    	Trabalhando com estruturas de dados aninhadas
+    <Cards.Card title="Nested Fields" href="#nested-fields">
+    	Working with nested data structures
     </Cards.Card>
 
-    <Cards.Card title="Wizard Multi-Step" href="#wizard-multi-step">
-    	Formulário dividido em múltiplos steps
+    <Cards.Card title="Multi-Step Wizard" href="#multi-step-wizard">
+    	Form divided into multiple steps
     </Cards.Card>
 
 </Cards>
 
-## Formulário Simples
+## Simple Form
 
-Exemplo básico de um formulário com validação. Você pode editar e rodar ao vivo:
+Basic example of a form with validation. You can edit and run it live:
 
-<CodeExample
-	code={`import { z } from "zod";
-import { field, Form, zormyResolver, useForm } from "zormy";
+<CodeExample editorHeight={420} code={simpleFormCode} />
 
-const NameField = field("name")
-.schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
-.render(({ register, fieldState }) => (
-<div>
-<label>Nome</label>
-<input {...register()} />
-{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
-</div>
-));
-
-const EmailField = field("email")
-.schema(z.string().email("Email inválido"))
-.render(({ register, fieldState }) => (
-<div>
-<label>Email</label>
-<input type="email" {...register()} />
-{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
-</div>
-));
-
-function SimpleForm() {
-const form = useForm({
-resolver: zormyResolver({ fields: [NameField, EmailField] }),
-defaultValues: { name: "", email: "" },
-});
-
-return (
-<Form methods={form} onSubmit={form.handleSubmit((data) => alert(JSON.stringify(data, null, 2)))}>
-<NameField />
-<EmailField />
-<button type="submit">Enviar</button>
-</Form>
-);
-}
-
-export default SimpleForm;`}
-	editorHeight={420}
-/>
-
-## Campos com Dependências
+## Dependent Fields
 
 <Callout type="tip">
-	Use `.dependsOn()` para criar campos que aparecem ou validam baseados em outros campos
+	Use `.dependsOn()` to create fields that appear or validate based on other fields
 </Callout>
 
-Exemplo de campo que depende de outro campo. Marque "Possui senha?" e preencha (ou não) para ver a validação:
+Example of a field that depends on another field. Check "Has password?" and fill it (or not) to see the validation:
 
-<CodeExample
-	code={`import { z } from "zod";
-import { field, Form, zormyResolver, useForm } from "zormy";
+<CodeExample editorHeight={440} code={dependentFieldsCode} />
 
-const HasPasswordField = field("hasPassword")
-.schema(z.boolean())
-.render(({ register }) => (
-<div>
-<label>
-<input type="checkbox" {...register()} />
-Possui senha?
-</label>
-</div>
-));
+## Nested Fields
 
-const PasswordField = field("password")
-.dependsOn(HasPasswordField)
-.schema((formValues) => {
-const hasPassword = formValues?.hasPassword;
-if (hasPassword) {
-return z.string().min(8, "Senha deve ter pelo menos 8 caracteres");
-}
-return z.string().optional();
-})
-.render(({ register, fieldState, watch }) => {
-const hasPassword = watch("hasPassword");
-if (!hasPassword) return null;
-return (
-<div>
-<label>Senha</label>
-<input type="password" {...register()} />
-{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
-</div>
-);
-});
+<Callout>Use dot notation (e.g., `"user.name"`) to work with nested structures</Callout>
 
-function DependentFieldsForm() {
-const form = useForm({
-resolver: zormyResolver({ fields: [HasPasswordField, PasswordField] }),
-defaultValues: { hasPassword: false, password: "" },
-});
-
-return (
-<Form methods={form} onSubmit={form.handleSubmit((data) => alert(JSON.stringify(data, null, 2)))}>
-<HasPasswordField />
-<PasswordField />
-<button type="submit">Enviar</button>
-</Form>
-);
-}
-
-export default DependentFieldsForm;`}
-	editorHeight={440}
-/>
-
-## Campos Aninhados
-
-<Callout>Use dot notation (ex: `"user.name"`) para trabalhar com estruturas aninhadas</Callout>
-
-Exemplo de campos com estrutura aninhada:
+Example of fields with a nested structure:
 
 ```tsx
 import { z } from "zod";
 import { field, Form, useForm, zormyResolver } from "zormy";
 
 const UserNameField = field("user.name")
-	.schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
+	.schema(z.string().min(3, "Name must be at least 3 characters"))
 	.render(({ register, fieldState }) => (
 		<div>
-			<label>Nome do Usuário</label>
+			<label>User Name</label>
 			<input {...register()} />
 			{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
 		</div>
 	));
 
 const UserEmailField = field("user.email")
-	.schema(z.string().email("Email inválido"))
+	.schema(z.string().email("Invalid email"))
 	.render(({ register, fieldState }) => (
 		<div>
-			<label>Email do Usuário</label>
+			<label>User Email</label>
 			<input type="email" {...register()} />
 			{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
 		</div>
@@ -189,37 +98,37 @@ function NestedFieldsForm() {
 		>
 			<UserNameField />
 			<UserEmailField />
-			<button type="submit">Enviar</button>
+			<button type="submit">Submit</button>
 		</Form>
 	);
 }
 ```
 
-## Wizard Multi-Step
+## Multi-Step Wizard
 
 <Callout type="info">
-	Wizards permitem dividir formulários complexos em steps menores e mais gerenciáveis. Use
-	`createWizardConfig` e `createWizardComponents` para tipagem forte.
+	Wizards allow you to split complex forms into smaller, more manageable steps. Use
+	`createWizardConfig` and `createWizardComponents` for strong typing.
 </Callout>
 
-Exemplo completo de um wizard com múltiplos steps:
+Complete example of a multi-step wizard:
 
 ```tsx
 import { z } from "zod";
 import { createWizardComponents, createWizardConfig, field, useWizard } from "zormy";
 
 const NameField = field("name")
-	.schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
+	.schema(z.string().min(3, "Name must be at least 3 characters"))
 	.render(({ register, fieldState }) => (
 		<div>
-			<label>Nome</label>
+			<label>Name</label>
 			<input {...register()} />
 			{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
 		</div>
 	));
 
 const EmailField = field("email")
-	.schema(z.string().email("Email inválido"))
+	.schema(z.string().email("Invalid email"))
 	.render(({ register, fieldState }) => (
 		<div>
 			<label>Email</label>
@@ -229,16 +138,16 @@ const EmailField = field("email")
 	));
 
 const PasswordField = field("password")
-	.schema(z.string().min(8, "Senha deve ter pelo menos 8 caracteres"))
+	.schema(z.string().min(8, "Password must be at least 8 characters"))
 	.render(({ register, fieldState }) => (
 		<div>
-			<label>Senha</label>
+			<label>Password</label>
 			<input type="password" {...register()} />
 			{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
 		</div>
 	));
 
-// Configure o wizard (fora do componente para manter referências estáveis)
+// Configure the wizard (outside the component to keep references stable)
 const wizardConfig = createWizardConfig({
 	steps: ["personal", "credentials"] as const,
 	fields: {
@@ -266,9 +175,9 @@ function MultiStepWizard() {
 		<Wizard methods={wizard} onSubmit={wizard.handleSubmit()}>
 			<div>
 				<p>
-					Step {wizard.currentStepIndex + 1} de {wizard.totalSteps}
+					Step {wizard.currentStepIndex + 1} of {wizard.totalSteps}
 				</p>
-				<p>Step atual: {wizard.currentStep}</p>
+				<p>Current step: {wizard.currentStep}</p>
 			</div>
 
 			<Step step="personal">
@@ -283,14 +192,14 @@ function MultiStepWizard() {
 			<div style={{ marginTop: "1rem" }}>
 				{!wizard.isFirstStep && (
 					<button type="button" onClick={wizard.back} style={{ marginRight: "0.5rem" }}>
-						Voltar
+						Back
 					</button>
 				)}
 				{wizard.isLastStep ? (
-					<button type="submit">Finalizar</button>
+					<button type="submit">Finish</button>
 				) : (
 					<button type="button" onClick={wizard.next}>
-						Próximo
+						Next
 					</button>
 				)}
 			</div>
@@ -299,9 +208,9 @@ function MultiStepWizard() {
 }
 ```
 
-## Wizard com Steps Condicionais
+## Conditional Step Wizard
 
-Exemplo de wizard com steps que aparecem/desaparecem baseado em valores:
+Example of a wizard with steps that appear/disappear based on values:
 
 ```tsx
 import { z } from "zod";
@@ -313,30 +222,30 @@ const WantToContributeField = field("wantToContribute")
 		<div>
 			<label>
 				<input type="checkbox" {...register()} />
-				Quer contribuir?
+				Want to contribute?
 			</label>
 		</div>
 	));
 
 const RefuseReasonField = field("refuseReason")
-	.schema(z.string().min(1, "Campo obrigatório"))
+	.schema(z.string().min(1, "Required field"))
 	.render(({ register, fieldState }) => (
 		<div>
-			<label>Motivo da recusa</label>
+			<label>Refusal reason</label>
 			<textarea {...register()} />
 			{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
 		</div>
 	));
 
 const SelectQuotaField = field("selectQuota")
-	.schema(z.string().min(1, "Campo obrigatório"))
+	.schema(z.string().min(1, "Required field"))
 	.render(({ register, fieldState }) => (
 		<div>
-			<label>Selecione a cota</label>
+			<label>Select quota</label>
 			<select {...register()}>
-				<option value="">Selecione...</option>
-				<option value="quota1">Cota 1</option>
-				<option value="quota2">Cota 2</option>
+				<option value="">Select...</option>
+				<option value="quota1">Quota 1</option>
+				<option value="quota2">Quota 2</option>
 			</select>
 			{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
 		</div>
@@ -376,7 +285,7 @@ function ConditionalWizard() {
 		<Wizard methods={wizard} onSubmit={wizard.handleSubmit()}>
 			<div>
 				<p>
-					Step {wizard.currentStepIndex + 1} de {wizard.totalSteps}
+					Step {wizard.currentStepIndex + 1} of {wizard.totalSteps}
 				</p>
 			</div>
 
@@ -395,14 +304,14 @@ function ConditionalWizard() {
 			<div style={{ marginTop: "1rem" }}>
 				{!wizard.isFirstStep && (
 					<button type="button" onClick={wizard.back} style={{ marginRight: "0.5rem" }}>
-						Voltar
+						Back
 					</button>
 				)}
 				{wizard.isLastStep ? (
-					<button type="submit">Finalizar</button>
+					<button type="submit">Finish</button>
 				) : (
 					<button type="button" onClick={wizard.next}>
-						Próximo
+						Next
 					</button>
 				)}
 			</div>
@@ -413,7 +322,7 @@ function ConditionalWizard() {
 
 ## Auto Save
 
-Exemplo de wizard com auto save:
+Example of a wizard with auto-save:
 
 ```tsx
 import { z } from "zod";
@@ -426,17 +335,17 @@ import {
 } from "zormy";
 
 const NameField = field("name")
-	.schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
+	.schema(z.string().min(3, "Name must be at least 3 characters"))
 	.render(({ register, fieldState }) => (
 		<div>
-			<label>Nome</label>
+			<label>Name</label>
 			<input {...register()} />
 			{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
 		</div>
 	));
 
 const EmailField = field("email")
-	.schema(z.string().email("Email inválido"))
+	.schema(z.string().email("Invalid email"))
 	.render(({ register, fieldState }) => (
 		<div>
 			<label>Email</label>
@@ -450,12 +359,12 @@ function AutoSaveIndicator() {
 
 	return (
 		<div style={{ marginBottom: "1rem", fontSize: "0.875rem" }}>
-			{autoSave.status === "saving" && <span>Salvando...</span>}
-			{autoSave.status === "saved" && <span style={{ color: "green" }}>Salvo</span>}
-			{autoSave.status === "error" && <span style={{ color: "red" }}>Erro ao salvar</span>}
+			{autoSave.status === "saving" && <span>Saving...</span>}
+			{autoSave.status === "saved" && <span style={{ color: "green" }}>Saved</span>}
+			{autoSave.status === "error" && <span style={{ color: "red" }}>Error saving</span>}
 			{autoSave.lastSaved && (
 				<span style={{ marginLeft: "0.5rem", color: "#666" }}>
-					(Salvo às {autoSave.lastSaved.toLocaleTimeString()})
+					(Saved at {autoSave.lastSaved.toLocaleTimeString()})
 				</span>
 			)}
 		</div>
@@ -480,9 +389,9 @@ function AutoSaveWizard() {
 			email: "",
 		},
 		autoSave: async ({ step, validChangedData }) => {
-			// Simula chamada de API
+			// Simulates API call
 			await new Promise((resolve) => setTimeout(resolve, 1000));
-			console.log(`Salvando step ${step}:`, validChangedData);
+			console.log(`Saving step ${step}:`, validChangedData);
 		},
 		onSubmit: (data) => {
 			alert(JSON.stringify(data, null, 2));
@@ -495,7 +404,7 @@ function AutoSaveWizard() {
 
 			<div>
 				<p>
-					Step {wizard.currentStepIndex + 1} de {wizard.totalSteps}
+					Step {wizard.currentStepIndex + 1} of {wizard.totalSteps}
 				</p>
 			</div>
 
@@ -510,14 +419,14 @@ function AutoSaveWizard() {
 			<div style={{ marginTop: "1rem" }}>
 				{!wizard.isFirstStep && (
 					<button type="button" onClick={wizard.back} style={{ marginRight: "0.5rem" }}>
-						Voltar
+						Back
 					</button>
 				)}
 				{wizard.isLastStep ? (
-					<button type="submit">Finalizar</button>
+					<button type="submit">Finish</button>
 				) : (
 					<button type="button" onClick={wizard.next}>
-						Próximo
+						Next
 					</button>
 				)}
 			</div>

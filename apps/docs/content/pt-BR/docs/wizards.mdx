@@ -5,6 +5,8 @@ description: Formulários multi-step no Zormy — configuração, steps, navega�
 
 import { Callout } from "nextra/components";
 
+import { minimumWizardCode } from "../snippets/minimum-wizard";
+
 # Wizards
 
 Wizards organizam formulários em **múltiplos passos** (steps), com validação por etapa e navegação (próximo/voltar). O Zormy oferece tipagem forte para steps e campos.
@@ -20,90 +22,58 @@ Wizards organizam formulários em **múltiplos passos** (steps), com validação
 
 ## Exemplo mínimo
 
-<CodeExample
-	code={`import { z } from "zod";
-import { createWizardComponents, createWizardConfig, field, useWizard } from "zormy";
-
-const NameField = field("name")
-  .schema(z.string().min(3))
-  .render(({ register, fieldState }) => (
-    <div>
-      <label>Nome</label>
-      <input {...register()} />
-      {fieldState.error && <span>{fieldState.error.message}</span>}
-    </div>
-  ));
-
-const EmailField = field("email")
-  .schema(z.string().email())
-  .render(({ register, fieldState }) => (
-    <div>
-      <label>Email</label>
-      <input type="email" {...register()} />
-      {fieldState.error && <span>{fieldState.error.message}</span>}
-    </div>
-  ));
-
-const wizardConfig = createWizardConfig({
-  steps: ["personal", "contact"] as const,
-  fields: {
-    personal: [NameField],
-    contact: [EmailField],
-  },
-});
-
-const { Wizard, Step } = createWizardComponents(wizardConfig);
-
-function MyWizard() {
-  const wizard = useWizard({
-    ...wizardConfig,
-    defaultValues: { name: "", email: "" },
-    onSubmit: (data) => console.log(data),
-  });
-
-  return (
-    <Wizard methods={wizard} onSubmit={wizard.handleSubmit()}>
-      <Step step="personal">
-        <NameField />
-      </Step>
-      <Step step="contact">
-        <EmailField />
-      </Step>
-      <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem" }}>
-        {!wizard.isFirstStep && <button type="button" onClick={wizard.back}>Voltar</button>}
-        {wizard.isLastStep ? (
-          <button type="submit">Finalizar</button>
-        ) : (
-          <button type="button" onClick={wizard.next}>Próximo</button>
-        )}
-      </div>
-    </Wizard>
-  );
-}
-
-export default MyWizard;`}
-	editorHeight={460}
-/>
+<CodeExample code={minimumWizardCode} editorHeight={460} />
 
 <Callout type="tip">
-	Mantenha `wizardConfig` **fora do componente** (no módulo ou acima do componente) para referências estáveis e melhor performance.
+	Mantenha `wizardConfig` **fora do componente** (no módulo ou acima do componente) para referências
+	estáveis e melhor performance.
 </Callout>
 
 ## Navegação
 
 O objeto retornado por `useWizard` inclui:
 
-| Propriedade / Método | Descrição |
-|----------------------|-----------|
-| `currentStep` | Step atual |
-| `currentStepIndex` | Índice do step (0-based) |
-| `steps` | Lista de steps (filtrados se usar `shouldIncludeStep`) |
-| `totalSteps` | Número de steps |
-| `isFirstStep` / `isLastStep` | Booleanos para UI |
-| `next()` | Avança para o próximo step (valida o step atual; retorna `Promise<void>`) |
-| `back()` | Volta para o step anterior |
-| `goToStep(step)` | Vai para um step específico |
-| `handleSubmit()` | Handler de submit do formulário (para o `<form>`) |
+| Propriedade / Método         | Descrição                                                                 |
+| ---------------------------- | ------------------------------------------------------------------------- |
+| `currentStep`                | Step atual                                                                |
+| `currentStepIndex`           | Índice do step (0-based)                                                  |
+| `steps`                      | Lista de steps (filtrados se usar `shouldIncludeStep`)                    |
+| `totalSteps`                 | Número de steps                                                           |
+| `isFirstStep` / `isLastStep` | Booleanos para UI                                                         |
+| `next()`                     | Avança para o próximo step (valida o step atual; retorna `Promise<void>`) |
+| `back()`                     | Volta para o step anterior                                                |
+| `goToStep(step)`             | Vai para um step específico                                               |
+
+Ao usar o wizard, **não** é necessário passar `onSubmit` no `<Wizard>`: o botão "Finalizar" (submit) dispara internamente `wizard.next()`, que valida o último step e chama o `onSubmit` passado em `useWizard` com **todos os dados acumulados** do wizard.
+
+## Callbacks: dados por step e ao finalizar
+
+O wizard acumula os valores de cada step conforme você avança. Use os callbacks em `useWizard`:
+
+| Callback                                         | Quando é chamado                                               | O que recebe                                                                                                                                         |
+| ------------------------------------------------ | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`onStepSubmit(stepData, step, allDataSoFar)`** | Ao clicar em "Próximo" (ou "Finalizar" no último step)         | `stepData`: dados validados do step atual; `step`: nome do step; `allDataSoFar`: todos os dados preenchidos até o momento (steps anteriores + atual) |
+| **`onSubmit(data)`**                             | Somente ao finalizar o wizard (último step, botão "Finalizar") | `data`: **todos** os dados do wizard (todos os steps preenchidos)                                                                                    |
+
+Exemplo: exibir dados do step atual ao avançar e todos os dados ao finalizar:
+
+```tsx
+const wizard = useWizard({
+	...wizardConfig,
+	defaultValues: { name: "", email: "" },
+	onStepSubmit: (stepData, step, allDataSoFar) => {
+		console.log(
+			"Step concluído:",
+			step,
+			"dados do step:",
+			stepData,
+			"tudo até agora:",
+			allDataSoFar
+		);
+	},
+	onSubmit: (data) => console.log("Wizard finalizado com todos os dados:", data),
+});
+```
 
 ## Steps condicionais
 
@@ -170,14 +140,14 @@ wizard.goToStep("contact");
 
 ## Outras opções do `useWizard`
 
-| Opção | Descrição |
-|-------|------------|
-| `defaultValues` | Valores iniciais (objeto, função síncrona ou assíncrona); deve cobrir todas as chaves de todos os steps |
-| `onSubmit` | Callback quando o formulário é enviado no último step |
-| `onStepSubmit` | Callback quando um step é “submetido” (ex.: ao clicar em Próximo) |
-| `initialStep` | Step inicial |
-| `mode` | Modo de validação do react-hook-form (`"onChange"`, `"onBlur"`, etc.) |
-| `controlledStep` | Step controlado externamente (ex.: por query da URL) |
-| `onStepChange` | Callback quando o step muda |
+| Opção                                        | Descrição                                                                                               |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `defaultValues`                              | Valores iniciais (objeto, função síncrona ou assíncrona); deve cobrir todas as chaves de todos os steps |
+| `onSubmit`                                   | Callback quando o wizard é finalizado (último step); recebe todos os dados preenchidos                  |
+| `onStepSubmit(stepData, step, allDataSoFar)` | Callback ao avançar de step; “avançado” recebe stepData, step e allDataSoFar                            |
+| `initialStep`                                | Step inicial                                                                                            |
+| `mode`                                       | Modo de validação do react-hook-form (`"onChange"`, `"onBlur"`, etc.)                                   |
+| `controlledStep`                             | Step controlado externamente (ex.: por query da URL)                                                    |
+| `onStepChange`                               | Callback quando o step muda                                                                             |
 
 Para a API completa (incluindo `WizardProvider`, tipos e auto-save), veja [Referência API](/docs/api-reference).

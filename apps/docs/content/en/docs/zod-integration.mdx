@@ -1,78 +1,52 @@
 ---
-title: Integração Zod
-description: Guia completo sobre como usar Zod para validação no Zormy
+title: Zod Integration
+description: Complete guide on how to use Zod for validation in Zormy
 ---
 
 import { Callout, Tabs } from "nextra/components";
 
-# Integração com Zod
+import { firstFormCode } from "../snippets/first-form";
 
-Como as regras do Zod se traduzem em validações de erro no UI do Zormy.
+# Zod Integration
+
+How Zod rules translate into UI validation errors in Zormy.
 
 <Callout type="info" emoji="✅">
-	Zormy usa Zod como base para validação. Cada campo pode ter um schema Zod que define tipo, regras
-	e mensagens de erro.
+	Zormy uses Zod as the foundation for validation. Each field can have a Zod schema that defines
+	type, rules, and error messages.
 </Callout>
 
-## Visão Geral
+## Overview
 
-O Zormy usa Zod como base para validação. Cada campo pode ter um schema Zod que define:
+Zormy uses Zod as the foundation for validation. Each field can have a Zod schema that defines:
 
-- **Tipo de dados esperado** - String, number, boolean, etc.
-- **Regras de validação** - Min, max, email, regex, etc.
-- **Mensagens de erro customizadas** - Mensagens personalizadas para cada regra
+- **Expected data type** - String, number, boolean, etc.
+- **Validation rules** - Min, max, email, regex, etc.
+- **Custom error messages** - Custom messages for each rule
 
-## Schemas Estáticos
+## Static Schemas
 
-Schemas estáticos são definidos uma vez e não mudam baseado em outros campos:
+Static schemas are defined once and do not change based on other fields:
 
-<CodeExample
-	code={`import { z } from "zod";
-import { field, Form, zormyResolver, useForm } from "zormy";
+<CodeExample editorHeight={340} code={firstFormCode} />
 
-const NameField = field("name")
-.schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
-.render(({ register, fieldState }) => (
-<div>
-<input {...register()} />
-{fieldState.error && <span>{fieldState.error.message}</span>}
-</div>
-));
+### Common Zod Rules
 
-function App() {
-const form = useForm({
-resolver: zormyResolver({ fields: [NameField] }),
-defaultValues: { name: "" },
-});
-return (
-<Form methods={form} onSubmit={form.handleSubmit((d) => console.log(d))}>
-<NameField />
-<button type="submit">Enviar</button>
-</Form>
-);
-}
+| Zod Rule                | Validation                   | Example                                       |
+| ----------------------- | ---------------------------- | --------------------------------------------- |
+| `.min(n, msg?)`         | Minimum value (string/array) | `z.string().min(3)`                           |
+| `.max(n, msg?)`         | Maximum value (string/array) | `z.string().max(100)`                         |
+| `.email(msg?)`          | Email format                 | `z.string().email()`                          |
+| `.url(msg?)`            | URL format                   | `z.string().url()`                            |
+| `.regex(pattern, msg?)` | Regex pattern                | `z.string().regex(/^\d+$/)`                   |
+| `.refine(fn, msg?)`     | Custom validation            | `z.string().refine(val => val.includes("@"))` |
+| `.optional()`           | Optional field               | `z.string().optional()`                       |
+| `.nullable()`           | Allows null                  | `z.string().nullable()`                       |
+| `.default(value)`       | Default value                | `z.string().default("")`                      |
 
-export default App;`}
-	editorHeight={340}
-/>
+## Dynamic Schemas
 
-### Regras Zod Comuns
-
-| Regra Zod               | Validação                   | Exemplo                                       |
-| ----------------------- | --------------------------- | --------------------------------------------- |
-| `.min(n, msg?)`         | Valor mínimo (string/array) | `z.string().min(3)`                           |
-| `.max(n, msg?)`         | Valor máximo (string/array) | `z.string().max(100)`                         |
-| `.email(msg?)`          | Formato de email            | `z.string().email()`                          |
-| `.url(msg?)`            | Formato de URL              | `z.string().url()`                            |
-| `.regex(pattern, msg?)` | Padrão regex                | `z.string().regex(/^\d+$/)`                   |
-| `.refine(fn, msg?)`     | Validação customizada       | `z.string().refine(val => val.includes("@"))` |
-| `.optional()`           | Campo opcional              | `z.string().optional()`                       |
-| `.nullable()`           | Permite null                | `z.string().nullable()`                       |
-| `.default(value)`       | Valor padrão                | `z.string().default("")`                      |
-
-## Schemas Dinâmicos
-
-Schemas dinâmicos mudam baseado em valores de outros campos. Use uma função que recebe `formValues`:
+Dynamic schemas change based on values from other fields. Use a function that receives `formValues`:
 
 ```tsx
 const PasswordField = field("password")
@@ -80,7 +54,7 @@ const PasswordField = field("password")
 	.schema((formValues) => {
 		const hasPassword = formValues?.hasPassword;
 		if (hasPassword) {
-			return z.string().min(8, "Senha deve ter pelo menos 8 caracteres");
+			return z.string().min(8, "Password must have at least 8 characters");
 		}
 		return z.string().optional();
 	})
@@ -92,29 +66,29 @@ const PasswordField = field("password")
 	));
 ```
 
-## Mensagens de Erro
+## Error Messages
 
-### Mensagens Padrão do Zod
+### Default Zod Messages
 
-Se você não fornecer uma mensagem customizada, o Zod usa mensagens padrão:
+If you do not provide a custom message, Zod uses default messages:
 
 ```tsx
-// Sem mensagem customizada
+// Without custom message
 z.string().min(3);
-// Erro: "String must contain at least 3 character(s)"
+// Error: "String must contain at least 3 character(s)"
 
-// Com mensagem customizada
-z.string().min(3, "Nome deve ter pelo menos 3 caracteres");
-// Erro: "Nome deve ter pelo menos 3 caracteres"
+// With custom message
+z.string().min(3, "Name must have at least 3 characters");
+// Error: "Name must have at least 3 characters"
 ```
 
-### Mensagens Customizadas por Regra
+### Custom Messages per Rule
 
-Você pode customizar mensagens para cada regra:
+You can customize messages for each rule:
 
 ```tsx
 const EmailField = field("email")
-	.schema(z.string().min(1, "Email é obrigatório").email("Email inválido"))
+	.schema(z.string().min(1, "Email is required").email("Invalid email"))
 	.render(({ register, fieldState }) => (
 		<div>
 			<input type="email" {...register()} />
@@ -123,44 +97,44 @@ const EmailField = field("email")
 	));
 ```
 
-## Tipos de Erro
+## Error Types
 
-O `fieldState.error` contém informações sobre o erro de validação:
+`fieldState.error` contains information about the validation error:
 
 ```tsx
 type FieldError = {
-	message: string; // Mensagem de erro
-	type: string; // Tipo do erro (ex: "too_small", "invalid_string")
-	// ... outras propriedades específicas do tipo
+	message: string; // Error message
+	type: string; // Error type (e.g., "too_small", "invalid_string")
+	// ... other type-specific properties
 };
 ```
 
-### Tipos de Erro Comuns
+### Common Error Types
 
-| Tipo             | Quando Ocorre            | Exemplo                                 |
-| ---------------- | ------------------------ | --------------------------------------- |
-| `too_small`      | Valor menor que o mínimo | `z.string().min(3)` com "ab"            |
-| `too_big`        | Valor maior que o máximo | `z.string().max(10)` com "abcdefghijk"  |
-| `invalid_string` | Formato inválido         | `z.string().email()` com "not-an-email" |
-| `invalid_type`   | Tipo incorreto           | `z.string()` com `123`                  |
-| `required`       | Campo obrigatório        | `z.string()` com `undefined`            |
+| Type             | When It Occurs             | Example                                  |
+| ---------------- | -------------------------- | ---------------------------------------- |
+| `too_small`      | Value smaller than minimum | `z.string().min(3)` with "ab"            |
+| `too_big`        | Value larger than maximum  | `z.string().max(10)` with "abcdefghijk"  |
+| `invalid_string` | Invalid format             | `z.string().email()` with "not-an-email" |
+| `invalid_type`   | Incorrect type             | `z.string()` with `123`                  |
+| `required`       | Required field             | `z.string()` with `undefined`            |
 
-## Validação em Tempo Real
+## Real-Time Validation
 
-O modo de validação é controlado pelo `mode` do `useForm` ou `useWizard`:
+Validation mode is controlled by the `mode` of `useForm` or `useWizard`:
 
 ```tsx
 const form = useForm({
 	resolver: zormyResolver({ fields: [NameField] }),
-	mode: "onChange", // Valida em cada mudança
-	// mode: "onBlur"   // Valida ao sair do campo
-	// mode: "onSubmit" // Valida apenas no submit
+	mode: "onChange", // Validates on every change
+	// mode: "onBlur"   // Validates on blur
+	// mode: "onSubmit" // Validates only on submit
 });
 ```
 
-## Validação Cross-Field
+## Cross-Field Validation
 
-Para validações que dependem de múltiplos campos, use `.refine()` ou `.superRefine()`:
+For validations that depend on multiple fields, use `.refine()` or `.superRefine()`:
 
 ```tsx
 const PasswordField = field("password")
@@ -173,7 +147,7 @@ const ConfirmPasswordField = field("confirmPassword")
 		return z
 			.string()
 			.min(8)
-			.refine((val) => val === formValues?.password, { message: "Senhas não coincidem" });
+			.refine((val) => val === formValues?.password, { message: "Passwords do not match" });
 	})
 	.render(({ register, fieldState }) => (
 		<div>
@@ -183,22 +157,22 @@ const ConfirmPasswordField = field("confirmPassword")
 	));
 ```
 
-## Validação Assíncrona
+## Asynchronous Validation
 
-O `zormyResolver` utiliza o `zodResolver` do @hookform/resolvers, que suporta schemas com `.refine()` ou `.superRefine()` assíncronos (retornando `Promise`). Para validações assíncronas (ex.: verificar se email já existe), use `.refine()` com função assíncrona:
+`zormyResolver` uses `zodResolver` from @hookform/resolvers, which supports schemas with asynchronous `.refine()` or `.superRefine()` (returning a `Promise`). For asynchronous validations (e.g., checking if an email already exists), use `.refine()` with an async function:
 
 ```tsx
 const EmailField = field("email")
 	.schema(
 		z
 			.string()
-			.email("Email inválido")
+			.email("Invalid email")
 			.refine(
 				async (email) => {
 					const exists = await checkEmailExists(email);
 					return !exists;
 				},
-				{ message: "Email já está em uso" }
+				{ message: "Email is already in use" }
 			)
 	)
 	.render(({ register, fieldState }) => (
@@ -209,31 +183,31 @@ const EmailField = field("email")
 	));
 ```
 
-## Transformações
+## Transformations
 
-O Zod permite transformar valores antes da validação:
+Zod allows transforming values before validation:
 
 ```tsx
 const PhoneField = field("phone")
 	.schema(
 		z
 			.string()
-			.transform((val) => val.replace(/\D/g, "")) // Remove caracteres não numéricos
-			.refine((val) => val.length === 11, "Telefone deve ter 11 dígitos")
+			.transform((val) => val.replace(/\D/g, "")) // Remove non-numeric characters
+			.refine((val) => val.length === 11, "Phone number must have 11 digits")
 	)
 	.render(({ register }) => <input {...register()} />);
 ```
 
-## Schemas Aninhados
+## Nested Schemas
 
-Para campos aninhados, o Zormy cria automaticamente schemas aninhados:
+For nested fields, Zormy automatically creates nested schemas:
 
 ```tsx
 const UserNameField = field("user.name")
 	.schema(z.string().min(3))
 	.render(({ register }) => <input {...register()} />);
 
-// O schema resultante será:
+// The resulting schema will be:
 // z.object({
 //   user: z.object({
 //     name: z.string().min(3)
@@ -241,22 +215,22 @@ const UserNameField = field("user.name")
 // })
 ```
 
-## Exemplos Práticos
+## Practical Examples
 
-### Validação de CPF
+### CPF Validation
 
 ```tsx
 const CPFField = field("cpf")
 	.schema(
 		z
 			.string()
-			.regex(/^\d{11}$/, "CPF deve ter 11 dígitos")
+			.regex(/^\d{11}$/, "CPF must have 11 digits")
 			.refine(
 				(cpf) => {
-					// Lógica de validação de CPF
+					// CPF validation logic
 					return validateCPF(cpf);
 				},
-				{ message: "CPF inválido" }
+				{ message: "Invalid CPF" }
 			)
 	)
 	.render(({ register, fieldState }) => (
@@ -267,7 +241,7 @@ const CPFField = field("cpf")
 	));
 ```
 
-### Validação Condicional
+### Conditional Validation
 
 ```tsx
 const AgeField = field("age")
@@ -291,7 +265,7 @@ const DriverLicenseField = field("hasDriverLicense")
 			<div>
 				<label>
 					<input type="checkbox" {...register()} />
-					Possui carteira de motorista?
+					Do you have a driver's license?
 				</label>
 			</div>
 		);

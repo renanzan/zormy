@@ -638,29 +638,35 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 
 			expect(onStepSubmit).toHaveBeenCalledWith(
 				expect.objectContaining({ name: "John" }),
-				"personal"
+				"personal",
+				expect.objectContaining({ name: "John" })
 			);
 		});
 
-		it("deve chamar onSubmit no último step quando form é completo", async () => {
+		it("deve chamar onSubmit no último step com todos os dados acumulados", async () => {
 			const onSubmit = vi.fn();
 			const { result } = renderHook(() =>
 				useWizard({
 					steps,
 					fields,
-					defaultValues: {
-						name: "John",
-						email: "john@example.com",
-						password: "password123",
-					},
+					defaultValues: { name: "", email: "", password: "" },
 					onSubmit,
 				})
 			);
 
+			// Step 1: name
 			act(() => {
-				result.current.goToStep("credentials");
+				result.current.setValue("name", "John");
+			});
+			await act(async () => {
+				await result.current.next();
 			});
 
+			// Step 2: email e password, depois finaliza
+			act(() => {
+				result.current.setValue("email", "john@example.com");
+				result.current.setValue("password", "password123");
+			});
 			await act(async () => {
 				await result.current.next();
 			});

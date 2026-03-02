@@ -1,28 +1,28 @@
 ---
-title: Instalação
-description: Como instalar o Zormy e suas dependências
+title: Installation
+description: How to install Zormy and its dependencies
 ---
 
 import { Callout, Steps } from "nextra/components";
 
-# Instalação
+# Installation
 
 <Steps>
-  ### Instale o Zormy e as dependências
+  ### Install Zormy and the dependencies
 
-Com pnpm:
+With pnpm:
 
 ```bash
 pnpm add zormy zod react-hook-form @hookform/resolvers
 ```
 
-Com npm:
+With npm:
 
 ```bash
 npm install zormy zod react-hook-form @hookform/resolvers
 ```
 
-Com yarn:
+With yarn:
 
 ```bash
 yarn add zormy zod react-hook-form @hookform/resolvers
@@ -30,23 +30,22 @@ yarn add zormy zod react-hook-form @hookform/resolvers
 
 </Steps>
 
-## Dependências
+## Dependencies
 
-O Zormy usa as seguintes **peer dependencies** (já incluídas nos comandos acima):
+Zormy uses the following **peer dependencies** (already included in the commands above):
 
-| Pacote                | Versão   | Uso                               |
-| --------------------- | -------- | --------------------------------- |
-| `react`               | ^18      | Runtime React                     |
-| `react-hook-form`     | ^7.71.1  | Controle de formulário            |
-| `zod`                 | ^3.25.28 | Validação e schemas               |
-| `@hookform/resolvers` | ^5.2.2   | Ponte entre Zod e react-hook-form |
+| Package               | Version  | Usage                                  |
+| --------------------- | -------- | -------------------------------------- |
+| `react`               | ^18      | React runtime                          |
+| `react-hook-form`     | ^7.71.1  | Form control                           |
+| `zod`                 | ^3.25.28 | Validation and schemas                 |
+| `@hookform/resolvers` | ^5.2.2   | Bridge between Zod and react-hook-form |
 
 <Callout type="info">
-	Em projetos novos, instale também `zod` e `react-hook-form` se ainda não estiverem no projeto. O
-	`zormyResolver` do Zormy monta o schema a partir dos campos e usa o ecossistema do
-	react-hook-form.
+	In new projects, also install `zod` and `react-hook-form` if they are not yet in your project.
+	Zormy’s `zormyResolver` builds the schema from the fields and uses the react-hook-form ecosystem.
 </Callout>
 
-## Próximo passo
+## Next step
 
-Depois de instalar, siga [Começando](/docs/get-started) para criar seu primeiro formulário em poucos minutos.
+After installing, follow [Getting Started](/docs/get-started) to create your first form in just a few minutes.

@@ -66,12 +66,18 @@ export type UseWizardArgs<
 		| WizardFormData<TStepFieldsMap>
 		| (() => WizardFormData<TStepFieldsMap>)
 		| (() => Promise<WizardFormData<TStepFieldsMap>>);
-	/** Callback quando o formulário é submetido (último step) */
+	/** Callback quando o wizard é finalizado (último step) — recebe todos os dados preenchidos */
 	onSubmit?: (data: WizardFormValues<TStepFieldsMap>) => void;
-	/** Callback quando um step é submetido */
+	/**
+	 * Callback ao avançar de step (ao clicar em "Próximo" ou ao finalizar).
+	 * @param data - Dados validados do step atual
+	 * @param step - Nome do step que foi concluído
+	 * @param allDataSoFar - Todos os dados preenchidos até o momento (steps anteriores + atual)
+	 */
 	onStepSubmit?: <Step extends Steps[number]>(
 		data: WizardFormData<TStepFieldsMap>,
-		step: Step
+		step: Step,
+		allDataSoFar: WizardFormData<TStepFieldsMap>
 	) => void;
 	/** Step inicial (padrão: primeiro step) */
 	initialStep?: Steps[number];
@@ -305,8 +311,8 @@ export const useWizard = <
 				}
 			: undefined,
 		onStepSubmit: args.onStepSubmit
-			? (data, step) => {
-					args.onStepSubmit?.(data as FormData, step);
+			? (data, step, allDataSoFar) => {
+					args.onStepSubmit?.(data as FormData, step, allDataSoFar as FormData);
 				}
 			: undefined,
 		onStepChange: args.autoSave
@@ -391,15 +397,6 @@ export const useWizard = <
 		return filteredSteps.indexOf(wizard.currentStep) === filteredSteps.length - 1;
 	}, [filteredSteps, wizard.currentStep]);
 
-	/**
-	 * Submete o formulário completo.
-	 */
-	const submitForm = useCallback(async () => {
-		const formData = wizard.getValues();
-		const formValues = flattenToNested(formData) as FormValues;
-		await args.onSubmit?.(formValues);
-	}, [wizard, args.onSubmit]);
-
 	const interceptedNextImpl = useCallback(
 		async (options?: TriggerOptions) => {
 			const isValid = await validateCurrentStep(options);
@@ -407,8 +404,9 @@ export const useWizard = <
 				return;
 			}
 
+			// No último step, delegar ao next() do useWizardForm para que acumule valores e chame onSubmit com todos os dados
 			if (isLastFilteredStep()) {
-				await submitForm();
+				await wizard.next(options);
 				return;
 			}
 
@@ -417,7 +415,7 @@ export const useWizard = <
 				wizard.goToStep(nextStep);
 			}
 		},
-		[validateCurrentStep, isLastFilteredStep, submitForm, findNextValidStep, wizard]
+		[validateCurrentStep, isLastFilteredStep, findNextValidStep, wizard]
 	);
 
 	const interceptedNext = ((options?: TriggerOptions): Promise<void> => {

@@ -45,14 +45,15 @@ type FormResolverArgs<Fields extends readonly FieldComponentBase[]> = {
 export function zormyResolver<Fields extends readonly FieldComponentBase[]>(
 	args: FormResolverArgs<Fields>
 ): Resolver<FieldsToObject<Fields>> {
-	// Cria um objeto shape com todos os schemas dos campos
-	const shape = args.fields.reduce((acc, field) => {
-		acc[field.config.key] = field.getZodSchema();
-		return acc;
-	}, {} as ZodRawShape);
+	return ((values: any, context: any, options: any) => {
+		// Monta o shape com os valores atuais do formulário para que schemas dinâmicos
+		// (ex.: .schema((formValues) => ...)) usem formValues atualizados na validação.
+		const shape = args.fields.reduce((acc, field) => {
+			acc[field.config.key] = field.getZodSchema(values);
+			return acc;
+		}, {} as ZodRawShape);
 
-	// Cria o schema (aninhado ou flat) automaticamente
-	const schema = shapeToZodSchema(shape);
-
-	return zodResolver(schema) as unknown as Resolver<FieldsToObject<Fields>>;
+		const schema = shapeToZodSchema(shape);
+		return (zodResolver(schema) as Resolver<FieldsToObject<Fields>>)(values, context, options);
+	}) as Resolver<FieldsToObject<Fields>>;
 }

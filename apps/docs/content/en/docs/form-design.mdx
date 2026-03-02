@@ -1,0 +1,76 @@
+---
+title: Form Design
+description: Atomic design–inspired approach applied to forms with Zormy
+---
+
+import { Callout, Cards } from "nextra/components";
+
+# Form Design
+
+Zormy proposes a **new way to handle forms**: instead of treating each screen as a monolithic block (loose schemas, inputs tied to the page), you build forms from **reusable, composable units** — an approach inspired by **atomic design**, but applied to the form domain.
+
+## Why a layered approach?
+
+- **Consistency** — Same fields (name, email, address) with the same validation and UI across the app.
+- **Reuse** — A field defined once is used in many forms and wizards.
+- **Maintainability** — Changing a rule or layout in one place reflects everywhere.
+- **Typing and DX** — TypeScript and Zod flow from fields to the whole form, without duplicating types.
+
+The idea is to think in **atoms** (primitive fields), **molecules** (field groups), **organisms** (forms or sections), and **templates** (wizards, multi-step flows), and organize the project to get the most out of it.
+
+## Layers in Zormy
+
+### Atoms — primitive fields
+
+The **smallest building blocks**: a field with key, Zod schema, and render function. They can be concrete (`field("name")`) or **abstract** (`abstractField()`), to derive multiple fields from the same “mold”.
+
+- **Concrete field**: `field("email").schema(z.string().email()).render(...)` — one specific field.
+- **Abstract field**: `abstractField().schema(z.string()).render(...)` + `.extend({ key: "name" })` — reusable template (name, email, description, etc.).
+
+Use atoms for simple inputs (text, number, checkbox, select) that appear in multiple contexts.
+
+### Molecules — field groups
+
+Sets of fields that **always appear together** and form a semantic block. Examples: address (street, city, zip), phone with area code, birth date with age validation.
+
+- **Implementation**: define each subfield with `field("address.street")`, `field("address.city")`, etc., and export an **array** or a **component that renders the group** for use in forms and wizards.
+- Fields remain atoms to the resolver; the “molecule” is an organization and composition convention in the UI.
+
+### Organisms — forms and sections
+
+A **full form** or a **large section** (e.g. “Personal data”, “Payment”). Built by combining atoms and molecules, with a single array of fields for `zormyResolver` and `<Form>` (or a wizard step).
+
+This is where UX decisions live: which fields in which order, per-step validation (in wizards), submit/back/next buttons.
+
+### Templates — wizards and multi-step flows
+
+**Templates** define the **flow structure**: how many steps, which fields per step, navigation (next/back), conditional steps (`shouldIncludeStep`), auto-save, etc.
+
+- `createWizardConfig({ steps, fields })` + `createWizardComponents` + `useWizard` describe the template.
+- The **fields** in each step are the same atoms and molecules used elsewhere; only the composition and order change.
+
+### Pages — concrete flows
+
+The **page** is the concrete instance: a checkout wizard, a multi-step signup, a contact form. It uses the templates (wizard or form) with `defaultValues`, `onSubmit`, `onStepSubmit`, and the final UI (layout, copy, redirects).
+
+---
+
+## Layer summary
+
+| Layer        | In Zormy                                                                 | Example                                       |
+| ------------ | ------------------------------------------------------------------------ | --------------------------------------------- |
+| **Atom**     | `field(key)` or `abstractField().extend({ key })` with schema + render   | `NameField`, `EmailField`, `BaseTextField`    |
+| **Molecule** | Several fields grouped (same array or component that renders them)      | Address (street, city, zip)                  |
+| **Organism** | Form or section: array of fields + `<Form>` / step                       | Signup form, “Personal data” step             |
+| **Template** | Wizard config: steps + fields per step                                   | `createWizardConfig` for checkout            |
+| **Page**     | Wizard/Form instance with defaultValues and callbacks                    | “Checkout” page, “User signup” page          |
+
+<Callout type="info">
+	Layers are a **way to organize** code and thinking. Zormy does not require specific folders or names; you can adopt this hierarchy in your project structure and documentation.
+</Callout>
+
+## Next steps
+
+- [**Project structure**](/docs/tips#estrutura-de-projeto-recomendada) — suggested folders and where to put atoms, molecules, and forms.
+- [**Fields**](/docs/fields) — concrete fields, abstract fields, and dependencies.
+- [**Wizards**](/docs/wizards) — multi-step templates with Zormy.

@@ -1,133 +1,95 @@
 ---
 title: Forms
-description: Formulários no Zormy — Form, useForm, zormyResolver e modo de validação
+description: Forms in Zormy — Form, useForm, zormyResolver, and validation mode
 ---
 
 import { Callout } from "nextra/components";
 
+import { simpleFormCode } from "../snippets/simple-form";
+
 # Forms
 
-Formulários no Zormy são montados com **react-hook-form** (via `useForm`) e o **resolver** `zormyResolver`, que monta o schema Zod a partir dos campos e integra com a validação.
+Forms in Zormy are built with **react-hook-form** (via `useForm`) and the **resolver** `zormyResolver`, which builds the Zod schema from the fields and integrates it with validation.
 
-## Fluxo básico
+## Basic flow
 
-1. Defina os **campos** com `field("key").schema(...).render(...)` (veja [Fields](/docs/fields)).
-2. Use **`<Form fields={[Field1, Field2, ...]} defaultValues? mode? onSubmit? />`** (Form usa useZormy internamente) ou crie o form com `useZormy` / `useForm` e passe **`<Form methods={form}>`**.
-3. Renderize os campos dentro do Form.
+1. Define the **fields** with `field("key").schema(...).render(...)` (see [Fields](/docs/fields)).
+2. Use **`<Form fields={[Field1, Field2, ...]} defaultValues? mode? onSubmit? />`** (Form uses useZormy internally) or create the form with `useZormy` / `useForm` and pass **`<Form methods={form}>`**.
+3. Render the fields inside the Form.
 
-<CodeExample
-	code={`import { z } from "zod";
-import { field, Form, zormyResolver, useForm } from "zormy";
-
-const NameField = field("name")
-.schema(z.string().min(3))
-.render(({ register, fieldState }) => (
-<div>
-<input {...register()} />
-{fieldState.error && <span>{fieldState.error.message}</span>}
-</div>
-));
-
-const EmailField = field("email")
-.schema(z.string().email())
-.render(({ register, fieldState }) => (
-<div>
-<input type="email" {...register()} />
-{fieldState.error && <span>{fieldState.error.message}</span>}
-</div>
-));
-
-function MyForm() {
-const form = useForm({
-resolver: zormyResolver({ fields: [NameField, EmailField] }),
-defaultValues: { name: "", email: "" },
-mode: "onChange",
-});
-
-return (
-<Form methods={form} onSubmit={form.handleSubmit((data) => console.log(data))}>
-<NameField />
-<EmailField />
-<button type="submit">Enviar</button>
-</Form>
-);
-}
-
-export default MyForm;`}
-	editorHeight={400}
-/>
+<CodeExample editorHeight={400} code={simpleFormCode} />
 
 ## `zormyResolver({ fields })`
 
-O resolver recebe um **array de componentes de campo**. Ele:
+The resolver receives an **array of field components**. It:
 
-- Monta o schema Zod (flat ou aninhado a partir das chaves com ponto)
-- Suporta schemas dinâmicos (função que recebe `formValues`)
-- Retorna um resolver compatível com `useForm`
+- Builds the Zod schema (flat or nested based on dot keys)
+- Supports dynamic schemas (function receiving `formValues`)
+- Returns a resolver compatible with `useForm`
 
 <Callout type="info">
-	O array `fields` deve conter **exatamente** os campos que serão renderizados no formulário (ou no
-	step, no caso de wizards). Inclua também os campos usados em `dependsOn` de outros campos.
+	The `fields` array must contain **exactly** the fields that will be rendered in the form (or in
+	the step, in the case of wizards). Also include fields used in `dependsOn` from other fields.
 </Callout>
 
-## Componente `Form`
+## `Form` Component
 
-O Form aceita **dois modos**: com **`methods`** (você passa o retorno de `useForm`/`useZormy`) ou com **`fields`** (você passa o array de campos e opcionalmente `defaultValues`, `mode`, `onSubmit`; o Form usa useZormy internamente). Em ambos os casos fornece o contexto (FormProvider) e, por padrão, renderiza um `<form>`.
+Form supports **two modes**: with **`methods`** (you pass the return value of `useForm`/`useZormy`) or with **`fields`** (you pass the array of fields and optionally `defaultValues`, `mode`, `onSubmit`; Form uses useZormy internally). In both cases it provides the context (FormProvider) and, by default, renders a `<form>`.
 
-| Prop            | Tipo            | Descrição                                                                                            |
-| --------------- | --------------- | ---------------------------------------------------------------------------------------------------- |
-| `methods`       | `UseFormReturn` | Instância retornada por `useForm` ou `useZormy` (quando não usa `fields`)                            |
-| `fields`        | `FieldComponentBase[]` | Array de campos; Form usa useZormy internamente (quando não usa `methods`)                 |
-| `defaultValues` | objeto          | Valores iniciais (apenas com `fields`)                                                               |
-| `mode`          | string          | Modo de validação: `"onChange"`, `"onBlur"`, `"onSubmit"`, etc. (apenas com `fields`)                |
-| `onSubmit`      | `(data) => void` | Callback com dados validados no submit                                                              |
-| `contextOnly`   | `boolean`       | Se `true`, não renderiza `<form>`, apenas o contexto (útil para wrappers customizados ou Radix Slot) |
-| `children`      | `ReactNode`     | Conteúdo do formulário                                                                               |
+| Prop            | Type                   | Description                                                                                      |
+| --------------- | ---------------------- | ------------------------------------------------------------------------------------------------ |
+| `methods`       | `UseFormReturn`        | Instance returned by `useForm` or `useZormy` (when not using `fields`)                           |
+| `fields`        | `FieldComponentBase[]` | Array of fields; Form uses useZormy internally (when not using `methods`)                        |
+| `defaultValues` | object                 | Initial values (only with `fields`)                                                              |
+| `mode`          | string                 | Validation mode: `"onChange"`, `"onBlur"`, `"onSubmit"`, etc. (only with `fields`)               |
+| `onSubmit`      | `(data) => void`       | Callback with validated data on submit                                                           |
+| `contextOnly`   | `boolean`              | If `true`, does not render `<form>`, only the context (useful for custom wrappers or Radix Slot) |
+| `children`      | `ReactNode`            | Form content                                                                                     |
 
-**Exemplo com `contextOnly`** (sem elemento `<form>`):
+**Example with `contextOnly`** (without `<form>` element):
 
 ```tsx
 <Form methods={form} contextOnly>
 	<CustomWrapper>
 		<NameField />
 		<button type="button" onClick={form.handleSubmit(handleSubmit)}>
-			Enviar
+			Submit
 		</button>
 	</CustomWrapper>
 </Form>
 ```
 
-Quando `contextOnly` é `true`, props HTML passadas ao `Form` **não** são repassadas automaticamente ao filho — você controla o wrapper.
+When `contextOnly` is `true`, HTML props passed to `Form` are **not** automatically forwarded to the child — you control the wrapper.
 
-## Modo de validação (`mode`)
+## Validation mode (`mode`)
 
-O **quando** os campos são validados é definido pela opção `mode` do `useForm` (e do `useWizard`):
+**When** fields are validated is defined by the `mode` option of `useForm` (and `useWizard`):
 
-| Valor         | Comportamento                                              |
-| ------------- | ---------------------------------------------------------- |
-| `"onChange"`  | Valida a cada alteração (padrão comum)                     |
-| `"onBlur"`    | Valida ao sair do campo                                    |
-| `"onSubmit"`  | Valida apenas no submit                                    |
-| `"onTouched"` | Valida após o campo ser “tocado” e depois a cada alteração |
-| `"all"`       | Valida em onChange e onBlur                                |
+| Value         | Behavior                                                        |
+| ------------- | --------------------------------------------------------------- |
+| `"onChange"`  | Validates on every change (common default)                      |
+| `"onBlur"`    | Validates when leaving the field                                |
+| `"onSubmit"`  | Validates only on submit                                        |
+| `"onTouched"` | Validates after the field is “touched” and then on every change |
+| `"all"`       | Validates on onChange and onBlur                                |
 
 ```tsx
 const form = useForm({
 	resolver: zormyResolver({ fields: [NameField] }),
 	defaultValues: { name: "" },
-	mode: "onBlur", // valida ao sair do campo
+	mode: "onBlur", // validates when leaving the field
 });
 ```
 
 ## `defaultValues`
 
-Devem cobrir **todas as chaves** dos campos (incluindo aninhadas). Exemplos:
+They must cover **all field keys** (including nested ones). Examples:
 
-- Campos `"name"` e `"email"` → `defaultValues: { name: "", email: "" }`
-- Campo `"user.name"` → `defaultValues: { user: { name: "" } }`
+- Fields `"name"` and `"email"` → `defaultValues: { name: "", email: "" }`
+- Field `"user.name"` → `defaultValues: { user: { name: "" } }`
 
-## Re-exports do react-hook-form
+## react-hook-form re-exports
 
-O Zormy re-exporta `useForm`, `Controller`, `SubmitHandler` e `FormProvider` para uso direto. Na prática, use `useForm` e `<Form>` do Zormy para manter tipagem e contexto alinhados. Para controles customizados (ex.: date picker), use `Controller` do Zormy com o `control` do seu `useForm`.
+Zormy re-exports `useForm`, `Controller`, `SubmitHandler`, and `FormProvider` for direct use. In practice, use Zormy’s `useForm` and `<Form>` to keep typing and context aligned. For custom controls (e.g., date picker), use Zormy’s `Controller` with the `control` from your `useForm`.
 
-Para a API completa de `Form` e `zormyResolver`, veja [Referência API](/docs/api-reference).
+For the complete API of `Form` and `zormyResolver`, see [API Reference](/docs/api-reference).

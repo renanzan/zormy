@@ -1,34 +1,34 @@
 ---
 title: API Reference
-description: Referência completa da API do Zormy
+description: Complete API reference for Zormy
 ---
 
 import { Callout, Tabs } from "nextra/components";
 
 # API Reference
 
-Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
+Complete API reference for Zormy with practical examples and TypeScript types.
 
 <Callout type="info">
-	Todos os tipos são inferidos automaticamente pelo TypeScript. Use o IntelliSense do seu editor
-	para explorar a API!
+	All types are automatically inferred by TypeScript. Use your editor's IntelliSense to explore the
+	API!
 </Callout>
 
-<Tabs items={['Campos', 'Componentes', 'Resolvers', 'Wizards', 'Tipos']}>
+<Tabs items={['Fields', 'Components', 'Resolvers', 'Wizards', 'Types']}>
   <Tabs.Tab>
-    ## Campos (Fields)
+    ## Fields
 
     ### `field(key)`
 
-    Cria um builder fluente para construir um campo de formulário.
+    Creates a fluent builder to construct a form field.
 
-    | Parâmetro | Tipo | Descrição |
-    |-----------|------|-----------|
-    | `key` | `string` | Chave única que identifica o campo no formulário (ex: `"name"`, `"user.email"`) |
+    | Parameter | Type | Description |
+    |-----------|------|------------|
+    | `key` | `string` | Unique key that identifies the field in the form (e.g., `"name"`, `"user.email"`) |
 
-    **Retorna:** `FieldBuilder<Key>`
+    **Returns:** `FieldBuilder<Key>`
 
-    **Exemplo:**
+    **Example:**
     ```tsx
     const NameField = field("name")
       .schema(z.string())
@@ -37,11 +37,11 @@ Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
 
     ### `abstractField()`
 
-    Cria um builder para campo abstrato (template reutilizável). Use `.extend({ key, schema?, render?, dependsOn?, props? })` para obter um campo concreto.
+    Creates a builder for an abstract field (reusable template). Use `.extend({ key, schema?, render?, dependsOn?, props? })` to obtain a concrete field.
 
-    **Retorna:** `AbstractFieldBuilder`
+    **Returns:** `AbstractFieldBuilder`
 
-    **Exemplo:**
+    **Example:**
     ```tsx
     const BaseTextField = abstractField()
       .schema(z.string())
@@ -53,47 +53,47 @@ Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
 
     ### `useField<Key, Schema>(key)`
 
-    Hook para acessar o contexto do formulário com tipagem forte para um campo. Deve ser usado dentro de `FormProvider` ou `<Form>`. Retorna `register`, `fieldState`, `control`, `getValues`, `setValue`, `watch` tipados para o campo.
+    Hook to access the form context with strong typing for a field. Must be used inside `FormProvider` or `<Form>`. Returns typed `register`, `fieldState`, `control`, `getValues`, `setValue`, and `watch` for the field.
 
-    | Parâmetro | Tipo | Descrição |
-    |-----------|------|-----------|
-    | `key` | `Key` | Chave do campo (deve coincidir com a chave do campo no formulário) |
+    | Parameter | Type | Description |
+    |-----------|------|------------|
+    | `key` | `Key` | Field key (must match the field key in the form) |
 
-    **Retorna:** `UseFieldReturn<Key, Schema, DepsTypes>`
+    **Returns:** `UseFieldReturn<Key, Schema, DepsTypes>`
 
   </Tabs.Tab>
   
   <Tabs.Tab>
-    ## Componentes
+    ## Components
 
     ### `Form`
 
-    Componente de formulário integrado ao react-hook-form. Aceita **dois modos**:
+    Form component integrated with react-hook-form. Supports **two modes**:
 
-    - **`methods`**: você passa o retorno de `useForm` ou `useZormy` (controle externo).
-    - **`fields`**: você passa o array de campos; o Form usa `useZormy` internamente. Opcionalmente passe `defaultValues`, `mode`, `onSubmit`, etc.
+    - **`methods`**: you pass the return value of `useForm` or `useZormy` (external control).
+    - **`fields`**: you pass the array of fields; Form uses `useZormy` internally. Optionally pass `defaultValues`, `mode`, `onSubmit`, etc.
 
-    | Propriedade | Tipo | Obrigatório | Descrição |
-    |-------------|------|-------------|-----------|
-    | `methods` | `UseFormReturn<TFieldValues>` | * | Instância de useForm (obrigatório quando não usa `fields`) |
-    | `fields` | `readonly FieldComponentBase[]` | * | Array de campos; Form usa useZormy internamente (obrigatório quando não usa `methods`) |
-    | `defaultValues` | `DeepPartial<FormValues>` | ❌ | Valores iniciais (apenas com `fields`) |
-    | `mode` | `"onChange"` \| `"onBlur"` \| `"onSubmit"` \| ... | ❌ | Modo de validação (apenas com `fields`) |
-    | `onSubmit` | `(data: FormValues) => void` | ❌ | Callback chamado com os dados validados no submit |
-    | `contextOnly` | `boolean` | ❌ | Se true, fornece apenas o contexto sem envolver em `<form>` |
-    | `children` | `ReactNode` | ❌ | Conteúdo do formulário |
-    | `...formProps` | `ComponentPropsWithoutRef<"form">` | ❌ | Props do elemento `<form>` |
+    | Property | Type | Required | Description |
+    |-----------|------|----------|------------|
+    | `methods` | `UseFormReturn<TFieldValues>` | * | useForm instance (required when not using `fields`) |
+    | `fields` | `readonly FieldComponentBase[]` | * | Array of fields; Form uses useZormy internally (required when not using `methods`) |
+    | `defaultValues` | `DeepPartial<FormValues>` | ❌ | Initial values (only with `fields`) |
+    | `mode` | `"onChange"` \| `"onBlur"` \| `"onSubmit"` \| ... | ❌ | Validation mode (only with `fields`) |
+    | `onSubmit` | `(data: FormValues) => void` | ❌ | Callback called with validated data on submit |
+    | `contextOnly` | `boolean` | ❌ | If true, provides only context without wrapping in `<form>` |
+    | `children` | `ReactNode` | ❌ | Form content |
+    | `...formProps` | `ComponentPropsWithoutRef<"form">` | ❌ | `<form>` element props |
 
-    **Exemplo com `methods`:**
+    **Example with `methods`:**
     ```tsx
     const form = useZormy({ fields: [NameField], defaultValues: { name: "" } });
     <Form methods={form} onSubmit={(data) => console.log(data)}>
       <NameField />
-      <button type="submit">Enviar</button>
+      <button type="submit">Submit</button>
     </Form>
     ```
 
-    **Exemplo com `fields` (Form cria o form internamente):**
+    **Example with `fields` (Form creates the form internally):**
     ```tsx
     <Form
       fields={[NameField, EmailField]}
@@ -103,22 +103,22 @@ Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
     >
       <NameField />
       <EmailField />
-      <button type="submit">Enviar</button>
+      <button type="submit">Submit</button>
     </Form>
     ```
 
     ### `useZormy({ fields, ...useFormOptions })`
 
-    Hook que integra um array de campos ao `useForm` do react-hook-form, injetando automaticamente o `zormyResolver`. Evita passar `resolver` manualmente e preserva a inferência de tipos a partir dos campos.
+    Hook that integrates an array of fields with react-hook-form’s `useForm`, automatically injecting the `zormyResolver`. Avoids manually passing `resolver` and preserves type inference from fields.
 
-    | Propriedade | Tipo | Obrigatório | Descrição |
-    |-------------|------|-------------|-----------|
-    | `fields` | `readonly FieldComponentBase[]` | ✅ | Array de componentes de campo |
-    | `...useFormOptions` | `Omit<UseFormProps, 'resolver'>` | ❌ | Demais opções do `useForm` (defaultValues, mode, etc.) — `resolver` não deve ser passado |
+    | Property | Type | Required | Description |
+    |-----------|------|----------|------------|
+    | `fields` | `readonly FieldComponentBase[]` | ✅ | Array of field components |
+    | `...useFormOptions` | `Omit<UseFormProps, 'resolver'>` | ❌ | Other `useForm` options (defaultValues, mode, etc.) — `resolver` must not be passed |
 
-    **Retorna:** `UseFormReturn<FieldsToObject<TFieldValues>, TContext, TTransformedValues>`
+    **Returns:** `UseFormReturn<FieldsToObject<TFieldValues>, TContext, TTransformedValues>`
 
-    **Exemplo:**
+    **Example:**
     ```tsx
     const form = useZormy({
       fields: [NameField, EmailField],
@@ -138,15 +138,15 @@ Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
 
     ### `zormyResolver({ fields })`
 
-    Cria um resolver para react-hook-form baseado em um array de campos. Suporta schemas flat e aninhados (chaves com pontos, ex: `"user.email"`). Schemas dinâmicos (função que recebe `formValues`) são avaliados no momento da validação.
+    Creates a resolver for react-hook-form based on an array of fields. Supports flat and nested schemas (dot keys, e.g., `"user.email"`). Dynamic schemas (function receiving `formValues`) are evaluated at validation time.
 
-    | Propriedade | Tipo | Obrigatório | Descrição |
-    |-------------|------|-------------|-----------|
-    | `fields` | `readonly FieldComponentBase[]` | ✅ | Array de componentes de campo |
+    | Property | Type | Required | Description |
+    |-----------|------|----------|------------|
+    | `fields` | `readonly FieldComponentBase[]` | ✅ | Array of field components |
 
-    **Retorna:** `Resolver<FieldsToObject<Fields>>`
+    **Returns:** `Resolver<FieldsToObject<Fields>>`
 
-    **Exemplo:**
+    **Example:**
     ```tsx
     const resolver = zormyResolver({
       fields: [NameField, EmailField]
@@ -165,166 +165,77 @@ Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
 
     ### `useWizard(args)`
 
-    Hook para criar e gerenciar wizard de formulário multi-step.
+    Hook to create and manage a multi-step form wizard.
 
-    **Argumentos:**
+    **Arguments:**
 
-    | Propriedade | Tipo | Obrigatório | Descrição |
-    |-------------|------|-------------|-----------|
-    | `steps` | `readonly string[]` | ✅ | Array de steps do wizard |
-    | `fields` | `StepFieldsMap<Steps>` | ✅ | Mapeamento de steps para campos |
-    | `defaultValues` | `WizardFormData \| (() => WizardFormData) \| (() => Promise<WizardFormData>)` | ❌ | Valores padrão (objeto, função síncrona ou assíncrona) |
-    | `onSubmit` | `(data: WizardFormValues) => void` | ❌ | Callback quando o formulário é submetido (último step) |
-    | `onStepSubmit` | `(data: WizardFormData, step: Step) => void` | ❌ | Callback quando um step é submetido |
-    | `initialStep` | `Steps[number]` | ❌ | Step inicial (padrão: primeiro step) |
-    | `mode` | `"onChange" \| "onBlur" \| "onSubmit" \| "onTouched" \| "all"` | ❌ | Modo de validação do react-hook-form |
-    | `controlledStep` | `Steps[number]` | ❌ | Step controlado externamente (ex: URL query params) |
-    | `onStepChange` | `(args) => void` | ❌ | Callback quando o step muda |
-    | `autoSave` | `(args) => Promise<void>` | ❌ | Auto save: salva automaticamente ao mudar de step |
-    | `shouldIncludeStep` | `(step, formValues) => boolean` | ❌ | Função para filtrar steps condicionais |
+    | Property | Type | Required | Description |
+    |-----------|------|----------|------------|
+    | `steps` | `readonly string[]` | ✅ | Array of wizard steps |
+    | `fields` | `StepFieldsMap<Steps>` | ✅ | Mapping of steps to fields |
+    | `defaultValues` | `WizardFormData \| (() => WizardFormData) \| (() => Promise<WizardFormData>)` | ❌ | Default values (object, sync function, or async function) |
+    | `onSubmit` | `(data: WizardFormValues) => void` | ❌ | Callback when the form is submitted (last step) |
+    | `onStepSubmit` | `(data: WizardFormData, step: Step) => void` | ❌ | Callback when a step is submitted |
+    | `initialStep` | `Steps[number]` | ❌ | Initial step (default: first step) |
+    | `mode` | `"onChange" \| "onBlur" \| "onSubmit" \| "onTouched" \| "all"` | ❌ | react-hook-form validation mode |
+    | `controlledStep` | `Steps[number]` | ❌ | Externally controlled step (e.g., URL query params) |
+    | `onStepChange` | `(args) => void` | ❌ | Callback when step changes |
+    | `autoSave` | `(args) => Promise<void>` | ❌ | Auto save: automatically saves when changing steps |
+    | `shouldIncludeStep` | `(step, formValues) => boolean` | ❌ | Function to filter conditional steps |
 
-    **Retorna:** `UseWizardFormReturn<FormData, Steps> & { autoSave?, getFieldComponentsForStep }`
-
-    **Propriedades retornadas:**
-
-    | Propriedade | Tipo | Descrição |
-    |-------------|------|-----------|
-    | `currentStep` | `Steps[number]` | Step atual |
-    | `currentStepIndex` | `number` | Índice do step atual |
-    | `steps` | `readonly Steps[number][]` | Steps filtrados (se `shouldIncludeStep` for usado) |
-    | `totalSteps` | `number` | Total de steps |
-    | `isFirstStep` | `boolean` | Se é o primeiro step |
-    | `isLastStep` | `boolean` | Se é o último step |
-    | `next()` | `() => Promise<void>` | Avança para o próximo step |
-    | `back()` | `() => void` | Volta para o step anterior |
-    | `goToStep(step)` | `(step: Steps[number]) => void` | Vai para um step específico |
-    | `getFieldComponentsForStep(step)` | `(step) => FieldComponent[]` | Obtém campos de um step |
-    | `handleSubmit()` | `() => (e: FormEvent) => void` | Handler de submit do formulário |
-    | `formState` | `FormState` | Estado do formulário (errors, isValid, etc.) |
-    | `watch()` | `() => FormData` | Observa valores do formulário |
-    | `getValues()` | `() => FormData` | Obtém valores do formulário |
-    | `setValue(name, value)` | `(name, value) => void` | Define valor de um campo |
-    | `reset(values?)` | `(values?) => void` | Reseta o formulário |
-    | `trigger(fields?)` | `(fields?) => Promise<boolean>` | Dispara validação |
-    | `clearErrors()` | `() => void` | Limpa erros |
-    | `autoSave` | `UseAutoSaveReturn?` | Auto save (se configurado) |
+    **Returns:** `UseWizardFormReturn<FormData, Steps> & { autoSave?, getFieldComponentsForStep }`
 
     ### `createWizardConfig(config)`
 
-    Função helper para criar uma configuração de wizard com inferência correta de tipos.
+    Helper function to create a wizard configuration with proper type inference.
 
-    | Propriedade | Tipo | Obrigatório | Descrição |
-    |-------------|------|-------------|-----------|
-    | `steps` | `readonly string[]` | ✅ | Array de steps |
-    | `fields` | `StepFieldsMap<Steps>` | ✅ | Mapeamento de steps para campos |
-    | `shouldIncludeStep` | `(step, formValues) => boolean` | ❌ | Função para filtrar steps |
+    | Property | Type | Required | Description |
+    |-----------|------|----------|------------|
+    | `steps` | `readonly string[]` | ✅ | Array of steps |
+    | `fields` | `StepFieldsMap<Steps>` | ✅ | Mapping of steps to fields |
+    | `shouldIncludeStep` | `(step, formValues) => boolean` | ❌ | Function to filter steps |
 
-    **Retorna:** `WizardConfig<Steps, TStepFieldsMap>`
-
-    **Exemplo:**
-    ```tsx
-    const config = createWizardConfig({
-      steps: ["step1", "step2"] as const,
-      fields: {
-        step1: [NameField],
-        step2: [EmailField],
-      },
-    });
-    ```
+    **Returns:** `WizardConfig<Steps, TStepFieldsMap>`
 
     ### `createWizardComponents(config)`
 
-    Cria componentes Wizard e Step tipados baseados em uma configuração de wizard.
+    Creates typed Wizard and Step components based on a wizard configuration.
 
-    | Parâmetro | Tipo | Descrição |
-    |-----------|------|-----------|
-    | `config` | `WizardConfig<Steps, TStepFieldsMap>` | Configuração do wizard criada com `createWizardConfig` |
+    | Parameter | Type | Description |
+    |-----------|------|------------|
+    | `config` | `WizardConfig<Steps, TStepFieldsMap>` | Wizard configuration created with `createWizardConfig` |
 
-    **Retorna:** `{ Wizard, Step }` - Componentes tipados
-
-    **Propriedades do Wizard:**
-    - `methods`: `UseWizardFormReturn` - Instância do wizard retornada por `useWizard`
-    - `contextOnly?`: `boolean` - Se true, fornece apenas contexto sem envolver em `<form>`
-    - `children`: `ReactNode` - Conteúdo do wizard
-    - `...formProps`: Props adicionais do elemento `<form>`
-
-    **Propriedades do Step:**
-    - `step`: `Steps[number]` - Step do wizard (tipado)
-    - `as?`: `ElementType` - Elemento HTML ou componente a ser renderizado (padrão: `"div"`)
-    - `children`: `ReactNode` - Conteúdo do step
-
-    **Exemplo:**
-    ```tsx
-    const config = createWizardConfig({
-      steps: ["personal", "contact"] as const,
-      fields: {
-        personal: [NameField],
-        contact: [EmailField],
-      },
-    });
-
-    const { Wizard, Step } = createWizardComponents(config);
-
-    const wizard = useWizard({ ...config, defaultValues: { /* ... */ } });
-
-    <Wizard methods={wizard} onSubmit={wizard.handleSubmit()}>
-      <Step step="personal">
-        <NameField />
-      </Step>
-      <Step step="contact">
-        <EmailField />
-      </Step>
-    </Wizard>
-    ```
+    **Returns:** `{ Wizard, Step }` - Typed components
 
     ### `WizardProvider`
 
-    Provider que fornece o contexto do wizard para componentes filhos.
+    Provider that supplies the wizard context to child components.
 
-    | Propriedade | Tipo | Obrigatório | Descrição |
-    |-------------|------|-------------|-----------|
-    | `value` | `UseWizardFormReturn & { autoSave? }` | ✅ | Valor do contexto do wizard |
-    | `children` | `ReactNode` | ✅ | Componentes filhos |
+    | Property | Type | Required | Description |
+    |-----------|------|----------|------------|
+    | `value` | `UseWizardFormReturn & { autoSave? }` | ✅ | Wizard context value |
+    | `children` | `ReactNode` | ✅ | Child components |
 
     ### `useWizardContext<TConfig>()`
 
-    Hook para acessar o contexto do wizard.
+    Hook to access the wizard context.
 
-    **Retorna:** Contexto do wizard tipado
-
-    **Exemplo:**
-    ```tsx
-    const wizard = useWizardContext<typeof wizardConfig>();
-    wizard.next();
-    wizard.back();
-    ```
+    **Returns:** Typed wizard context
 
     ### `useAutoSaveContext()`
 
-    Hook para acessar o autoSave do contexto do wizard.
+    Hook to access autoSave from the wizard context.
 
-    **Retorna:** `UseAutoSaveReturn`
-
-    **Propriedades retornadas:**
-
-    | Propriedade | Tipo | Descrição |
-    |-------------|------|-----------|
-    | `status` | `"idle" \| "saving" \| "saved" \| "error"` | Status do salvamento |
-    | `lastSaved` | `Date \| undefined` | Última vez que foi salvo |
-    | `hasChanges` | `boolean` | Se há mudanças não salvas |
-    | `startSaving()` | `() => void` | Marca início do salvamento |
-    | `markSaved()` | `() => void` | Marca salvamento bem-sucedido |
-    | `markError()` | `() => void` | Marca erro no salvamento |
-    | `executeSave(saveFn)` | `(saveFn: () => Promise<void>) => Promise<void>` | Executa salvamento com controle automático |
+    **Returns:** `UseAutoSaveReturn`
 
   </Tabs.Tab>
   
   <Tabs.Tab>
-    ## Tipos
+    ## Types
 
     ### `FieldsToObject<Fields>`
 
-    Tipo inferido dos valores do formulário a partir de um array de campos. Usado pelo resolver e por `useForm`.
+    Type inferred from form values based on an array of fields. Used by the resolver and `useForm`.
 
     ```tsx
     type FieldsToObject<Fields extends readonly FieldComponentBase[]>
@@ -332,40 +243,40 @@ Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
 
     ### `FieldKey`, `FieldValue`
 
-    Tipos utilitários para chaves e valores de campos (exportados do pacote).
+    Utility types for field keys and values (exported from the package).
 
     ### `FieldComponent<Key, Schema, Props>`
 
-    Componente de campo tipado retornado por `field(key).schema(...).render(...)`.
+    Typed field component returned by `field(key).schema(...).render(...)`.
 
     ### `ExtractWizardFormValues<TStepFieldsMap>`
 
-    Valores do formulário do wizard inferidos a partir do mapeamento de steps (estrutura aninhada).
+    Wizard form values inferred from the step mapping (nested structure).
 
     ### `ExtractWizardFormData<TStepFieldsMap>`
 
-    Dados do formulário do wizard (valores parciais, flat ou aninhados).
+    Wizard form data (partial values, flat or nested).
 
     ### `Dependency`
 
-    Tipo para dependências de campos: `FieldComponent`, string (nome do campo) ou função lazy que retorna campo.
+    Type for field dependencies: `FieldComponent`, string (field name), or lazy function returning a field.
 
     ### `AutoSaveStatus`
 
-    Status do auto save: `"idle" | "saving" | "saved" | "error"`.
+    Auto save status: `"idle" | "saving" | "saved" | "error"`.
 
   </Tabs.Tab>
 </Tabs>
 
-## Integrações React Hook Form
+## React Hook Form Integrations
 
-O Zormy exporta alguns tipos e componentes úteis do react-hook-form:
+Zormy exports some useful types and components from react-hook-form:
 
 ### `Controller`
 
-Componente do react-hook-form para controlar componentes não controlados ou bibliotecas de UI.
+react-hook-form component to control uncontrolled components or UI libraries.
 
-**Exemplo:**
+**Example:**
 
 ```tsx
 import { Controller } from "zormy";
@@ -379,9 +290,9 @@ import { Controller } from "zormy";
 
 ### `SubmitHandler<TFieldValues>`
 
-Tipo para handlers de submit do formulário.
+Type for form submit handlers.
 
-**Exemplo:**
+**Example:**
 
 ```tsx
 import type { SubmitHandler } from "zormy";
@@ -393,6 +304,6 @@ const handleSubmit: SubmitHandler<FormData> = (data) => {
 
 ### `FormProvider`
 
-Provider do react-hook-form. Também exportado diretamente do Zormy para conveniência.
+react-hook-form provider. Also exported directly from Zormy for convenience.
 
-**Nota:** Para a maioria dos casos, use o componente `<Form>` que já fornece o `FormProvider` automaticamente.
+**Note:** For most cases, use the `<Form>` component which already provides `FormProvider` automatically.

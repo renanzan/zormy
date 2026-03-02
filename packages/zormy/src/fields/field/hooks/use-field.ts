@@ -113,30 +113,20 @@ export type UseFieldReturn<
 			UseFormReturn<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>["setValue"]
 		>[2]
 	) => void;
-	/** Método watch tipado para o campo específico */
+	/** Método watch: observa o campo ou qualquer path do formulário (incl. chaves de dependências). */
 	watch: {
-		/** Observa o campo específico e retorna seu valor */
-		(name: Key): TypeOf<Schema> | undefined;
-		/** Observa um caminho específico no formulário */
-		<T extends Path<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>>(
-			name: T
-		): PathValue<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>, T>;
 		/** Observa todo o formulário */
 		(): MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>;
-	} & (<
-		T extends
-			| Key
-			| Path<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>
-			| undefined,
-	>(
-		name?: T
-	) => T extends Key
-		? TypeOf<Schema> | undefined
-		: T extends Path<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>
-			? PathValue<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>, T>
-			: T extends undefined
-				? MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>
-				: unknown);
+		/** Observa um path específico (próprio campo ou dependências) */
+		<T extends KeyToPath<Key> | Path<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>>(
+			name: T
+		): T extends KeyToPath<Key>
+			? TypeOf<Schema> | undefined
+			: PathValue<
+					MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>,
+					T & Path<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>
+				>;
+	};
 	/** Valores padrão (defaultValues) completos do formulário */
 	defaultValues:
 		| Partial<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>

@@ -4,7 +4,7 @@ import { FormProvider } from "react-hook-form";
 
 import { WizardProvider } from "../wizards/wizard/context";
 
-import type { ComponentPropsWithoutRef, ReactElement } from "react";
+import type { ComponentPropsWithoutRef, FormEvent, ReactElement } from "react";
 import type { FieldValues, SubmitHandler, UseFormReturn } from "react-hook-form";
 import type { UseWizardFormReturn } from "../wizards/wizard/types/hooks";
 
@@ -76,15 +76,29 @@ export const Wizard = <
 		);
 	}
 
-	// Padrão: renderiza <form>
+	// Se methods tem .next (instância de useWizard), o submit do form deve chamar next() para validar e enviar todos os dados acumulados via onSubmit do useWizard
+	const hasNext = "next" in methods && typeof (methods as { next?: unknown }).next === "function";
+	const { onSubmit, ...restFormProps } = formProps as typeof formProps & {
+		onSubmit?: SubmitHandler<TFieldValues>;
+	};
+
 	return (
 		<FormProvider {...methods}>
 			<WizardProvider
 				value={methods as unknown as UseWizardFormReturn<TFieldValues, readonly string[]>}
 			>
 				<form
-					onSubmit={props?.onSubmit ? methods.handleSubmit(props.onSubmit) : undefined}
-					{...formProps}
+					onSubmit={
+						hasNext
+							? (e: FormEvent<HTMLFormElement>) => {
+									e.preventDefault();
+									(methods as { next: (opts?: { shouldFocus?: boolean }) => Promise<void> }).next?.();
+								}
+							: onSubmit
+								? methods.handleSubmit(onSubmit)
+								: undefined
+					}
+					{...restFormProps}
 				>
 					{children}
 				</form>

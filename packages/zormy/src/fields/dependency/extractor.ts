@@ -36,15 +36,18 @@ function extractDependencyKey(dependency: Dependency): string | null {
 	}
 
 	// Verifica se é um objeto (não função) com propriedade 'config'
-	if (dependency && typeof dependency === "object" && "config" in dependency) {
-		try {
-			const config = (dependency as FieldComponent<any, any, any>).config;
-			if (config?.key) {
-				return config.key;
+	if (dependency != null && typeof dependency === "object") {
+		const obj: object = dependency;
+		if ("config" in obj) {
+			try {
+				const config = (obj as FieldComponent<any, any, any>).config;
+				if (config?.key) {
+					return config.key;
+				}
+			} catch {
+				// Se config não estiver disponível (dependência circular), retorna null
+				return null;
 			}
-		} catch {
-			// Se config não estiver disponível (dependência circular), retorna null
-			return null;
 		}
 	}
 

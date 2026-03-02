@@ -1,9 +1,18 @@
+"use client";
+
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { getLandingT } from "@/translations/landing";
 
 const CTASection = () => {
+	const params = useParams();
+	const lang = (params?.lang as string) ?? "en";
+	const t = getLandingT(lang);
+	const base = `/${lang}`;
+
 	return (
 		<section className="relative py-20 lg:py-32 overflow-hidden">
 			{/* Animated gradient background */}
@@ -28,7 +37,7 @@ const CTASection = () => {
 					transition={{ duration: 0.6 }}
 					className="text-3xl sm:text-4xl font-bold mb-4"
 				>
-					Pronto para <span className="text-gradient">começar</span>?
+					{t.ctaTitle}<span className="text-gradient">{t.ctaTitleHighlight}</span>{t.ctaTitleSuffix}
 				</motion.h2>
 				<motion.p
 					initial={{ opacity: 0, y: 20 }}
@@ -37,7 +46,7 @@ const CTASection = () => {
 					transition={{ duration: 0.5, delay: 0.1 }}
 					className="text-muted-foreground text-lg max-w-md mx-auto mb-8"
 				>
-					Comece a criar formulários tipados e reutilizáveis em minutos.
+					{t.ctaSubtitle}
 				</motion.p>
 				<motion.div
 					initial={{ opacity: 0, y: 20 }}
@@ -50,8 +59,8 @@ const CTASection = () => {
 						className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 h-12 text-base"
 						asChild
 					>
-						<Link href="/docs">
-							Ver Documentação <ArrowRight className="ml-1 h-4 w-4" />
+						<Link href={`${base}/docs`}>
+							{t.ctaButton} <ArrowRight className="ml-1 h-4 w-4" />
 						</Link>
 					</Button>
 				</motion.div>

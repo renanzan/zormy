@@ -10,6 +10,8 @@
 - **Zod** — validação e schemas
 - **TypeScript** — inferência de tipos end-to-end
 
+O Zormy propõe uma **nova forma de lidar com formulários**, inspirada no atomic design mas aplicada a formulários: **átomos** (campos primitivos ou abstratos), **moléculas** (grupos de campos, ex.: endereço), **organismos** (formulários/seções) e **templates** (wizards). Organizar o projeto com pastas contextuais (`fields/base/`, `fields/user/`, `forms/`, `wizards/`) e usar **abstractField** para reutilizar definições em campos complexos aproveita ao máximo a lib. Ver documentação: "Design de formulários" e "Dicas — Estrutura de projeto".
+
 Conceitos principais:
 
 - **Campos reutilizáveis**: criados com `field("key")` ou `abstractField()`, com `.schema()` e `.render()`.
@@ -103,7 +105,7 @@ const StreetField = field("address.street")
 
 ## Campos com dependências (dinâmicos)
 
-Use `.dependsOn(OutroCampo, ...)` e depois `.schema()` com função que recebe `formValues` para schema condicional.
+Use `.dependsOn(OutroCampo, ...)` ou `.dependsOn("chave")` (string) e depois `.schema()` com função que recebe `formValues` para schema condicional. Com string, `formValues` tem tipo `any` para essa chave; com Field, a tipagem é inferida.
 
 ```tsx
 const PhoneField = field("phone")
@@ -149,8 +151,12 @@ const EmailField = BaseText.extend({ key: "email" });
 2. Mapear cada step para um array de campos em `fields`: `{ personal: [NameField], contact: [EmailField] }`.
 3. `createWizardConfig({ steps, fields, shouldIncludeStep? })`.
 4. `createWizardComponents(config)` → `{ Wizard, Step }`.
-5. `useWizard({ ...config, defaultValues, onSubmit?, initialStep?, mode?, autoSave?, ... })`.
-6. Renderizar: `<Wizard wizard={wizard}>` e dentro `<Step step="personal">` etc.; usar `wizard.nextStep`, `wizard.prevStep` para navegação.
+5. `useWizard({ ...config, defaultValues, onSubmit?, onStepSubmit?, initialStep?, mode?, autoSave?, ... })`.
+6. Renderizar: `<Wizard methods={wizard}>` e dentro `<Step step="personal">` etc.; usar `wizard.next`, `wizard.back` para navegação. Não passar `onSubmit` no `<Wizard>` — o submit do form chama `wizard.next()` e o `onSubmit` de `useWizard` recebe **todos os dados acumulados**.
+
+Callbacks:
+- **`onSubmit(data)`** — chamado só ao finalizar o wizard (último step); `data` = todos os dados de todos os steps (acumulados internamente, pois só o step atual está montado).
+- **`onStepSubmit(stepData, step, allDataSoFar)`** — chamado ao avançar de step (Próximo ou Finalizar); `stepData` = dados do step atual; `allDataSoFar` = dados acumulados até o momento.
 
 ```tsx
 const config = createWizardConfig({
@@ -163,22 +169,19 @@ function MyWizard() {
 	const wizard = useWizard({
 		...config,
 		defaultValues: { name: "", email: "" },
+		onStepSubmit: (stepData, step, allDataSoFar) => { /* opcional */ },
 		onSubmit: (data) => console.log(data),
 	});
 	return (
-		<Wizard wizard={wizard}>
+		<Wizard methods={wizard}>
 			<Step step="personal">
 				<NameField />
-				<button type="button" onClick={wizard.nextStep}>
-					Próximo
-				</button>
+				<button type="button" onClick={wizard.next}>Próximo</button>
 			</Step>
 			<Step step="contact">
 				<EmailField />
-				<button type="button" onClick={wizard.prevStep}>
-					Voltar
-				</button>
-				<button type="submit">Enviar</button>
+				<button type="button" onClick={wizard.back}>Voltar</button>
+				<button type="submit">Finalizar</button>
 			</Step>
 		</Wizard>
 	);
@@ -193,6 +196,16 @@ function MyWizard() {
 ## Form sem elemento `<form>`
 
 Use `<Form methods={form} contextOnly>` e um único filho que receberá **apenas o contexto** (FormProvider). Props HTML passadas ao `Form` **não** são repassadas automaticamente ao filho (ex.: componente customizado ou Radix Slot).
+
+---
+
+## Estrutura de projeto sugerida
+
+- **fields/base/** — Campos abstratos (`abstractField()`) reutilizáveis (ex.: BaseTextField, BaseSelectField).
+- **fields/{domínio}/** — Campos concretos por domínio (user, address, etc.); moléculas como endereço exportam vários campos + opcionalmente um componente de seção.
+- **forms/** — Formulários completos: array de campos + Form/useZormy.
+- **wizards/{fluxo}/** — Por fluxo: `config.ts` com `createWizardConfig` (fora do componente) + componente do wizard com useWizard.
+- Em apps por feature: `shared/fields/` para campos compartilhados; dentro de cada feature, `fields/` + forms/wizards locais.
 
 ---
 

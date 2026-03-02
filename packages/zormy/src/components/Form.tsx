@@ -61,7 +61,7 @@ function FormWithMethods<
 	TFieldValues extends FieldValues,
 	TContextOnly extends boolean,
 >(props: FormPropsWithMethods<TFieldValues, TContextOnly>) {
-	const { methods, contextOnly, children, ...formProps } = props;
+	const { methods, contextOnly, children, onSubmit, ...formProps } = props;
 	if (contextOnly) {
 		return <FormProvider {...methods}>{children as ReactElement}</FormProvider>;
 	}
@@ -69,7 +69,11 @@ function FormWithMethods<
 		<FormProvider {...methods}>
 			<form
 				{...formProps}
-				onSubmit={props.onSubmit ? methods.handleSubmit(props.onSubmit) : undefined}
+				onSubmit={
+				onSubmit
+					? methods.handleSubmit(onSubmit as SubmitHandler<TFieldValues>)
+					: undefined
+			}
 			>
 				{children}
 			</form>

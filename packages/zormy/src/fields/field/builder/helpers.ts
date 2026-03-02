@@ -227,7 +227,7 @@ export function createExtendFunction<
 			key: overrides.key,
 			schema: finalSchema as NewSchema | ((formValues?: Record<string, any>) => NewSchema),
 			render: adaptedRender as any,
-			defaultProps: mergedDefaultProps as Partial<NewProps> | undefined,
+			defaultProps: mergedDefaultProps as unknown as Partial<NewProps> | undefined,
 			dependencies: finalDependencies,
 		});
 	};

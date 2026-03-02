@@ -1,8 +1,16 @@
+"use client";
+
+import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Github } from "lucide-react";
 import Image from "next/image";
+import { getLandingT } from "@/translations/landing";
 
 const Footer = () => {
+	const params = useParams();
+	const lang = (params?.lang as string) ?? "en";
+	const t = getLandingT(lang);
+
 	return (
 		<motion.footer
 			initial={{ opacity: 0 }}
@@ -21,7 +29,7 @@ const Footer = () => {
 						className="h-5 w-5"
 					/>
 					<p className="text-sm text-muted-foreground">
-						© {new Date().getFullYear()} Zormy. Open source under MIT.
+						© {new Date().getFullYear()} Zormy. {t.footerCopyright}
 					</p>
 				</div>
 				<div className="flex items-center gap-4">

@@ -178,8 +178,7 @@ describe("createFormResolver - resolver para react-hook-form", () => {
 				fields: [AgeField],
 			});
 
-			// Para schemas dinâmicos, o resolver usa o schema estático inicial
-			// A validação dinâmica ocorre através do getZodSchema do campo
+			// Schemas dinâmicos recebem formValues atuais no momento da validação
 			const validData = { age: 25 };
 			const result = await resolver(validData, {} as any, {} as any);
 

@@ -5,6 +5,9 @@ description: Exemplos práticos de uso do Zormy com código completo
 
 import { Callout, Tabs } from "nextra/components";
 
+import { dependentFieldsCode } from "./snippets/dependent-fields";
+import { simpleFormCode } from "./snippets/simple-form";
+
 # Exemplos Práticos
 
 Exemplos práticos de uso do Zormy com componentes React funcionando em tempo real.
@@ -40,48 +43,7 @@ Exemplos práticos de uso do Zormy com componentes React funcionando em tempo re
 
 Exemplo básico de um formulário com validação. Você pode editar e rodar ao vivo:
 
-<CodeExample
-	code={`import { z } from "zod";
-import { field, Form, zormyResolver, useForm } from "zormy";
-
-const NameField = field("name")
-.schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
-.render(({ register, fieldState }) => (
-<div>
-<label>Nome</label>
-<input {...register()} />
-{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
-</div>
-));
-
-const EmailField = field("email")
-.schema(z.string().email("Email inválido"))
-.render(({ register, fieldState }) => (
-<div>
-<label>Email</label>
-<input type="email" {...register()} />
-{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
-</div>
-));
-
-function SimpleForm() {
-const form = useForm({
-resolver: zormyResolver({ fields: [NameField, EmailField] }),
-defaultValues: { name: "", email: "" },
-});
-
-return (
-<Form methods={form} onSubmit={form.handleSubmit((data) => alert(JSON.stringify(data, null, 2)))}>
-<NameField />
-<EmailField />
-<button type="submit">Enviar</button>
-</Form>
-);
-}
-
-export default SimpleForm;`}
-	editorHeight={420}
-/>
+<CodeExample editorHeight={420} code={simpleFormCode} />
 
 ## Campos com Dependências
 
@@ -91,60 +53,7 @@ export default SimpleForm;`}
 
 Exemplo de campo que depende de outro campo. Marque "Possui senha?" e preencha (ou não) para ver a validação:
 
-<CodeExample
-	code={`import { z } from "zod";
-import { field, Form, zormyResolver, useForm } from "zormy";
-
-const HasPasswordField = field("hasPassword")
-.schema(z.boolean())
-.render(({ register }) => (
-<div>
-<label>
-<input type="checkbox" {...register()} />
-Possui senha?
-</label>
-</div>
-));
-
-const PasswordField = field("password")
-.dependsOn(HasPasswordField)
-.schema((formValues) => {
-const hasPassword = formValues?.hasPassword;
-if (hasPassword) {
-return z.string().min(8, "Senha deve ter pelo menos 8 caracteres");
-}
-return z.string().optional();
-})
-.render(({ register, fieldState, watch }) => {
-const hasPassword = watch("hasPassword");
-if (!hasPassword) return null;
-return (
-<div>
-<label>Senha</label>
-<input type="password" {...register()} />
-{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
-</div>
-);
-});
-
-function DependentFieldsForm() {
-const form = useForm({
-resolver: zormyResolver({ fields: [HasPasswordField, PasswordField] }),
-defaultValues: { hasPassword: false, password: "" },
-});
-
-return (
-<Form methods={form} onSubmit={form.handleSubmit((data) => alert(JSON.stringify(data, null, 2)))}>
-<HasPasswordField />
-<PasswordField />
-<button type="submit">Enviar</button>
-</Form>
-);
-}
-
-export default DependentFieldsForm;`}
-	editorHeight={440}
-/>
+<CodeExample editorHeight={440} code={dependentFieldsCode} />
 
 ## Campos Aninhados
 

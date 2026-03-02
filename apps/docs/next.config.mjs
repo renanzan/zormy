@@ -28,49 +28,33 @@ export default withNextra({
 		locales: ["pt-BR", "en"],
 		defaultLocale: "pt-BR",
 	},
-	// experimental: {
-	//     mdxRs: false,
-	//     // Desabilita Turbopack temporariamente para usar webpack com alias
-	//     turbo: false
-	// },
-	webpack: (config, { isServer, dev }) => {
-		if (!config.resolve) {
-			config.resolve = {};
-		}
-		if (!config.resolve.alias) {
-			config.resolve.alias = {};
-		}
-
-		// Adiciona condições para suportar a condição "development" do package.json
-		if (!config.resolve.conditionNames) {
-			config.resolve.conditionNames = [];
-		}
-		// Adiciona "development" no início para priorizar em modo dev
-		if (dev && !config.resolve.conditionNames.includes("development")) {
-			config.resolve.conditionNames.unshift("development");
-		}
-
-		config.resolve.alias = {
-			...config.resolve.alias,
-			"next-mdx-import-source-file": resolve(__dirname, "./mdx-components.tsx"),
-			// Sempre usa o source TypeScript do zormy em vez da versão compilada
-			...(zormyPathExists
-				? {
-						zormy: zormySrcPath,
-						// Também resolve o diretório do pacote para importações internas
-						"zormy/": resolve(zormyPackagePath, "src/"),
-					}
-				: {}),
-		};
-
-		// Adiciona extensões para resolver TypeScript
-		if (!config.resolve.extensions) {
-			config.resolve.extensions = [];
-		}
-		if (!config.resolve.extensions.includes(".ts")) {
-			config.resolve.extensions.push(".ts", ".tsx");
-		}
-
-		return config;
+	turbopack: {
+		rules: {
+			"*.svg": {
+				loaders: [
+					{
+						loader: "@svgr/webpack",
+						options: {
+							// Remove width/height do SVG para que className (ex.: w-4 h-4) controle o tamanho
+							dimensions: false,
+							// Mantém viewBox para escalar corretamente
+							svgoConfig: {
+								plugins: [
+									{
+										name: "preset-default",
+										params: {
+											overrides: {
+												removeViewBox: false,
+											},
+										},
+									},
+								],
+							},
+						},
+					},
+				],
+				as: "*.js",
+			},
+		},
 	},
 });

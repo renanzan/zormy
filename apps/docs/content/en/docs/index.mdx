@@ -1,51 +1,53 @@
 ---
 title: Introduction
-description: Overview of Zormy documentation
+description: Overview of the Zormy documentation
 ---
 
-import { Box, Code, Download, FileStack, GitBranch, Rocket } from "lucide-react";
+import { Box, Code, Download, FileStack, GitBranch, Layers, Rocket } from "lucide-react";
 import { Callout, Cards } from "nextra/components";
 
 # Zormy Documentation
 
-**Zormy** is a library for building **typed, reusable** forms in React with TypeScript, Zod and React Hook Form.
+**Zormy** is a library for building **typed and reusable** forms in React, combining TypeScript, Zod, and React Hook Form. It proposes a way to handle forms inspired by **atomic design**: building screens from **atoms** (fields), **molecules** (groups of fields), **organisms** (forms), and **templates** (wizards). See [Form Design](/docs/form-design) for this approach and [Tips](/docs/tips) for project structure.
 
 ## Why Zormy?
 
 <Cards>
-	<Cards.Card title="Get Started" href="/en/docs/get-started" icon={<Rocket />}>
-		Your first form and wizard in minutes
+	<Cards.Card title="Getting Started" href="/docs/get-started" icon={<Rocket />}>
+		First form and first wizard in just a few minutes
 	</Cards.Card>
-	<Cards.Card title="Installation" href="/en/docs/installation" icon={<Download />}>
-		Install commands and dependencies
+	<Cards.Card title="Installation" href="/docs/installation" icon={<Download />}>
+		Installation commands and dependencies
 	</Cards.Card>
-	<Cards.Card title="Fields" href="/en/docs/fields" icon={<Box />}>
-		Reusable fields, dependencies and nesting
+	<Cards.Card title="Fields" href="/docs/fields" icon={<Box />}>
+		Reusable fields, dependencies, and nesting
 	</Cards.Card>
-	<Cards.Card title="Forms" href="/en/docs/forms" icon={<FileStack />}>
-		Form, useForm, zormyResolver and validation mode
+	<Cards.Card title="Forms" href="/docs/forms" icon={<FileStack />}>
+		Form, useForm, zormyResolver, and validation mode
 	</Cards.Card>
-	<Cards.Card title="Wizards" href="/en/docs/wizards" icon={<GitBranch />}>
-		Multi-step forms, conditional steps and auto-save
+	<Cards.Card title="Wizards" href="/docs/wizards" icon={<GitBranch />}>
+		Multi-step forms, conditional steps, and auto-save
 	</Cards.Card>
-	<Cards.Card title="API Reference" href="/en/docs/api-reference" icon={<Code />}>
-		Full package API
+	<Cards.Card title="Form Design" href="/docs/form-design" icon={<Layers />}>
+		Atomic design approach for forms and project organization
+	</Cards.Card>
+	<Cards.Card title="API Reference" href="/docs/api-reference" icon={<Code />}>
+		Complete package API
 	</Cards.Card>
 </Cards>
 
-## Main features
+## Key Features
 
 - **Strong typing** — type inference from Zod schemas and fields
-- **Declarative validation** — static or dynamic schemas per field ([Zod Integration](/en/docs/zod-integration))
-- **Reusable fields** — define once, use in multiple forms and wizards
+- **Declarative validation** — static or dynamic schemas per field ([Zod Integration](/docs/zod-integration))
+- **Reusable fields** — build once, use across multiple forms and wizards
 - **Wizards** — multi-step flows with per-step validation and navigation
 
 <Callout type="info">
-	New here? Start with [Get Started](/en/docs/get-started) and
-	[Installation](/en/docs/installation). Then explore [Fields](/en/docs/fields),
-	[Forms](/en/docs/forms) and [Wizards](/en/docs/wizards).
+	New here? Start with [Getting Started](/docs/get-started) and [Installation](/docs/installation).
+	Then explore [Fields](/docs/fields), [Forms](/docs/forms), and [Wizards](/docs/wizards).
 </Callout>
 
-- [**Examples**](/en/examples) — ready-to-copy forms and wizards
-- [**Playground**](/en/playground) — try wizards in real time
-- [**Tips**](/en/docs/tips) — best practices and common pitfalls
+- [**Examples**](/examples) — ready-to-copy forms and wizards
+- [**Playground**](/playground) — try wizards in real time
+- [**Tips**](/docs/tips) — best practices and common mistakes

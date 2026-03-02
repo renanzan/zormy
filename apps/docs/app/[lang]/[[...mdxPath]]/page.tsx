@@ -38,7 +38,6 @@ const Wrapper = getMDXComponents().wrapper;
 
 export default async function Page(props: {
 	params: Promise<{ lang: string; mdxPath: string[] }>;
-	children?: React.ReactNode;
 }) {
 	const params = await props.params;
 

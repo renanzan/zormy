@@ -32,7 +32,6 @@ export function Playground({ initialSchema }: PlaygroundProps) {
 	const parseSchema = () => {
 		try {
 			setError(null);
-			// Parse simples do JSON (em produção, use um parser mais robusto)
 			const parsed = JSON.parse(schemaCode);
 			setWizardData(parsed);
 		} catch (e) {
@@ -46,11 +45,9 @@ export function Playground({ initialSchema }: PlaygroundProps) {
 		}
 
 		try {
-			// Cria campos dinamicamente
 			const fieldMap: Record<string, any[]> = {};
 			const defaultValues: Record<string, any> = {};
 
-			// Mapeamento de schemas comuns
 			const schemaMap: Record<string, (args?: any) => z.ZodType> = {
 				"z.string()": () => z.string(),
 				"z.string().min(3)": () => z.string().min(3),
@@ -64,17 +61,13 @@ export function Playground({ initialSchema }: PlaygroundProps) {
 
 			Object.entries(wizardData.fields).forEach(([step, fields]: [string, any]) => {
 				fieldMap[step] = fields.map((fieldDef: any) => {
-					// Tenta encontrar o schema no mapeamento
 					let schema: z.ZodType;
 					const schemaStr = fieldDef.schema?.trim() || "z.string()";
 
 					if (schemaMap[schemaStr]) {
 						schema = schemaMap[schemaStr]();
 					} else {
-						// Fallback: tenta parsear expressões simples
 						try {
-							// Para schemas mais complexos, use uma abordagem mais segura
-							// Por enquanto, usamos um fallback básico
 							if (schemaStr.includes("z.string()")) {
 								if (schemaStr.includes(".email()")) {
 									schema = z.string().email();
@@ -105,28 +98,25 @@ export function Playground({ initialSchema }: PlaygroundProps) {
 						}
 					}
 
-					// Cria o campo
 					const Field = field(fieldDef.key)
 						.schema(schema)
 						.render(({ register, fieldState }) => {
-							// Verificação de segurança para evitar erros quando formState não está inicializado
 							const error = fieldState?.error;
 							return (
-								<div style={{ marginBottom: "1rem" }}>
-									<label style={{ display: "block", marginBottom: "0.25rem" }}>
+								<div className="mb-6">
+									<label
+										className="block mb-1 font-medium text-gray-700 dark:text-gray-200"
+										htmlFor={fieldDef.key}
+									>
 										{fieldDef.key}
 									</label>
 									<input
+										id={fieldDef.key}
 										{...register()}
-										style={{
-											width: "100%",
-											padding: "0.5rem",
-											border: error ? "1px solid red" : "1px solid #ccc",
-											borderRadius: "4px",
-										}}
+										className={`w-full px-3 py-2 rounded-md outline-none transition-colors border text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:border-blue-500 ${error ? "border-red-500 focus:border-red-500" : "border-gray-300 dark:border-gray-700"}`}
 									/>
 									{error && (
-										<span style={{ color: "red", fontSize: "0.875rem" }}>
+										<span className="text-red-600 text-xs mt-1 block">
 											{error.message as string}
 										</span>
 									)}
@@ -134,7 +124,6 @@ export function Playground({ initialSchema }: PlaygroundProps) {
 							);
 						});
 
-					// Define valor padrão
 					if (fieldDef.defaultValue !== undefined) {
 						defaultValues[fieldDef.key] = fieldDef.defaultValue;
 					} else if (schema instanceof z.ZodString) {
@@ -149,7 +138,6 @@ export function Playground({ initialSchema }: PlaygroundProps) {
 				});
 			});
 
-			// Componente do wizard
 			const WizardComponent = () => {
 				const config = createWizardConfig({
 					steps: wizardData.steps,
@@ -168,20 +156,12 @@ export function Playground({ initialSchema }: PlaygroundProps) {
 
 				return (
 					<Wizard methods={wizard} contextOnly>
-						<div
-							style={{
-								border: "1px solid #e5e7eb",
-								borderRadius: "8px",
-								padding: "1.5rem",
-								backgroundColor: "#fff",
-							}}
-						>
-							<div style={{ marginBottom: "1rem" }}>
-								<p style={{ margin: 0, fontSize: "0.875rem", color: "#666" }}>
+						<div className="border border-gray-200 dark:border-gray-700 rounded-xl p-8 bg-white dark:bg-gray-900 shadow-sm">
+							<div className="mb-4">
+								<p className="text-sm font-semibold text-gray-600 dark:text-gray-300">
 									Step {wizard.currentStepIndex + 1} de {wizard.totalSteps} - {wizard.currentStep}
 								</p>
 							</div>
-
 							<form
 								onSubmit={wizard.handleSubmit((data) => {
 									alert(JSON.stringify(data, null, 2));
@@ -190,25 +170,12 @@ export function Playground({ initialSchema }: PlaygroundProps) {
 								{wizard.getFieldComponentsForStep(wizard.currentStep).map((Field, i) => (
 									<Field key={i} />
 								))}
-
-								<div
-									style={{
-										marginTop: "1.5rem",
-										display: "flex",
-										gap: "0.5rem",
-									}}
-								>
+								<div className="mt-6 flex gap-2">
 									{!wizard.isFirstStep && (
 										<button
 											type="button"
 											onClick={wizard.back}
-											style={{
-												padding: "0.5rem 1rem",
-												border: "1px solid #ccc",
-												borderRadius: "4px",
-												backgroundColor: "#fff",
-												cursor: "pointer",
-											}}
+											className="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
 										>
 											Voltar
 										</button>
@@ -216,14 +183,7 @@ export function Playground({ initialSchema }: PlaygroundProps) {
 									{wizard.isLastStep ? (
 										<button
 											type="submit"
-											style={{
-												padding: "0.5rem 1rem",
-												border: "none",
-												borderRadius: "4px",
-												backgroundColor: "#3b82f6",
-												color: "#fff",
-												cursor: "pointer",
-											}}
+											className="px-4 py-2 rounded-md bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition-colors"
 										>
 											Finalizar
 										</button>
@@ -231,14 +191,7 @@ export function Playground({ initialSchema }: PlaygroundProps) {
 										<button
 											type="button"
 											onClick={wizard.next}
-											style={{
-												padding: "0.5rem 1rem",
-												border: "none",
-												borderRadius: "4px",
-												backgroundColor: "#3b82f6",
-												color: "#fff",
-												cursor: "pointer",
-											}}
+											className="px-4 py-2 rounded-md bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition-colors"
 										>
 											Próximo
 										</button>
@@ -253,7 +206,7 @@ export function Playground({ initialSchema }: PlaygroundProps) {
 			return <WizardComponent />;
 		} catch (e) {
 			return (
-				<div style={{ color: "red", padding: "1rem" }}>
+				<div className="text-red-500 dark:text-red-400 p-4">
 					Erro ao renderizar wizard: {e instanceof Error ? e.message : "Erro desconhecido"}
 				</div>
 			);
@@ -261,61 +214,37 @@ export function Playground({ initialSchema }: PlaygroundProps) {
 	};
 
 	return (
-		<div style={{ display: "flex", gap: "1.5rem", flexDirection: "column" }}>
+		<div className="flex flex-col gap-8">
 			<div>
-				<h3 style={{ marginBottom: "0.5rem" }}>Schema do Wizard</h3>
-				<p style={{ fontSize: "0.875rem", color: "#666", marginBottom: "1rem" }}>
+				<h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+					Schema do Wizard
+				</h3>
+				<p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
 					Edite o JSON abaixo para definir os steps e campos do wizard. Clique em "Aplicar" para ver
 					o resultado.
 				</p>
 				<textarea
 					value={schemaCode}
 					onChange={(e) => setSchemaCode(e.target.value)}
-					style={{
-						width: "100%",
-						minHeight: "200px",
-						padding: "0.75rem",
-						fontFamily: "monospace",
-						fontSize: "0.875rem",
-						border: "1px solid #ccc",
-						borderRadius: "4px",
-						resize: "vertical",
-					}}
+					className="w-full min-h-[200px] p-3 font-mono text-sm rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-500"
 				/>
-				{error && (
-					<div style={{ color: "red", marginTop: "0.5rem", fontSize: "0.875rem" }}>{error}</div>
-				)}
+				{error && <div className="text-red-600 dark:text-red-500 mt-2 text-xs">{error}</div>}
 				<button
 					onClick={parseSchema}
-					style={{
-						marginTop: "0.75rem",
-						padding: "0.5rem 1rem",
-						border: "none",
-						borderRadius: "4px",
-						backgroundColor: "#3b82f6",
-						color: "#fff",
-						cursor: "pointer",
-					}}
+					className="mt-3 px-4 py-2 rounded-md bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition-colors"
 				>
 					Aplicar Schema
 				</button>
 			</div>
 
 			<div>
-				<h3 style={{ marginBottom: "0.5rem" }}>Preview do Wizard</h3>
+				<h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+					Preview do Wizard
+				</h3>
 				{wizardData ? (
 					renderWizard()
 				) : (
-					<div
-						style={{
-							border: "1px solid #e5e7eb",
-							borderRadius: "8px",
-							padding: "3rem",
-							textAlign: "center",
-							color: "#666",
-							backgroundColor: "#f9fafb",
-						}}
-					>
+					<div className="border border-gray-200 dark:border-gray-700 rounded-xl px-8 py-16 text-center text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 transition-colors">
 						<p>Defina um schema e clique em "Aplicar Schema" para ver o wizard</p>
 					</div>
 				)}

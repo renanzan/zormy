@@ -5,6 +5,8 @@ description: Campos reutilizáveis no Zormy — chave, schema, render, dependên
 
 import { Callout } from "nextra/components";
 
+import { fieldExampleCode } from "../snippets/field-example";
+
 # Fields
 
 Campos no Zormy são **componentes reutilizáveis** que encapsulam:
@@ -17,36 +19,7 @@ Campos no Zormy são **componentes reutilizáveis** que encapsulam:
 
 Use o builder fluente `field("chave")`:
 
-<CodeExample
-	code={`import { z } from "zod";
-import { field, Form, zormyResolver, useForm } from "zormy";
-
-const NameField = field("name")
-.schema(z.string().min(3, "Mínimo 3 caracteres"))
-.render(({ register, fieldState }) => (
-<div>
-<label>Nome</label>
-<input {...register()} />
-{fieldState.error && <span>{fieldState.error.message}</span>}
-</div>
-));
-
-function App() {
-const form = useForm({
-resolver: zormyResolver({ fields: [NameField] }),
-defaultValues: { name: "" },
-});
-return (
-<Form methods={form} onSubmit={form.handleSubmit((d) => console.log(d))}>
-<NameField />
-<button type="submit">Enviar</button>
-</Form>
-);
-}
-
-export default App;`}
-	editorHeight={360}
-/>
+<CodeExample editorHeight={360} code={fieldExampleCode} />
 
 No `render`, você recebe `register`, `fieldState`, `control`, `getValues`, `setValue`, `watch` e outras funções do react-hook-form, tipadas para esse campo. Use `register()` sem argumentos para usar a chave do campo; para sobrescrever: `register({ name: "outra.chave" })`.
 

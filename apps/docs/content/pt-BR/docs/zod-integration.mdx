@@ -5,6 +5,8 @@ description: Guia completo sobre como usar Zod para validação no Zormy
 
 import { Callout, Tabs } from "nextra/components";
 
+import { firstFormCode } from "../snippets/first-form";
+
 # Integração com Zod
 
 Como as regras do Zod se traduzem em validações de erro no UI do Zormy.
@@ -26,35 +28,7 @@ O Zormy usa Zod como base para validação. Cada campo pode ter um schema Zod qu
 
 Schemas estáticos são definidos uma vez e não mudam baseado em outros campos:
 
-<CodeExample
-	code={`import { z } from "zod";
-import { field, Form, zormyResolver, useForm } from "zormy";
-
-const NameField = field("name")
-.schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
-.render(({ register, fieldState }) => (
-<div>
-<input {...register()} />
-{fieldState.error && <span>{fieldState.error.message}</span>}
-</div>
-));
-
-function App() {
-const form = useForm({
-resolver: zormyResolver({ fields: [NameField] }),
-defaultValues: { name: "" },
-});
-return (
-<Form methods={form} onSubmit={form.handleSubmit((d) => console.log(d))}>
-<NameField />
-<button type="submit">Enviar</button>
-</Form>
-);
-}
-
-export default App;`}
-	editorHeight={340}
-/>
+<CodeExample editorHeight={340} code={firstFormCode} />
 
 ### Regras Zod Comuns
 

@@ -73,7 +73,7 @@ export const useWizardForm = <TFieldValues extends FieldValues, Steps extends re
 		// Em modo controlado, passa onStepChange para o stepMachine usar
 		onStepChange:
 			args.controlledStep !== undefined
-				? (args.onStepChange as UseStepMachineArgs<Steps>["onStepChange"] | undefined)
+				? (args.onStepChange as unknown as UseStepMachineArgs<Steps>["onStepChange"] | undefined)
 				: undefined,
 	});
 
@@ -93,6 +93,9 @@ export const useWizardForm = <TFieldValues extends FieldValues, Steps extends re
 	const [visitedSteps, setVisitedSteps] = useState<Set<Steps[number]>>(() => new Set());
 	const previousVisitedStepsRef = useRef<Set<Steps[number]>>(new Set());
 	const allFieldKeysRef = useRef<Set<Path<TFieldValues>> | null>(null);
+
+	/** Valores acumulados de cada step (apenas steps já concluídos + atual). Usado para onSubmit com todos os dados quando só o step atual está montado. */
+	const accumulatedValuesRef = useRef<Partial<TFieldValues>>({});
 
 	// Estado para forçar atualização do wizardState quando defaultValues são carregados assincronamente
 	const [valuesUpdateKey, setValuesUpdateKey] = useState(0);
@@ -396,10 +399,16 @@ export const useWizardForm = <TFieldValues extends FieldValues, Steps extends re
 			}
 
 			const stepValues = getStepValuesFn(stepMachine.currentStep);
-			args.onStepSubmit?.(stepValues, stepMachine.currentStep);
+			// Acumula valores do step atual (necessário porque só o step atual está montado; getValues() não tem steps anteriores)
+			accumulatedValuesRef.current = {
+				...accumulatedValuesRef.current,
+				...stepValues,
+			};
+			const allDataSoFar = accumulatedValuesRef.current;
+			args.onStepSubmit?.(stepValues, stepMachine.currentStep, allDataSoFar);
 
 			if (stepMachine.isLastStep) {
-				args.onSubmit?.(wizardForm.getValues());
+				args.onSubmit?.(allDataSoFar as TFieldValues);
 				return;
 			}
 
@@ -437,6 +446,7 @@ export const useWizardForm = <TFieldValues extends FieldValues, Steps extends re
 		(...params: Parameters<typeof wizardForm.reset>) => {
 			wizardForm.reset(...params);
 			setVisitedSteps(new Set());
+			accumulatedValuesRef.current = {};
 			stepMachine.restartFlow();
 			// Força atualização do wizardState após reset
 			// Isso garante que steps válidos sejam recalculados corretamente

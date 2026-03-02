@@ -1,156 +1,61 @@
 ---
-title: Começando
-description: Crie seu primeiro formulário e wizard com o Zormy em minutos
+title: Getting Started
+description: Create your first form and wizard with Zormy in minutes
 ---
 
 import { Callout, Cards } from "nextra/components";
 
-# Começando
+import { firstFormCode } from "../snippets/first-form";
+import { firstWizardCode } from "../snippets/first-wizard";
+
+# Getting Started
 
 <Callout type="info" emoji="🚀">
-	Zormy é uma biblioteca para criar formulários tipados e reutilizáveis com TypeScript, Zod e React
-	Hook Form. Comece em minutos!
+	Zormy is a library for building typed and reusable forms with TypeScript, Zod, and React Hook
+	Form. It proposes an approach inspired by atomic design for forms (atoms → molecules → organisms →
+	templates). See [Form Design](/docs/form-design) for the concept and
+	[Tips](/docs/tips#recommended-project-structure) for project structure. Get started in minutes!
 </Callout>
 
-Se ainda não instalou, veja [Instalação](/docs/installation).
+If you haven’t installed it yet, see [Installation](/docs/installation).
 
-## Primeiro formulário
+## First form
 
-1. **Defina um campo** com `field("chave").schema(zodSchema).render(...)`.
-2. **Crie o formulário** com `useForm` e `zormyResolver({ fields: [...] })`.
-3. **Renderize** dentro de `<Form methods={form}>`.
+1. **Define a field** with `field("key").schema(zodSchema).render(...)`.
+2. **Create the form** with `useForm` and `zormyResolver({ fields: [...] })`.
+3. **Render** inside `<Form methods={form}>`.
 
-<CodeExample
-	code={`import { z } from "zod";
-import { field, Form, zormyResolver, useForm } from "zormy";
+<CodeExample editorHeight={380} code={firstFormCode} />
 
-const NameField = field("name")
-.schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
-.render(({ register, fieldState }) => (
-<div>
-<label>Nome</label>
-<input {...register()} />
-{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
-</div>
-));
+The **validation mode** (`mode`) defines when fields are validated: `"onChange"`, `"onBlur"`, `"onSubmit"`, `"onTouched"` or `"all"`. See [Forms](/docs/forms) for details.
 
-function App() {
-const form = useForm({
-resolver: zormyResolver({ fields: [NameField] }),
-defaultValues: { name: "" },
-mode: "onChange",
-});
+## First wizard
 
-return (
-<Form methods={form} onSubmit={form.handleSubmit((data) => alert(JSON.stringify(data)))}>
-<NameField />
-<button type="submit">Enviar</button>
-</Form>
-);
-}
+For a multi-step flow, use `createWizardConfig`, `createWizardComponents`, and `useWizard`:
 
-export default App;`}
-	editorHeight={380}
-/>
+<CodeExample editorHeight={480} code={firstWizardCode} />
 
-O **modo de validação** (`mode`) define quando os campos são validados: `"onChange"`, `"onBlur"`, `"onSubmit"`, `"onTouched"` ou `"all"`. Veja [Forms](/docs/forms) para detalhes.
+The wizard configuration (`createWizardConfig`) must be placed **outside the component** to keep references stable. Details in [Wizards](/docs/wizards).
 
-## Primeiro wizard
-
-Para um fluxo em múltiplos passos, use `createWizardConfig`, `createWizardComponents` e `useWizard`:
-
-<CodeExample
-	code={`import { z } from "zod";
-import { createWizardComponents, createWizardConfig, field, useWizard } from "zormy";
-
-const NameField = field("name")
-.schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
-.render(({ register, fieldState }) => (
-<div>
-<label>Nome</label>
-<input {...register()} />
-{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
-</div>
-));
-
-const EmailField = field("email")
-.schema(z.string().email("Email inválido"))
-.render(({ register, fieldState }) => (
-<div>
-<label>Email</label>
-<input type="email" {...register()} />
-{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
-</div>
-));
-
-const wizardConfig = createWizardConfig({
-steps: ["personal", "contact"] as const,
-fields: {
-personal: [NameField],
-contact: [EmailField],
-},
-});
-
-const { Wizard, Step } = createWizardComponents(wizardConfig);
-
-function MyWizard() {
-const wizard = useWizard({
-...wizardConfig,
-defaultValues: { name: "", email: "" },
-onSubmit: (data) => console.log("Dados finais:", data),
-});
-
-return (
-<Wizard methods={wizard} onSubmit={wizard.handleSubmit()}>
-<Step step="personal">
-<NameField />
-</Step>
-<Step step="contact">
-<EmailField />
-</Step>
-<div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem" }}>
-{!wizard.isFirstStep && (
-<button type="button" onClick={wizard.back}>
-Voltar
-</button>
-)}
-{wizard.isLastStep ? (
-<button type="submit">Finalizar</button>
-) : (
-<button type="button" onClick={wizard.next}>
-Próximo
-</button>
-)}
-</div>
-</Wizard>
-);
-}
-
-export default MyWizard;`}
-	editorHeight={480}
-/>
-
-A configuração do wizard (`createWizardConfig`) deve ficar **fora do componente** para manter referências estáveis. Detalhes em [Wizards](/docs/wizards).
-
-## O que aprender em seguida
+## What to learn next
 
 <Cards>
 	<Cards.Card title="Fields" href="/docs/fields">
-		Campos reutilizáveis: chave, schema, render, dependências e campos aninhados
+		Reusable fields: key, schema, render, dependencies, and nested fields
 	</Cards.Card>
 	<Cards.Card title="Forms" href="/docs/forms">
-		Form, useForm, zormyResolver e modo de validação
+		Form, useForm, zormyResolver, and validation mode
 	</Cards.Card>
 	<Cards.Card title="Wizards" href="/docs/wizards">
-		Steps, navegação, steps condicionais e auto-save
+		Steps, navigation, conditional steps, and auto-save
 	</Cards.Card>
-	<Cards.Card title="Integração Zod" href="/docs/zod-integration">
-		Schemas estáticos, dinâmicos e validação avançada
+	<Cards.Card title="Zod Integration" href="/docs/zod-integration">
+		Static and dynamic schemas, and advanced validation
 	</Cards.Card>
-	<Cards.Card title="Referência API" href="/docs/api-reference">
-		API completa do Zormy
+	<Cards.Card title="API Reference" href="/docs/api-reference">
+		Complete Zormy API
 	</Cards.Card>
 </Cards>
 
-- [**Exemplos**](/examples) — formulários e wizards prontos para copiar
-- [**Playground**](/playground) — experimente wizards em tempo real
+- [**Examples**](/examples) — ready-to-copy forms and wizards
+- [**Playground**](/playground) — try wizards in real time
