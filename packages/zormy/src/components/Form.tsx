@@ -2,10 +2,10 @@
 
 import { FormProvider } from "react-hook-form";
 
+import { useZormy } from "../form/hooks/useZormy";
+
 import type { ComponentPropsWithoutRef, ReactElement, ReactNode } from "react";
 import type { FieldValues, SubmitHandler, UseFormProps, UseFormReturn } from "react-hook-form";
-
-import { useZormy } from "../form/hooks/useZormy";
 import type { FieldsToObject } from "../fields/field/types/extractors";
 import type { FieldComponentBase } from "../fields/field/types/field";
 
@@ -16,15 +16,16 @@ type FormPropsWithMethods<
 > = TContextOnly extends true
 	? {
 			methods: UseFormReturn<TFieldValues>;
+			onSubmit?: SubmitHandler<TFieldValues>;
 			contextOnly: true;
-			children: ReactElement;
-		} & Omit<ComponentPropsWithoutRef<"form">, "children" | "ref">
+			children: ReactNode;
+		} & Omit<ComponentPropsWithoutRef<"form">, "children" | "onSubmit" | "fields" | "ref">
 	: {
 			methods: UseFormReturn<TFieldValues>;
 			onSubmit?: SubmitHandler<TFieldValues>;
 			contextOnly?: false | undefined;
 			children?: ReactNode;
-		} & Omit<ComponentPropsWithoutRef<"form">, "onSubmit">;
+		} & Omit<ComponentPropsWithoutRef<"form">, "onSubmit" | "fields" | "ref">;
 
 /** Props quando o formulário recebe `fields` (useZormy interno). */
 type FormPropsWithFields<TFields extends readonly FieldComponentBase[]> = {
@@ -57,10 +58,9 @@ export type FormProps<
 	| FormPropsWithMethods<TFieldValues, TContextOnly>
 	| (FormPropsWithFields<TFields> & { methods?: undefined });
 
-function FormWithMethods<
-	TFieldValues extends FieldValues,
-	TContextOnly extends boolean,
->(props: FormPropsWithMethods<TFieldValues, TContextOnly>) {
+function FormWithMethods<TFieldValues extends FieldValues, TContextOnly extends boolean>(
+	props: FormPropsWithMethods<TFieldValues, TContextOnly>
+) {
 	const { methods, contextOnly, children, onSubmit, ...formProps } = props;
 	if (contextOnly) {
 		return <FormProvider {...methods}>{children as ReactElement}</FormProvider>;
@@ -70,10 +70,8 @@ function FormWithMethods<
 			<form
 				{...formProps}
 				onSubmit={
-				onSubmit
-					? methods.handleSubmit(onSubmit as SubmitHandler<TFieldValues>)
-					: undefined
-			}
+					onSubmit ? methods.handleSubmit(onSubmit as SubmitHandler<TFieldValues>) : undefined
+				}
 			>
 				{children}
 			</form>
@@ -97,15 +95,13 @@ function FormWithFields<TFields extends readonly FieldComponentBase[]>(
 	return (
 		<FormProvider {...methods}>
 			<form
-			{...rest}
-			onSubmit={
-				onSubmit
-					? (
-							methods as unknown as UseFormReturn<FieldsToObject<TFields>>
-						).handleSubmit(onSubmit)
-					: undefined
-			}
-		>
+				{...rest}
+				onSubmit={
+					onSubmit
+						? (methods as unknown as UseFormReturn<FieldsToObject<TFields>>).handleSubmit(onSubmit)
+						: undefined
+				}
+			>
 				{children}
 			</form>
 		</FormProvider>
@@ -144,13 +140,9 @@ export function Form<
 	TFieldValues extends FieldValues = FieldValues,
 	TContextOnly extends boolean = false,
 	TFields extends readonly FieldComponentBase[] = readonly FieldComponentBase[],
->(
-	props: FormProps<TFieldValues, TContextOnly, TFields>
-) {
+>(props: FormProps<TFieldValues, TContextOnly, TFields>) {
 	if ("fields" in props && props.fields !== undefined) {
 		return <FormWithFields {...(props as FormPropsWithFields<TFields>)} />;
 	}
-	return (
-		<FormWithMethods {...(props as FormPropsWithMethods<TFieldValues, TContextOnly>)} />
-	);
+	return <FormWithMethods {...(props as FormPropsWithMethods<TFieldValues, TContextOnly>)} />;
 }

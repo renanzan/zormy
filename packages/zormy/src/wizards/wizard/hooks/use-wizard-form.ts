@@ -59,7 +59,7 @@ import type { TriggerOptions, UseWizardFormArgs, UseWizardFormReturn } from "../
  *     return z.object({ age: z.number() });
  *   },
  *   defaultValues: { name: "", email: "", age: 0 },
- *   onSubmit: (data) => console.log("Formulário completo:", data)
+ *   onComplete: (data) => console.log("Formulário completo:", data)
  * });
  * ```
  */
@@ -94,7 +94,7 @@ export const useWizardForm = <TFieldValues extends FieldValues, Steps extends re
 	const previousVisitedStepsRef = useRef<Set<Steps[number]>>(new Set());
 	const allFieldKeysRef = useRef<Set<Path<TFieldValues>> | null>(null);
 
-	/** Valores acumulados de cada step (apenas steps já concluídos + atual). Usado para onSubmit com todos os dados quando só o step atual está montado. */
+	/** Valores acumulados de cada step (apenas steps já concluídos + atual). Usado para onComplete com todos os dados quando só o step atual está montado. */
 	const accumulatedValuesRef = useRef<Partial<TFieldValues>>({});
 
 	// Estado para forçar atualização do wizardState quando defaultValues são carregados assincronamente
@@ -408,7 +408,7 @@ export const useWizardForm = <TFieldValues extends FieldValues, Steps extends re
 			args.onStepSubmit?.(stepValues, stepMachine.currentStep, allDataSoFar);
 
 			if (stepMachine.isLastStep) {
-				args.onSubmit?.(allDataSoFar as TFieldValues);
+				args.onComplete?.(allDataSoFar as TFieldValues);
 				return;
 			}
 
@@ -432,7 +432,7 @@ export const useWizardForm = <TFieldValues extends FieldValues, Steps extends re
 			wizardForm,
 			getStepValuesFn,
 			args.onStepSubmit,
-			args.onSubmit,
+			args.onComplete,
 			args.steps,
 			stepMachine,
 			getNavigationConfig,

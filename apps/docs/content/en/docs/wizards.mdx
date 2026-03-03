@@ -17,7 +17,7 @@ Wizards organize forms into **multiple steps**, with per-step validation and nav
 2. **Fields per step** — mapping `{ personal: [NameField], contact: [EmailField] }`.
 3. **Configuration** — `createWizardConfig({ steps, fields })` (and optionally `shouldIncludeStep`).
 4. **Components** — `createWizardComponents(config)` returns `{ Wizard, Step }`.
-5. **Hook** — `useWizard({ ...config, defaultValues, onSubmit, ... })`.
+5. **Hook** — `useWizard({ ...config, defaultValues, onComplete, ... })`.
 6. **Render** — `<Wizard methods={wizard}>` and `<Step step="personal">` with fields and navigation buttons.
 
 ## Minimal example
@@ -44,7 +44,7 @@ The object returned by `useWizard` includes:
 | `back()`                     | Goes back to the previous step                                              |
 | `goToStep(step)`             | Goes to a specific step                                                     |
 
-When using the wizard, it is **not** necessary to pass `onSubmit` to `<Wizard>`: the "Finish" (submit) button internally triggers `wizard.next()`, which validates the last step and calls the `onSubmit` passed to `useWizard` with **all accumulated wizard data**.
+When using the wizard, it is **not** necessary to pass `onComplete` to `<Wizard>`: the "Finish" (submit) button internally triggers `wizard.next()`, which validates the last step and calls the `onComplete` passed to `useWizard` with **all accumulated wizard data**.
 
 ## Callbacks: per-step data and final submission
 
@@ -53,7 +53,7 @@ The wizard accumulates values from each step as you move forward. Use the callba
 | Callback                                         | When it is called                                           | What it receives                                                                                                                     |
 | ------------------------------------------------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | **`onStepSubmit(stepData, step, allDataSoFar)`** | When clicking "Next" (or "Finish" on the last step)         | `stepData`: validated data of the current step; `step`: step name; `allDataSoFar`: all data filled so far (previous steps + current) |
-| **`onSubmit(data)`**                             | Only when finishing the wizard (last step, "Finish" button) | `data`: **all** wizard data (all completed steps)                                                                                    |
+| **`onComplete(data)`**                          | Only when finishing the wizard (last step, "Finish" button) | `data`: **all** wizard data (all completed steps)                                                                                     |
 
 Example: log current step data when advancing and all data when finishing:
 
@@ -64,7 +64,7 @@ const wizard = useWizard({
 	onStepSubmit: (stepData, step, allDataSoFar) => {
 		console.log("Completed step:", step, "step data:", stepData, "all data so far:", allDataSoFar);
 	},
-	onSubmit: (data) => console.log("Wizard finished with all data:", data),
+	onComplete: (data) => console.log("Wizard finished with all data:", data),
 });
 ```
 
@@ -101,7 +101,7 @@ const wizard = useWizard({
 	autoSave: async ({ step, validChangedData }) => {
 		await api.saveStep(step, validChangedData);
 	},
-	onSubmit: (data) => console.log(data),
+	onComplete: (data) => console.log(data),
 });
 ```
 
@@ -136,7 +136,7 @@ wizard.goToStep("contact");
 | Option                                       | Description                                                                       |
 | -------------------------------------------- | --------------------------------------------------------------------------------- |
 | `defaultValues`                              | Initial values (object, sync or async function); must cover all keys of all steps |
-| `onSubmit`                                   | Callback when the wizard is finished (last step); receives all filled data        |
+| `onComplete`                                 | Callback when the wizard is finished (last step); receives all filled data        |
 | `onStepSubmit(stepData, step, allDataSoFar)` | Callback when advancing steps; receives stepData, step, and allDataSoFar          |
 | `initialStep`                                | Initial step                                                                      |
 | `mode`                                       | react-hook-form validation mode (`"onChange"`, `"onBlur"`, etc.)                  |

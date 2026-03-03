@@ -616,7 +616,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 		});
 	});
 
-	describe("callbacks - onStepSubmit e onSubmit", () => {
+	describe("callbacks - onStepSubmit e onComplete", () => {
 		it("deve chamar onStepSubmit quando step é válido e avança", async () => {
 			const onStepSubmit = vi.fn();
 			const { result } = renderHook(() =>
@@ -643,14 +643,14 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 			);
 		});
 
-		it("deve chamar onSubmit no último step com todos os dados acumulados", async () => {
-			const onSubmit = vi.fn();
+		it("deve chamar onComplete no último step com todos os dados acumulados", async () => {
+			const onComplete = vi.fn();
 			const { result } = renderHook(() =>
 				useWizard({
 					steps,
 					fields,
 					defaultValues: { name: "", email: "", password: "" },
-					onSubmit,
+					onComplete,
 				})
 			);
 
@@ -671,7 +671,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 				await result.current.next();
 			});
 
-			expect(onSubmit).toHaveBeenCalledWith(
+			expect(onComplete).toHaveBeenCalledWith(
 				expect.objectContaining({
 					name: "John",
 					email: "john@example.com",

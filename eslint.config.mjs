@@ -58,7 +58,7 @@ export default tseslint.config(
 	{
 		// Desabilita no-unused-vars para arquivos de teste de type-safety
 		// Esses arquivos frequentemente declaram variáveis apenas para verificar tipos
-		files: ["**/*.test-d.ts"],
+		files: ["**/*.test-d.ts", "**/*.test-d.tsx"],
 		rules: {
 			"@typescript-eslint/no-unused-vars": "off",
 		},

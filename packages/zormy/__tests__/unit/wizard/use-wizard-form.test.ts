@@ -224,8 +224,8 @@ describe("useWizardForm", () => {
 		);
 	});
 
-	it("deve chamar onSubmit no último step com todos os dados acumulados", async () => {
-		const onSubmit = vi.fn();
+	it("deve chamar onComplete no último step com todos os dados acumulados", async () => {
+		const onComplete = vi.fn();
 		const { result } = renderHook(() =>
 			useWizardForm({
 				steps: ["step1", "step2"] as const,
@@ -236,7 +236,7 @@ describe("useWizardForm", () => {
 					return z.object({ email: z.string().email() });
 				},
 				defaultValues: { name: "", email: "" },
-				onSubmit,
+				onComplete,
 			})
 		);
 
@@ -248,7 +248,7 @@ describe("useWizardForm", () => {
 			await result.current.next();
 		});
 
-		// Passa pelo step2 e finaliza (onSubmit recebe todos os dados acumulados)
+		// Passa pelo step2 e finaliza (onComplete recebe todos os dados acumulados)
 		act(() => {
 			result.current.setValue("email", "john@example.com");
 		});
@@ -256,7 +256,7 @@ describe("useWizardForm", () => {
 			await result.current.next();
 		});
 
-		expect(onSubmit).toHaveBeenCalledWith(
+		expect(onComplete).toHaveBeenCalledWith(
 			expect.objectContaining({
 				name: "John",
 				email: "john@example.com",

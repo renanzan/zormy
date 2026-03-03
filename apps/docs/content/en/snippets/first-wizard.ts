@@ -48,7 +48,7 @@ function MyWizard() {
     onStepSubmit: (stepData, step, allDataSoFar) => {
       console.log("Step completed:", step, "step data:", stepData, "all so far:", allDataSoFar);
     },
-    onSubmit: (data) => console.log("Final data (wizard complete):", data),
+    onComplete: (data) => console.log("Final data (wizard complete):", data),
   });
 
   return (

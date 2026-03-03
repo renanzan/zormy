@@ -43,7 +43,7 @@ Peer dependencies: `react` (^18), `react-hook-form` (^7.71.1), `zod` (^3.25.28),
 | `useForm`                                                   | Re-export do react-hook-form (para tipagem consistente)                                   |
 | `createWizardConfig({ steps, fields, shouldIncludeStep? })` | Configuração do wizard (steps e campos por step)                                          |
 | `createWizardComponents(config)`                            | Retorna `{ Wizard, Step }` tipados                                                        |
-| `useWizard(config & { defaultValues, onSubmit?, ... })`     | Hook do wizard (form + navegação entre steps)                                             |
+| `useWizard(config & { defaultValues, onComplete?, ... })`    | Hook do wizard (form + navegação entre steps)                                             |
 | `useWizardContext`                                          | Acesso ao contexto do wizard                                                              |
 | `useAutoSaveContext`, `AutoSaveStatus`                      | Auto-save no wizard                                                                       |
 | `Controller`, `SubmitHandler`                               | Re-export do react-hook-form                                                              |
@@ -151,11 +151,11 @@ const EmailField = BaseText.extend({ key: "email" });
 2. Mapear cada step para um array de campos em `fields`: `{ personal: [NameField], contact: [EmailField] }`.
 3. `createWizardConfig({ steps, fields, shouldIncludeStep? })`.
 4. `createWizardComponents(config)` → `{ Wizard, Step }`.
-5. `useWizard({ ...config, defaultValues, onSubmit?, onStepSubmit?, initialStep?, mode?, autoSave?, ... })`.
-6. Renderizar: `<Wizard methods={wizard}>` e dentro `<Step step="personal">` etc.; usar `wizard.next`, `wizard.back` para navegação. Não passar `onSubmit` no `<Wizard>` — o submit do form chama `wizard.next()` e o `onSubmit` de `useWizard` recebe **todos os dados acumulados**.
+5. `useWizard({ ...config, defaultValues, onComplete?, onStepSubmit?, initialStep?, mode?, autoSave?, ... })`.
+6. Renderizar: `<Wizard methods={wizard}>` e dentro `<Step step="personal">` etc.; usar `wizard.next`, `wizard.back` para navegação. Não passar `onComplete` no `<Wizard>` — o submit do form chama `wizard.next()` e o `onComplete` de `useWizard` recebe **todos os dados acumulados**.
 
 Callbacks:
-- **`onSubmit(data)`** — chamado só ao finalizar o wizard (último step); `data` = todos os dados de todos os steps (acumulados internamente, pois só o step atual está montado).
+- **`onComplete(data)`** — chamado só ao finalizar o wizard (último step); `data` = todos os dados de todos os steps (acumulados internamente, pois só o step atual está montado).
 - **`onStepSubmit(stepData, step, allDataSoFar)`** — chamado ao avançar de step (Próximo ou Finalizar); `stepData` = dados do step atual; `allDataSoFar` = dados acumulados até o momento.
 
 ```tsx
@@ -170,7 +170,7 @@ function MyWizard() {
 		...config,
 		defaultValues: { name: "", email: "" },
 		onStepSubmit: (stepData, step, allDataSoFar) => { /* opcional */ },
-		onSubmit: (data) => console.log(data),
+		onComplete: (data) => console.log(data),
 	});
 	return (
 		<Wizard methods={wizard}>

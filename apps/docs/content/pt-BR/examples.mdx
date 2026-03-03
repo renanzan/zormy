@@ -166,7 +166,7 @@ function MultiStepWizard() {
 			email: "",
 			password: "",
 		},
-		onSubmit: (data) => {
+		onComplete: (data) => {
 			alert(JSON.stringify(data, null, 2));
 		},
 	});
@@ -276,7 +276,7 @@ function ConditionalWizard() {
 			refuseReason: "",
 			selectQuota: "",
 		},
-		onSubmit: (data) => {
+		onComplete: (data) => {
 			alert(JSON.stringify(data, null, 2));
 		},
 	});
@@ -393,7 +393,7 @@ function AutoSaveWizard() {
 			await new Promise((resolve) => setTimeout(resolve, 1000));
 			console.log(`Salvando step ${step}:`, validChangedData);
 		},
-		onSubmit: (data) => {
+		onComplete: (data) => {
 			alert(JSON.stringify(data, null, 2));
 		},
 	});

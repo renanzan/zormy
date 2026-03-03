@@ -174,7 +174,7 @@ Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
     | `steps` | `readonly string[]` | ✅ | Array de steps do wizard |
     | `fields` | `StepFieldsMap<Steps>` | ✅ | Mapeamento de steps para campos |
     | `defaultValues` | `WizardFormData \| (() => WizardFormData) \| (() => Promise<WizardFormData>)` | ❌ | Valores padrão (objeto, função síncrona ou assíncrona) |
-    | `onSubmit` | `(data: WizardFormValues) => void` | ❌ | Callback quando o formulário é submetido (último step) |
+    | `onComplete` | `(data: WizardFormValues) => void` | ❌ | Callback quando o wizard é finalizado (último step) |
     | `onStepSubmit` | `(data: WizardFormData, step: Step) => void` | ❌ | Callback quando um step é submetido |
     | `initialStep` | `Steps[number]` | ❌ | Step inicial (padrão: primeiro step) |
     | `mode` | `"onChange" \| "onBlur" \| "onSubmit" \| "onTouched" \| "all"` | ❌ | Modo de validação do react-hook-form |

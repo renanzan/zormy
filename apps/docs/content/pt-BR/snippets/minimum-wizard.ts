@@ -45,7 +45,7 @@ function MyWizard() {
   const wizard = useWizard({
     ...wizardConfig,
     defaultValues: { name: "", email: "" },
-    onSubmit: (data) => console.log(data),
+    onComplete: (data) => console.log(data),
   });
 
   return (

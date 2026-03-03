@@ -17,15 +17,17 @@
 export { abstractField, field, useField } from "./fields";
 export { zormyResolver } from "./resolver/resolver";
 
-export type { FieldKey, FieldValue, FieldsToObject } from "./fields/field/types/extractors";
+export type { FieldKey, FieldsToObject, FieldValue } from "./fields/field/types/extractors";
 
 export { Form } from "./components/Form";
 export { useZormy } from "./form/hooks/useZormy";
+export { createForm } from "./form/utils/create-form";
 
 export { createWizardComponents } from "./wizards/wizard/builder/components";
 export { createWizardConfig } from "./wizards/wizard/builder/config";
 export { useWizardContext } from "./wizards/wizard/context";
 export { useWizard } from "./wizards/wizard/hooks/use-wizard";
+export { createWizard } from "./wizards/wizard/utils/create-wizard";
 
 export { useAutoSaveContext } from "./wizards/wizard/context";
 export type { AutoSaveStatus } from "./wizards/wizard/hooks/use-auto-save";

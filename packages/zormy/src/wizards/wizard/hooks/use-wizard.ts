@@ -67,7 +67,7 @@ export type UseWizardArgs<
 		| (() => WizardFormData<TStepFieldsMap>)
 		| (() => Promise<WizardFormData<TStepFieldsMap>>);
 	/** Callback quando o wizard é finalizado (último step) — recebe todos os dados preenchidos */
-	onSubmit?: (data: WizardFormValues<TStepFieldsMap>) => void;
+	onComplete?: (data: WizardFormValues<TStepFieldsMap>) => void;
 	/**
 	 * Callback ao avançar de step (ao clicar em "Próximo" ou ao finalizar).
 	 * @param data - Dados validados do step atual
@@ -115,7 +115,7 @@ export type UseWizardArgs<
  *     address: [StreetField, CityField]
  *   },
  *   defaultValues: { name: "", email: "" },
- *   onSubmit: (data) => console.log(data)
+ *   onComplete: (data) => console.log(data)
  * });
  * ```
  */
@@ -302,12 +302,12 @@ export const useWizard = <
 		schema: createStepSchema,
 		defaultValues: normalizedDefaultValues,
 		mode: args.mode,
-		onSubmit: args.onSubmit
+		onComplete: args.onComplete
 			? (data) => {
 					// data é FormData (Partial), convertemos para FormValues
 					// usando flattenToNested para garantir estrutura aninhada correta
 					const nested = flattenToNested(data) as FormValues;
-					args.onSubmit?.(nested);
+					args.onComplete?.(nested);
 				}
 			: undefined,
 		onStepSubmit: args.onStepSubmit
@@ -404,7 +404,14 @@ export const useWizard = <
 				return;
 			}
 
-			// No último step, delegar ao next() do useWizardForm para que acumule valores e chame onSubmit com todos os dados
+			// Sem filtro de steps: sempre delegar ao wizard.next() para que onStepSubmit, acúmulo e onComplete rodem.
+			const hasFilteredSteps = filteredSteps.length !== args.steps.length;
+			if (!hasFilteredSteps) {
+				await wizard.next(options);
+				return;
+			}
+
+			// Com shouldIncludeStep: no último step filtrado, delegar para rodar onComplete; senão ir ao próximo step filtrado.
 			if (isLastFilteredStep()) {
 				await wizard.next(options);
 				return;
@@ -415,7 +422,7 @@ export const useWizard = <
 				wizard.goToStep(nextStep);
 			}
 		},
-		[validateCurrentStep, isLastFilteredStep, findNextValidStep, wizard]
+		[validateCurrentStep, isLastFilteredStep, findNextValidStep, wizard, filteredSteps.length, args.steps.length]
 	);
 
 	const interceptedNext = ((options?: TriggerOptions): Promise<void> => {

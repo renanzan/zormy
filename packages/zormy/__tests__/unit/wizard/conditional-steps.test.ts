@@ -322,8 +322,8 @@ describe("useWizard - steps condicionais", () => {
 	});
 
 	describe("submit com steps condicionais", () => {
-		it("deve chamar onSubmit no último step filtrado, não no último step original", async () => {
-			const onSubmit = vi.fn();
+		it("deve chamar onComplete no último step filtrado, não no último step original", async () => {
+			const onComplete = vi.fn();
 
 			const { result } = renderHook(() =>
 				useWizard({
@@ -337,7 +337,7 @@ describe("useWizard - steps condicionais", () => {
 						conditional2Value: "",
 						step3Value: "",
 					},
-					onSubmit,
+					onComplete,
 				})
 			);
 
@@ -385,13 +385,13 @@ describe("useWizard - steps condicionais", () => {
 
 			expect(isLastFilteredStep()).toBe(true);
 
-			// Avança no último step - deve chamar onSubmit
+			// Avança no último step - deve chamar onComplete
 			await act(async () => {
 				await result.current.next();
 			});
 
-			expect(onSubmit).toHaveBeenCalledTimes(1);
-			expect(onSubmit).toHaveBeenCalledWith(
+			expect(onComplete).toHaveBeenCalledTimes(1);
+			expect(onComplete).toHaveBeenCalledWith(
 				expect.objectContaining({
 					step1Value: "valor1",
 					hasConditional1: false,
@@ -401,7 +401,7 @@ describe("useWizard - steps condicionais", () => {
 		});
 
 		it("deve considerar step condicional como último quando ele é o último step filtrado", async () => {
-			const onSubmit = vi.fn();
+			const onComplete = vi.fn();
 
 			const { result } = renderHook(() =>
 				useWizard({
@@ -415,7 +415,7 @@ describe("useWizard - steps condicionais", () => {
 						conditional2Value: "",
 						step3Value: "",
 					},
-					onSubmit,
+					onComplete,
 				})
 			);
 
@@ -476,12 +476,12 @@ describe("useWizard - steps condicionais", () => {
 
 			expect(filteredSteps.indexOf("step3")).toBe(filteredSteps.length - 1);
 
-			// Avança no último step - deve chamar onSubmit
+			// Avança no último step - deve chamar onComplete
 			await act(async () => {
 				await result.current.next();
 			});
 
-			expect(onSubmit).toHaveBeenCalledTimes(1);
+			expect(onComplete).toHaveBeenCalledTimes(1);
 		});
 	});
 
