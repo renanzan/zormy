@@ -71,22 +71,20 @@ const EmailField = field("email")
 		</div>
 	));
 
-const config = createWizardConfig({
-	steps: ["personal", "contact"] as const,
-	fields: {
-		personal: [NameField],
-		contact: [EmailField],
-	},
-});
+const wizardSteps = [
+	{ name: "personal", fields: [NameField] },
+	{ name: "contact", fields: [EmailField] },
+] as const;
 
+const config = createWizardConfig({ steps: wizardSteps });
 const { Wizard, Step } = createWizardComponents(config);
 
 function MyWizard() {
 	const wizard = useWizard({
-		...config,
+		steps: wizardSteps,
 		defaultValues: { name: "", email: "" },
 		mode: "onChange", // opcional: modo de validação do wizard
-		onSubmit: (data) => console.log(data),
+		onComplete: (data) => console.log(data),
 	});
 
 	return (

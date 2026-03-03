@@ -14,8 +14,6 @@ import { useWizard } from "../../../src/wizards/wizard/hooks/use-wizard";
  * renderizam quando esperado e fornecem o contexto adequado.
  */
 describe("createWizardComponents - testes unitários", () => {
-	const steps = ["step1", "step2"] as const;
-
 	const NameField = field("name")
 		.schema(z.string().min(3))
 		.render(() => null);
@@ -24,13 +22,12 @@ describe("createWizardComponents - testes unitários", () => {
 		.schema(z.string().email())
 		.render(() => null);
 
-	const config = createWizardConfig({
-		steps,
-		fields: {
-			step1: [NameField],
-			step2: [EmailField],
-		},
-	});
+	const stepsConfig = [
+		{ name: "step1", fields: [NameField] },
+		{ name: "step2", fields: [EmailField] },
+	] as const;
+
+	const config = createWizardConfig({ steps: stepsConfig });
 
 	describe("retorno da função", () => {
 		it("deve retornar um objeto com Wizard e Step", () => {
@@ -61,7 +58,7 @@ describe("createWizardComponents - testes unitários", () => {
 
 			function TestComponent() {
 				const wizard = useWizard({
-					...config,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "" },
 				});
 
@@ -94,7 +91,7 @@ describe("createWizardComponents - testes unitários", () => {
 
 			function TestComponent() {
 				const wizard = useWizard({
-					...config,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "" },
 				});
 
@@ -121,7 +118,7 @@ describe("createWizardComponents - testes unitários", () => {
 
 			function TestComponent() {
 				const wizard = useWizard({
-					...config,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "" },
 				});
 
@@ -146,7 +143,7 @@ describe("createWizardComponents - testes unitários", () => {
 
 			function TestComponent() {
 				const wizard = useWizard({
-					...config,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "" },
 				});
 
@@ -175,7 +172,7 @@ describe("createWizardComponents - testes unitários", () => {
 
 			function TestComponent() {
 				const wizard = useWizard({
-					...config,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "" },
 				});
 
@@ -203,7 +200,7 @@ describe("createWizardComponents - testes unitários", () => {
 
 			function TestComponent() {
 				const wizard = useWizard({
-					...config,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "" },
 				});
 
@@ -228,7 +225,7 @@ describe("createWizardComponents - testes unitários", () => {
 
 			function TestComponent() {
 				const wizard = useWizard({
-					...config,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "" },
 				});
 
@@ -256,7 +253,7 @@ describe("createWizardComponents - testes unitários", () => {
 
 			function TestComponent() {
 				const wizard = useWizard({
-					...config,
+					steps: stepsConfig,
 					defaultValues: { name: "John", email: "john@example.com" },
 				});
 
@@ -283,7 +280,7 @@ describe("createWizardComponents - testes unitários", () => {
 
 			function TestComponent() {
 				const wizard = useWizard({
-					...config,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "" },
 				});
 
@@ -318,19 +315,17 @@ describe("createWizardComponents - testes unitários", () => {
 	describe("comportamento com diferentes configs", () => {
 		it("deve criar objetos diferentes para configs diferentes, mas componentes estáveis", () => {
 			const config1 = createWizardConfig({
-				steps: ["a", "b"] as const,
-				fields: {
-					a: [NameField],
-					b: [EmailField],
-				},
+				steps: [
+					{ name: "a", fields: [NameField] },
+					{ name: "b", fields: [EmailField] },
+				],
 			});
 
 			const config2 = createWizardConfig({
-				steps: ["x", "y"] as const,
-				fields: {
-					x: [NameField],
-					y: [EmailField],
-				},
+				steps: [
+					{ name: "x", fields: [NameField] },
+					{ name: "y", fields: [EmailField] },
+				],
 			});
 
 			const components1 = createWizardComponents(config1);

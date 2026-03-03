@@ -12,8 +12,6 @@ import { useWizard } from "../../../src/wizards/wizard/hooks/use-wizard";
  * incluindo validação por step, navegação e callbacks.
  */
 describe("useWizard - wizard multi-step com campos tipados", () => {
-	const steps = ["personal", "credentials"] as const;
-
 	const NameField = field("name")
 		.schema(z.string().min(3))
 		.render(() => null);
@@ -26,24 +24,23 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 		.schema(z.string().min(8))
 		.render(() => null);
 
-	const fields = {
-		personal: [NameField],
-		credentials: [EmailField, PasswordField],
-	};
+	const stepsConfig = [
+		{ name: "personal", fields: [NameField] },
+		{ name: "credentials", fields: [EmailField, PasswordField] },
+	] as const;
 
 	describe("inicialização do wizard", () => {
 		it("deve inicializar wizard com primeiro step e valores padrão", () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "", password: "" },
 				})
 			);
 
 			expect(result.current.currentStep).toBe("personal");
 			expect(result.current.currentStepIndex).toBe(0);
-			expect(result.current.steps).toEqual(steps);
+			expect(result.current.steps).toEqual(["personal", "credentials"]);
 			expect(result.current.totalSteps).toBe(2);
 			expect(result.current.isFirstStep).toBe(true);
 			expect(result.current.isLastStep).toBe(false);
@@ -52,8 +49,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 		it("deve inicializar wizard com step inicial customizado", () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "", password: "" },
 					initialStep: "credentials",
 				})
@@ -68,8 +64,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 		it("deve aceitar mode e repassar para o formulário (validação ainda funciona)", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "", password: "" },
 					mode: "onBlur",
 				})
@@ -90,8 +85,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 		it("deve obter componentes de campo para step específico", () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "", password: "" },
 				})
 			);
@@ -108,8 +102,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 		it("deve validar step atual antes de avançar - bloqueia se inválido", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "", password: "" },
 				})
 			);
@@ -142,8 +135,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 		it("deve voltar para step anterior", () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "John", email: "", password: "" },
 				})
 			);
@@ -165,8 +157,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 		it("não deve avançar além do último step", () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						name: "John",
 						email: "test@example.com",
@@ -188,8 +179,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 		it("deve aceitar defaultValues como objeto direto", () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						name: "John",
 						email: "john@example.com",
@@ -206,8 +196,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 		it("deve aceitar defaultValues como função síncrona", () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: () => ({
 						name: "John",
 						email: "john@example.com",
@@ -224,8 +213,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 		it("deve aceitar defaultValues como função assíncrona", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: async () => {
 						await new Promise((resolve) => setTimeout(resolve, 10));
 						return {
@@ -248,8 +236,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 		it("deve validar steps após carregar defaultValues assíncronos válidos", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: async () => {
 						await new Promise((resolve) => setTimeout(resolve, 10));
 						return {
@@ -291,8 +278,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 		it("deve mostrar steps inválidos como 'pending' após carregar defaultValues assíncronos", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: async () => {
 						await new Promise((resolve) => setTimeout(resolve, 10));
 						return {
@@ -342,14 +328,13 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 				const { result, rerender } = renderHook(
 					({ initialStep }) =>
 						useWizard({
-							steps,
-							fields,
+							steps: stepsConfig,
 							defaultValues: defaultValuesFn,
 							initialStep,
 						}),
 					{
 						initialProps: {
-							initialStep: undefined as (typeof steps)[number] | undefined,
+							initialStep: undefined as "personal" | "credentials" | undefined,
 						},
 					}
 				);
@@ -383,14 +368,13 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 				const { result, rerender } = renderHook(
 					({ initialStep }) =>
 						useWizard({
-							steps,
-							fields,
+							steps: stepsConfig,
 							defaultValues: defaultValuesFn,
 							initialStep,
 						}),
 					{
 						initialProps: {
-							initialStep: undefined as (typeof steps)[number] | undefined,
+							initialStep: undefined as "personal" | "credentials" | undefined,
 						},
 					}
 				);
@@ -433,15 +417,14 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 				const { rerender } = renderHook(
 					({ controlledStep }) =>
 						useWizard({
-							steps,
-							fields,
+							steps: stepsConfig,
 							defaultValues: defaultValuesFn,
 							controlledStep,
 							onStepChange,
 						}),
 					{
 						initialProps: {
-							controlledStep: undefined as (typeof steps)[number] | undefined,
+							controlledStep: undefined as "personal" | "credentials" | undefined,
 						},
 					}
 				);
@@ -466,8 +449,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 				const { rerender } = renderHook(
 					({ mode }) =>
 						useWizard({
-							steps,
-							fields,
+							steps: stepsConfig,
 							defaultValues: defaultValuesFn,
 							mode,
 						}),
@@ -507,8 +489,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 
 				const { result } = renderHook(() =>
 					useWizard({
-						steps,
-						fields,
+						steps: stepsConfig,
 						defaultValues: defaultValuesFn,
 					})
 				);
@@ -550,8 +531,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 
 				const { result } = renderHook(() =>
 					useWizard({
-						steps,
-						fields,
+						steps: stepsConfig,
 						defaultValues: defaultValuesFn,
 					})
 				);
@@ -588,10 +568,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: ["step1"],
-					fields: {
-						step1: [NestedField],
-					},
+					steps: [{ name: "step1", fields: [NestedField] }],
 					defaultValues: {
 						user: {
 							name: "John",
@@ -621,8 +598,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 			const onStepSubmit = vi.fn();
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "", password: "" },
 					onStepSubmit,
 				})
@@ -647,8 +623,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 			const onComplete = vi.fn();
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "", password: "" },
 					onComplete,
 				})
@@ -685,8 +660,7 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 		it("deve fornecer estado de cada step (visited, dirty, valid, error)", () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "", password: "" },
 				})
 			);
@@ -703,16 +677,15 @@ describe("useWizard - wizard multi-step com campos tipados", () => {
 
 	describe("wizard controlado externamente", () => {
 		it("deve permitir controlar wizard externamente via controlledStep", () => {
-			type Step = (typeof steps)[number];
+			type Step = "personal" | "credentials";
 			const { result, rerender } = renderHook<
-				ReturnType<typeof useWizard<typeof steps, typeof fields>>,
+				ReturnType<typeof useWizard<typeof stepsConfig>>,
 				{ step: Step }
 			>(
 				({ step }) =>
-					useWizard({
-						steps,
-						fields,
-						defaultValues: { name: "", email: "", password: "" },
+				useWizard({
+					steps: stepsConfig,
+					defaultValues: { name: "", email: "", password: "" },
 						controlledStep: step,
 					}),
 				{

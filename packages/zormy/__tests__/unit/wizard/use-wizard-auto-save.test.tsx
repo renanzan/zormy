@@ -17,8 +17,6 @@ import { useWizard } from "../../../src/wizards/wizard/hooks/use-wizard";
  * está disponível via contexto e executa salvamento corretamente.
  */
 describe("useWizard com auto save", () => {
-	const steps = ["step1", "step2"] as const;
-
 	const NameField = field("name")
 		.schema(z.string().min(3))
 		.render(() => null);
@@ -27,17 +25,16 @@ describe("useWizard com auto save", () => {
 		.schema(z.string().email())
 		.render(() => null);
 
-	const fields = {
-		step1: [NameField],
-		step2: [EmailField],
-	};
+	const stepsConfig = [
+		{ name: "step1", fields: [NameField] },
+		{ name: "step2", fields: [EmailField] },
+	] as const;
 
 	describe("criação do auto save", () => {
 		it("deve criar autoSave quando configurado", () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "" },
 					autoSave: vi.fn(),
 				})
@@ -50,8 +47,7 @@ describe("useWizard com auto save", () => {
 		it("não deve criar autoSave quando não configurado", () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "" },
 				})
 			);
@@ -64,8 +60,7 @@ describe("useWizard com auto save", () => {
 		it("deve disponibilizar autoSave via contexto", () => {
 			const { result: wizardResult } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "" },
 					autoSave: vi.fn(),
 				})
@@ -90,8 +85,7 @@ describe("useWizard com auto save", () => {
 		it("deve permitir acesso via useAutoSaveContext", () => {
 			const { result: wizardResult } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "" },
 					autoSave: vi.fn(),
 				})
@@ -110,8 +104,7 @@ describe("useWizard com auto save", () => {
 		it("deve lançar erro se useAutoSaveContext for usado sem autoSave configurado", () => {
 			const { result: wizardResult } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "" },
 				})
 			);
@@ -133,8 +126,7 @@ describe("useWizard com auto save", () => {
 
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "" },
 					onStepChange,
 					autoSave: onSave,
@@ -187,8 +179,7 @@ describe("useWizard com auto save", () => {
 
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "" },
 					autoSave: onSave,
 				})
@@ -214,8 +205,7 @@ describe("useWizard com auto save", () => {
 
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "" },
 					autoSave: onSave,
 				})
@@ -247,8 +237,7 @@ describe("useWizard com auto save", () => {
 
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "" },
 					onStepChange,
 					autoSave: onSave,
@@ -287,8 +276,7 @@ describe("useWizard com auto save", () => {
 
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "", email: "" },
 					autoSave: onSave,
 				})
@@ -336,8 +324,7 @@ describe("useWizard com auto save", () => {
 
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "Original", email: "" },
 					autoSave: onSave,
 				})
@@ -393,8 +380,7 @@ describe("useWizard com auto save", () => {
 
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "Original", email: "" },
 					autoSave: onSave,
 				})
@@ -451,15 +437,14 @@ describe("useWizard com auto save", () => {
 				.schema(z.string().email())
 				.render(() => null);
 
-			const fieldsLocal = {
-				step1: [NameFieldLocal],
-				step2: [EmailFieldLocal],
-			};
+			const stepsConfigLocal = [
+				{ name: "step1", fields: [NameFieldLocal] },
+				{ name: "step2", fields: [EmailFieldLocal] },
+			] as const;
 
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: ["step1", "step2"] as const,
-					fields: fieldsLocal,
+					steps: stepsConfigLocal,
 					defaultValues: { name: "Original", email: "original@example.com" },
 					autoSave: onSave,
 				})
@@ -530,8 +515,7 @@ describe("useWizard com auto save", () => {
 
 			const { result } = renderHook(() =>
 				useWizard({
-					steps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: { name: "Original", email: "" },
 					autoSave: onSave,
 				})

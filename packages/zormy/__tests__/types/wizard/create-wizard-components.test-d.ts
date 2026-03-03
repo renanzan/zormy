@@ -33,11 +33,10 @@ describe("Type Safety - createWizardComponents", () => {
 				.render(() => null);
 
 			const config = createWizardConfig({
-				steps: ["step1", "step2"] as const,
-				fields: {
-					step1: [NameField],
-					step2: [EmailField],
-				},
+				steps: [
+					{ name: "step1", fields: [NameField] },
+					{ name: "step2", fields: [EmailField] },
+				],
 			});
 
 			const components = createWizardComponents(config);
@@ -58,11 +57,10 @@ describe("Type Safety - createWizardComponents", () => {
 				.render(() => null);
 
 			const config = createWizardConfig({
-				steps: ["step1", "step2"] as const,
-				fields: {
-					step1: [NameField],
-					step2: [EmailField],
-				},
+				steps: [
+					{ name: "step1", fields: [NameField] },
+					{ name: "step2", fields: [EmailField] },
+				],
 			});
 
 			const { Wizard } = createWizardComponents(config);
@@ -97,10 +95,7 @@ describe("Type Safety - createWizardComponents", () => {
 				.render(() => null);
 
 			const config = createWizardConfig({
-				steps: ["step1"] as const,
-				fields: {
-					step1: [UserNameField, UserEmailField],
-				},
+				steps: [{ name: "step1", fields: [UserNameField, UserEmailField] }] as const,
 			});
 
 			const { Wizard } = createWizardComponents(config);
@@ -141,12 +136,11 @@ describe("Type Safety - createWizardComponents", () => {
 				.render(() => null);
 
 			const config = createWizardConfig({
-				steps: ["step1", "step2", "step3"] as const,
-				fields: {
-					step1: [NameField],
-					step2: [EmailField],
-					step3: [NameField],
-				},
+				steps: [
+					{ name: "step1", fields: [NameField] },
+					{ name: "step2", fields: [EmailField] },
+					{ name: "step3", fields: [NameField] },
+				] as const,
 			});
 
 			const { Step } = createWizardComponents(config);
@@ -188,12 +182,11 @@ describe("Type Safety - createWizardComponents", () => {
 				.render(() => null);
 
 			const config = createWizardConfig({
-				steps: ["personal", "credentials", "review"] as const,
-				fields: {
-					personal: [NameField],
-					credentials: [NameField],
-					review: [NameField],
-				},
+				steps: [
+					{ name: "personal", fields: [NameField] },
+					{ name: "credentials", fields: [NameField] },
+					{ name: "review", fields: [NameField] },
+				] as const,
 			});
 
 			const { Step } = createWizardComponents(config);
@@ -215,10 +208,7 @@ describe("Type Safety - createWizardComponents", () => {
 				.render(() => null);
 
 			const config = createWizardConfig({
-				steps: ["step1"] as const,
-				fields: {
-					step1: [NameField],
-				},
+				steps: [{ name: "step1", fields: [NameField] }] as const,
 			});
 
 			const { Step } = createWizardComponents(config);
@@ -254,10 +244,7 @@ describe("Type Safety - createWizardComponents", () => {
 				.render(() => null);
 
 			const config = createWizardConfig({
-				steps: ["step1"] as const,
-				fields: {
-					step1: [NameField],
-				},
+				steps: [{ name: "step1", fields: [NameField] }] as const,
 			});
 
 			const { Step } = createWizardComponents(config);
@@ -302,17 +289,11 @@ describe("Type Safety - createWizardComponents", () => {
 				.render(() => null);
 
 			const config1 = createWizardConfig({
-				steps: ["a"] as const,
-				fields: {
-					a: [NameField],
-				},
+				steps: [{ name: "a", fields: [NameField] }] as const,
 			});
 
 			const config2 = createWizardConfig({
-				steps: ["b"] as const,
-				fields: {
-					b: [EmailField],
-				},
+				steps: [{ name: "b", fields: [EmailField] }] as const,
 			});
 
 			const components1 = createWizardComponents(config1);
@@ -333,7 +314,7 @@ describe("Type Safety - createWizardComponents", () => {
 			type FormData1 = ExtractWizardFormData<typeof config1>;
 			type FormData2 = ExtractWizardFormData<typeof config2>;
 
-			expectTypeOf<FormData1>().not.toEqualTypeOf<FormData2>();
+			expectTypeOf({} as FormData1).not.toEqualTypeOf<FormData2>();
 		});
 
 		it("deve preservar tipos mesmo com shouldIncludeStep", () => {
@@ -345,11 +326,10 @@ describe("Type Safety - createWizardComponents", () => {
 				.render(() => null);
 
 			const config = createWizardConfig({
-				steps: ["step1", "step2"] as const,
-				fields: {
-					step1: [NameField],
-					step2: [EmailField],
-				},
+				steps: [
+					{ name: "step1", fields: [NameField] },
+					{ name: "step2", fields: [EmailField] },
+				] as const,
 				shouldIncludeStep: (step, formValues) => {
 					if (step === "step2") {
 						return formValues.name !== undefined;
@@ -388,11 +368,10 @@ describe("Type Safety - createWizardComponents", () => {
 				.render(() => null);
 
 			const config = createWizardConfig({
-				steps: ["step1", "step2"] as const,
-				fields: {
-					step1: [NameField],
-					step2: [EmailField],
-				},
+				steps: [
+					{ name: "step1", fields: [NameField] },
+					{ name: "step2", fields: [EmailField] },
+				] as const,
 			});
 
 			const { Wizard } = createWizardComponents(config);
@@ -425,10 +404,7 @@ describe("Type Safety - createWizardComponents", () => {
 				.render(() => null);
 
 			const config = createWizardConfig({
-				steps: ["step1"] as const,
-				fields: {
-					step1: [NameField],
-				},
+				steps: [{ name: "step1", fields: [NameField] }] as const,
 			});
 
 			const { Step } = createWizardComponents(config);
@@ -451,10 +427,7 @@ describe("Type Safety - createWizardComponents", () => {
 				.render(() => null);
 
 			const config = createWizardConfig({
-				steps: ["step1"] as const,
-				fields: {
-					step1: [NameField],
-				},
+				steps: [{ name: "step1", fields: [NameField] }] as const,
 			});
 
 			const { Wizard } = createWizardComponents(config);

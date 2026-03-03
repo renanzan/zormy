@@ -245,11 +245,10 @@ describe("Type Safety - Wizard Types", () => {
 				.render(() => null);
 
 			const config = createWizardConfig({
-				steps: ["step1", "step2"] as const,
-				fields: {
-					step1: [NameField],
-					step2: [EmailField],
-				},
+				steps: [
+					{ name: "step1", fields: [NameField] },
+					{ name: "step2", fields: [EmailField] },
+				] as const,
 			});
 
 			type FormData = ExtractWizardFormData<typeof config>;
@@ -275,10 +274,7 @@ describe("Type Safety - Wizard Types", () => {
 				.render(() => null);
 
 			const config = createWizardConfig({
-				steps: ["step1"] as const,
-				fields: {
-					step1: [UserNameField, UserEmailField],
-				},
+				steps: [{ name: "step1", fields: [UserNameField, UserEmailField] }] as const,
 			});
 
 			type FormData = ExtractWizardFormData<typeof config>;
@@ -310,11 +306,10 @@ describe("Type Safety - Wizard Types", () => {
 				.render(() => null);
 
 			const config = createWizardConfig({
-				steps: ["step1", "step2"] as const,
-				fields: {
-					step1: [NameField],
-					step2: [EmailField],
-				},
+				steps: [
+					{ name: "step1", fields: [NameField] },
+					{ name: "step2", fields: [EmailField] },
+				] as const,
 			});
 
 			type FormValues = ExtractWizardFormValues<typeof config>;
@@ -338,11 +333,10 @@ describe("Type Safety - Wizard Types", () => {
 				.render(() => null);
 
 			const config = createWizardConfig({
-				steps: ["configurations", "sportCategories"] as const,
-				fields: {
-					configurations: [HasSportField],
-					sportCategories: [SportCategoriesField],
-				},
+				steps: [
+					{ name: "configurations", fields: [HasSportField] },
+					{ name: "sportCategories", fields: [SportCategoriesField] },
+				] as const,
 				shouldIncludeStep: (step, formValues) => {
 					if (step === "sportCategories") {
 						// formValues deve ter tipagem correta
@@ -600,12 +594,11 @@ describe("Type Safety - Wizard Types", () => {
 				.render(() => null);
 
 			const config = createWizardConfig({
-				steps: ["personal", "credentials", "details"] as const,
-				fields: {
-					personal: [NameField, AgeField],
-					credentials: [EmailField, PasswordField],
-					details: [],
-				},
+				steps: [
+					{ name: "personal", fields: [NameField, AgeField] },
+					{ name: "credentials", fields: [EmailField, PasswordField] },
+					{ name: "details", fields: [] },
+				] as const,
 			});
 
 			type FormData = ExtractWizardFormData<typeof config>;
@@ -656,12 +649,11 @@ describe("Type Safety - Wizard Types", () => {
 				.render(() => null);
 
 			const config = createWizardConfig({
-				steps: ["configurations", "sportCategories", "culturalSegments"] as const,
-				fields: {
-					configurations: [HasSportField, HasCulturalField],
-					sportCategories: [SportCategoriesField],
-					culturalSegments: [CulturalSegmentsField],
-				},
+				steps: [
+					{ name: "configurations", fields: [HasSportField, HasCulturalField] },
+					{ name: "sportCategories", fields: [SportCategoriesField] },
+					{ name: "culturalSegments", fields: [CulturalSegmentsField] },
+				] as const,
 				shouldIncludeStep: (step, formValues) => {
 					if (step === "sportCategories") {
 						return formValues.configurations?.hasSportPotentialLaw === true;

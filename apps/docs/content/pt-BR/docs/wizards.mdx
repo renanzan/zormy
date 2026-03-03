@@ -13,12 +13,11 @@ Wizards organizam formulários em **múltiplos passos** (steps), com validação
 
 ## Conceitos
 
-1. **Steps** — array de nomes (ex: `["personal", "contact"] as const`).
-2. **Fields por step** — mapeamento `{ personal: [NameField], contact: [EmailField] }`.
-3. **Configuração** — `createWizardConfig({ steps, fields })` (e opcionalmente `shouldIncludeStep`).
-4. **Componentes** — `createWizardComponents(config)` retorna `{ Wizard, Step }`.
-5. **Hook** — `useWizard({ ...config, defaultValues, onComplete, ... })`.
-6. **Render** — `<Wizard methods={wizard}>` e `<Step step="personal">` com os campos e botões de navegação.
+1. **Steps** — array de definições `{ name, fields }`: cada step tem nome (string) e array de campos.
+2. **Configuração** — `createWizardConfig({ steps: [{ name: "personal", fields: [NameField] }, ...] })` (e opcionalmente `shouldIncludeStep`).
+3. **Componentes** — `createWizardComponents(config)` retorna `{ Wizard, Step }`.
+4. **Hook** — `useWizard({ steps: [...], defaultValues, onComplete, ... })`.
+5. **Render** — `<Wizard methods={wizard}>` e `<Step step="personal">` com os campos e botões de navegação.
 
 ## Exemplo mínimo
 
@@ -59,7 +58,7 @@ Exemplo: exibir dados do step atual ao avançar e todos os dados ao finalizar:
 
 ```tsx
 const wizard = useWizard({
-	...wizardConfig,
+	steps: wizardSteps, // mesmo array de { name, fields } passado a createWizardConfig
 	defaultValues: { name: "", email: "" },
 	onStepSubmit: (stepData, step, allDataSoFar) => {
 		console.log(
@@ -81,12 +80,11 @@ Para steps que aparecem ou desaparecem conforme os valores do formulário, use `
 
 ```tsx
 const wizardConfig = createWizardConfig({
-	steps: ["personal", "address", "payment"] as const,
-	fields: {
-		personal: [NameField],
-		address: [StreetField, CityField],
-		payment: [CardField],
-	},
+	steps: [
+		{ name: "personal", fields: [NameField] },
+		{ name: "address", fields: [StreetField, CityField] },
+		{ name: "payment", fields: [CardField] },
+	],
 	shouldIncludeStep: (step, formValues) => {
 		if (step === "address") return formValues.needsShipping === true;
 		if (step === "payment") return true;
@@ -103,7 +101,7 @@ Você pode salvar automaticamente ao mudar de step com a opção `autoSave` do `
 
 ```tsx
 const wizard = useWizard({
-	...wizardConfig,
+	steps: wizardSteps, // mesmo array passado a createWizardConfig
 	defaultValues: { name: "", email: "" },
 	autoSave: async ({ step, validChangedData }) => {
 		await api.saveStep(step, validChangedData);

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { flattenToNested } from "../../../resolver/helpers/nested-objects";
 import { shapeToZodSchema } from "../../../resolver/helpers/shape-to-zod-schema";
+import { createWizardConfig } from "../builder/config";
 import {
 	collectAllFieldKeys,
 	normalizeDefaultValues,
@@ -19,7 +20,13 @@ import type { FieldComponentBase } from "../../../fields/field/types/field";
 import type { StepStateWithMetadata } from "../../step/types/step";
 import type { WizardFormData, WizardFormValues } from "../types/extractors";
 import type { TriggerOptions, UseWizardFormReturn } from "../types/hooks";
-import type { StepFieldsMap, WizardConfig } from "../types/wizard";
+import type {
+	ExtractStepFieldsMapFromStepsConfig,
+	ExtractStepsFromStepsConfig,
+	NonEmptyStepsConfig,
+	StepDefinition,
+	StepFieldsMap,
+} from "../types/wizard";
 
 /**
  * Cria um handler para onStepChange que normaliza os estados.
@@ -56,91 +63,120 @@ function createOnStepChangeHandler<FormData extends FieldValues, Steps extends r
 
 /**
  * Argumentos para o hook `useWizard`.
+ * `steps` é um array de definições (nome + campos); a ordem define a ordem dos steps.
+ *
+ * @template TStepsConfig - Array readonly de StepDefinition (ex.: [{ name: "a", fields: [...] }, ...])
  */
-export type UseWizardArgs<
-	Steps extends readonly string[],
-	TStepFieldsMap extends StepFieldsMap<Steps>,
-> = WizardConfig<Steps, TStepFieldsMap> & {
+export type UseWizardArgs<TStepsConfig extends NonEmptyStepsConfig> = {
+	/** Array de steps: cada item é `{ name, fields }`. A ordem do array define a ordem dos steps. */
+	steps: TStepsConfig;
+	/** Função opcional para filtrar steps condicionais conforme valores do formulário */
+	shouldIncludeStep?: (
+		step: ExtractStepsFromStepsConfig<TStepsConfig>[number],
+		formValues: WizardFormValues<ExtractStepFieldsMapFromStepsConfig<TStepsConfig>>
+	) => boolean;
 	/** Valores padrão: objeto, função síncrona ou assíncrona. Aceita valores aninhados. */
 	defaultValues?:
-		| WizardFormData<TStepFieldsMap>
-		| (() => WizardFormData<TStepFieldsMap>)
-		| (() => Promise<WizardFormData<TStepFieldsMap>>);
+		| WizardFormData<ExtractStepFieldsMapFromStepsConfig<TStepsConfig>>
+		| (() => WizardFormData<ExtractStepFieldsMapFromStepsConfig<TStepsConfig>>)
+		| (() => Promise<WizardFormData<ExtractStepFieldsMapFromStepsConfig<TStepsConfig>>>);
 	/** Callback quando o wizard é finalizado (último step) — recebe todos os dados preenchidos */
-	onComplete?: (data: WizardFormValues<TStepFieldsMap>) => void;
+	onComplete?: (
+		data: WizardFormValues<ExtractStepFieldsMapFromStepsConfig<TStepsConfig>>
+	) => void;
 	/**
 	 * Callback ao avançar de step (ao clicar em "Próximo" ou ao finalizar).
 	 * @param data - Dados validados do step atual
 	 * @param step - Nome do step que foi concluído
 	 * @param allDataSoFar - Todos os dados preenchidos até o momento (steps anteriores + atual)
 	 */
-	onStepSubmit?: <Step extends Steps[number]>(
-		data: WizardFormData<TStepFieldsMap>,
+	onStepSubmit?: <Step extends ExtractStepsFromStepsConfig<TStepsConfig>[number]>(
+		data: WizardFormData<ExtractStepFieldsMapFromStepsConfig<TStepsConfig>>,
 		step: Step,
-		allDataSoFar: WizardFormData<TStepFieldsMap>
+		allDataSoFar: WizardFormData<ExtractStepFieldsMapFromStepsConfig<TStepsConfig>>
 	) => void;
 	/** Step inicial (padrão: primeiro step) */
-	initialStep?: Steps[number];
+	initialStep?: ExtractStepsFromStepsConfig<TStepsConfig>[number];
 	/** Modo de validação do react-hook-form */
 	mode?: "onChange" | "onBlur" | "onSubmit" | "onTouched" | "all";
 	/** Step controlado externamente (ex: URL query params) */
-	controlledStep?: Steps[number];
+	controlledStep?: ExtractStepsFromStepsConfig<TStepsConfig>[number];
 	/** Callback quando o step muda (útil para sincronizar com URL) */
 	onStepChange?: (args: {
-		step: Steps[number];
+		step: ExtractStepsFromStepsConfig<TStepsConfig>[number];
 		stepIndex: number;
-		formState?: FormState<WizardFormData<TStepFieldsMap>>;
-		previousStepState?: StepStateWithMetadata<WizardFormData<TStepFieldsMap>, Steps>;
-		currentStepState?: StepStateWithMetadata<WizardFormData<TStepFieldsMap>, Steps>;
+		formState?: FormState<
+			WizardFormData<ExtractStepFieldsMapFromStepsConfig<TStepsConfig>>
+		>;
+		previousStepState?: StepStateWithMetadata<
+			WizardFormData<ExtractStepFieldsMapFromStepsConfig<TStepsConfig>>,
+			ExtractStepsFromStepsConfig<TStepsConfig>
+		>;
+		currentStepState?: StepStateWithMetadata<
+			WizardFormData<ExtractStepFieldsMapFromStepsConfig<TStepsConfig>>,
+			ExtractStepsFromStepsConfig<TStepsConfig>
+		>;
 	}) => void;
 	/** Auto save: salva automaticamente ao mudar de step com dados válidos */
 	autoSave?: (args: {
-		step: Steps[number];
-		validChangedData: WizardFormData<TStepFieldsMap>;
-		wizard: UseWizardFormReturn<WizardFormData<TStepFieldsMap>, Steps>;
+		step: ExtractStepsFromStepsConfig<TStepsConfig>[number];
+		validChangedData: WizardFormData<ExtractStepFieldsMapFromStepsConfig<TStepsConfig>>;
+		wizard: UseWizardFormReturn<
+			WizardFormData<ExtractStepFieldsMapFromStepsConfig<TStepsConfig>>,
+			ExtractStepsFromStepsConfig<TStepsConfig>
+		>;
 	}) => Promise<void>;
 };
 
 /**
  * Hook para criar e gerenciar wizard de formulário multi-step.
  *
- * Gera schemas Zod automaticamente, suporta campos aninhados e validação cross-step.
+ * Recebe um array de steps no formato `{ name, fields }`. Gera schemas Zod automaticamente.
  *
  * @example
  * ```tsx
  * const wizard = useWizard({
- *   steps: ["basicInfo", "address"] as const,
- *   fields: {
- *     basicInfo: [NameField, EmailField],
- *     address: [StreetField, CityField]
- *   },
- *   defaultValues: { name: "", email: "" },
- *   onComplete: (data) => console.log(data)
+ *   steps: [
+ *     { name: "credentials", fields: [NameField, EmailField] },
+ *     { name: "security", fields: [PasswordField] },
+ *   ],
+ *   defaultValues: { name: "", email: "", password: "" },
+ *   onComplete: (data) => console.log(data),
  * });
  * ```
  */
-export const useWizard = <
-	Steps extends readonly string[],
-	TStepFieldsMap extends StepFieldsMap<Steps>,
->(
-	args: UseWizardArgs<Steps, TStepFieldsMap>
+export const useWizard = <TStepsConfig extends NonEmptyStepsConfig>(
+	args: UseWizardArgs<TStepsConfig>
 ) => {
+	type Steps = ExtractStepsFromStepsConfig<TStepsConfig>;
+	type TStepFieldsMap = ExtractStepFieldsMapFromStepsConfig<TStepsConfig>;
 	type FormData = WizardFormData<TStepFieldsMap>;
 	type FormValues = WizardFormValues<TStepFieldsMap>;
+
+	const config = useMemo(
+		() =>
+			createWizardConfig({
+				steps: args.steps,
+				shouldIncludeStep: args.shouldIncludeStep,
+			}),
+		[args.steps, args.shouldIncludeStep]
+	);
 
 	const getFieldComponentsForStep = useCallback(
 		(step: Steps[number]) => {
 			const stepKey = step as keyof TStepFieldsMap;
-			return args.fields[stepKey];
+			return config.fields[stepKey];
 		},
-		[args.fields]
+		[config.fields]
 	);
 
 	const createStepSchema = useCallback(
 		(context: { step: Steps[number]; formValues?: FormData }) => {
-			const currentFields = getFieldComponentsForStep(context.step);
-			const shape = currentFields.reduce<Record<string, ZodType>>(
-				(acc, field: FieldComponentBase) => {
+			const currentFields = getFieldComponentsForStep(context.step) ?? [];
+			const shape = (currentFields as readonly FieldComponentBase[]).reduce<
+				Record<string, ZodType>
+			>(
+				(acc: Record<string, ZodType>, field: FieldComponentBase) => {
 					acc[field.config.key] = field.getZodSchema(context.formValues);
 					return acc;
 				},
@@ -173,8 +209,8 @@ export const useWizard = <
 
 	const isDefaultValuesFunction = typeof args.defaultValues === "function";
 	const allFieldKeys = useMemo(
-		() => collectAllFieldKeys(args.steps, args.fields),
-		[args.steps, args.fields]
+		() => collectAllFieldKeys(config.steps, config.fields),
+		[config.steps, config.fields]
 	);
 
 	const normalizeDefaultValuesCallback = useCallback(
@@ -296,7 +332,7 @@ export const useWizard = <
 	);
 
 	const wizard = useWizardForm<FormData, Steps>({
-		steps: args.steps,
+		steps: config.steps,
 		initialStep: args.initialStep,
 		controlledStep: args.controlledStep,
 		schema: createStepSchema,
@@ -336,10 +372,10 @@ export const useWizard = <
 
 	const filteredSteps = useMemo(() => {
 		if (!args.shouldIncludeStep) {
-			return args.steps;
+			return config.steps;
 		}
 
-		const filtered = args.steps.filter((step) => {
+		const filtered = config.steps.filter((step) => {
 			try {
 				return args.shouldIncludeStep!(step, nestedFormValues as FormValues);
 			} catch (error) {
@@ -349,7 +385,7 @@ export const useWizard = <
 		}) as readonly Steps[number][];
 
 		return filtered as Steps;
-	}, [args.steps, args.shouldIncludeStep, nestedFormValues]);
+	}, [config.steps, args.shouldIncludeStep, nestedFormValues]);
 
 	const findNextValidStep = useCallback(
 		(currentStep: Steps[number]): Steps[number] | null => {
@@ -405,7 +441,7 @@ export const useWizard = <
 			}
 
 			// Sem filtro de steps: sempre delegar ao wizard.next() para que onStepSubmit, acúmulo e onComplete rodem.
-			const hasFilteredSteps = filteredSteps.length !== args.steps.length;
+			const hasFilteredSteps = filteredSteps.length !== config.steps.length;
 			if (!hasFilteredSteps) {
 				await wizard.next(options);
 				return;
@@ -422,7 +458,7 @@ export const useWizard = <
 				wizard.goToStep(nextStep);
 			}
 		},
-		[validateCurrentStep, isLastFilteredStep, findNextValidStep, wizard, filteredSteps.length, args.steps.length]
+		[validateCurrentStep, isLastFilteredStep, findNextValidStep, wizard, filteredSteps.length, config.steps.length]
 	);
 
 	const interceptedNext = ((options?: TriggerOptions): Promise<void> => {
@@ -514,18 +550,11 @@ export const useWizard = <
 		get totalSteps() {
 			return filteredSteps.length;
 		},
+		autoSave,
 	} as UseWizardFormReturn<FormData, Steps> & {
 		getFieldComponentsForStep: (step: Steps[number]) => TStepFieldsMap[keyof TStepFieldsMap];
 		autoSave: typeof autoSave;
 	};
-
-	if (autoSave) {
-		(
-			result as UseWizardFormReturn<FormData, Steps> & {
-				autoSave: typeof autoSave;
-			}
-		).autoSave = autoSave;
-	}
 
 	return result;
 };

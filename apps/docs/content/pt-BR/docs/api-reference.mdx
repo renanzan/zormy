@@ -171,8 +171,7 @@ Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
 
     | Propriedade | Tipo | Obrigatório | Descrição |
     |-------------|------|-------------|-----------|
-    | `steps` | `readonly string[]` | ✅ | Array de steps do wizard |
-    | `fields` | `StepFieldsMap<Steps>` | ✅ | Mapeamento de steps para campos |
+    | `steps` | `readonly StepDefinition[]` | ✅ | Array de definições: cada item é `{ name: string, fields: Field[] }`. A ordem define a ordem dos steps. |
     | `defaultValues` | `WizardFormData \| (() => WizardFormData) \| (() => Promise<WizardFormData>)` | ❌ | Valores padrão (objeto, função síncrona ou assíncrona) |
     | `onComplete` | `(data: WizardFormValues) => void` | ❌ | Callback quando o wizard é finalizado (último step) |
     | `onStepSubmit` | `(data: WizardFormData, step: Step) => void` | ❌ | Callback quando um step é submetido |
@@ -215,20 +214,18 @@ Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
 
     | Propriedade | Tipo | Obrigatório | Descrição |
     |-------------|------|-------------|-----------|
-    | `steps` | `readonly string[]` | ✅ | Array de steps |
-    | `fields` | `StepFieldsMap<Steps>` | ✅ | Mapeamento de steps para campos |
-    | `shouldIncludeStep` | `(step, formValues) => boolean` | ❌ | Função para filtrar steps |
+    | `steps` | `readonly StepDefinition[]` | ✅ | Array de definições: cada item é `{ name: string, fields: Field[] }`. A ordem define a ordem dos steps. |
+    | `shouldIncludeStep` | `(step, formValues) => boolean` | ❌ | Função para filtrar steps condicionais |
 
     **Retorna:** `WizardConfig<Steps, TStepFieldsMap>`
 
     **Exemplo:**
     ```tsx
     const config = createWizardConfig({
-      steps: ["step1", "step2"] as const,
-      fields: {
-        step1: [NameField],
-        step2: [EmailField],
-      },
+      steps: [
+        { name: "step1", fields: [NameField] },
+        { name: "step2", fields: [EmailField] },
+      ],
     });
     ```
 
@@ -255,17 +252,14 @@ Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
 
     **Exemplo:**
     ```tsx
-    const config = createWizardConfig({
-      steps: ["personal", "contact"] as const,
-      fields: {
-        personal: [NameField],
-        contact: [EmailField],
-      },
-    });
-
+    const wizardSteps = [
+      { name: "personal", fields: [NameField] },
+      { name: "contact", fields: [EmailField] },
+    ];
+    const config = createWizardConfig({ steps: wizardSteps });
     const { Wizard, Step } = createWizardComponents(config);
 
-    const wizard = useWizard({ ...config, defaultValues: { /* ... */ } });
+    const wizard = useWizard({ steps: wizardSteps, defaultValues: { /* ... */ } });
 
     <Wizard methods={wizard} onSubmit={wizard.handleSubmit()}>
       <Step step="personal">

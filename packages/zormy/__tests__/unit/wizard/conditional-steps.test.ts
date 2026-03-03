@@ -38,20 +38,19 @@ describe("useWizard - steps condicionais", () => {
 		.schema(z.string().min(1, "Campo obrigatório"))
 		.render(() => null);
 
-	const fields = {
-		step1: [Step1Field],
-		step2: [Step2Field],
-		conditionalStep1: [Conditional1Field],
-		conditionalStep2: [HasConditional2Field, Conditional2Field],
-		step3: [Step3Field],
-	};
+	const stepsConfig = [
+		{ name: "step1", fields: [Step1Field] },
+		{ name: "step2", fields: [Step2Field] },
+		{ name: "conditionalStep1", fields: [Conditional1Field] },
+		{ name: "conditionalStep2", fields: [HasConditional2Field, Conditional2Field] },
+		{ name: "step3", fields: [Step3Field] },
+	] as const;
 
 	describe("filtragem de steps condicionais", () => {
 		it("deve filtrar steps condicionais baseado em valores do formulário", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						step1Value: "",
 						hasConditional1: false,
@@ -95,8 +94,7 @@ describe("useWizard - steps condicionais", () => {
 		it("deve incluir step condicional quando condição é verdadeira", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						step1Value: "",
 						hasConditional1: true,
@@ -133,8 +131,7 @@ describe("useWizard - steps condicionais", () => {
 		it("deve pular step condicional ao avançar quando condição é falsa", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						step1Value: "",
 						hasConditional1: false,
@@ -185,8 +182,7 @@ describe("useWizard - steps condicionais", () => {
 		it("deve pular step condicional ao voltar quando condição é falsa", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						step1Value: "valor1",
 						hasConditional1: false,
@@ -230,8 +226,7 @@ describe("useWizard - steps condicionais", () => {
 		it("deve validar step atual antes de avançar, mesmo com steps condicionais", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						step1Value: "",
 						hasConditional1: false,
@@ -268,8 +263,7 @@ describe("useWizard - steps condicionais", () => {
 		it("deve validar step condicional quando ele está habilitado", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						step1Value: "valor1",
 						hasConditional1: true,
@@ -327,8 +321,7 @@ describe("useWizard - steps condicionais", () => {
 
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						step1Value: "",
 						hasConditional1: false,
@@ -405,8 +398,7 @@ describe("useWizard - steps condicionais", () => {
 
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						step1Value: "",
 						hasConditional1: true,
@@ -489,8 +481,7 @@ describe("useWizard - steps condicionais", () => {
 		it("deve atualizar steps filtrados quando valor condicional muda", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						step1Value: "",
 						hasConditional1: false,
@@ -544,8 +535,7 @@ describe("useWizard - steps condicionais", () => {
 		it("deve redirecionar se usuário está em step condicional que foi desabilitado", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						step1Value: "valor1",
 						hasConditional1: true,

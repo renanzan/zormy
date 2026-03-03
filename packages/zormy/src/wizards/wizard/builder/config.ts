@@ -1,43 +1,61 @@
-import type { WizardFormValues } from "../types/extractors";
-import type { StepFieldsMap, WizardConfig } from "../types/wizard";
+import type { WizardFormData, WizardFormValues } from "../types/extractors";
+import type {
+	ExtractStepFieldsMapFromStepsConfig,
+	ExtractStepsFromStepsConfig,
+	StepDefinition,
+	StepFieldsMap,
+	WizardConfig,
+} from "../types/wizard";
 
 /**
- * Função helper para criar uma configuração de wizard com inferência correta de tipos.
+ * Cria uma configuração de wizard a partir de um array de steps (nome + campos).
  *
- * Esta função permite que o TypeScript infira corretamente o tipo de `formValues`
- * em `shouldIncludeStep` a partir dos `fields` fornecidos, sem precisar usar `any` ou `Record<string, any>`.
+ * Cada step é um objeto `{ name, fields }`. A ordem do array define a ordem dos steps.
+ * Retorna uma config normalizada (steps: nomes[], fields: map) usada internamente por useWizard/createWizard.
  *
- * @template Steps - Array de strings literais representando os steps do wizard
- * @template TStepFieldsMap - Mapeamento de steps para campos (inferido automaticamente)
+ * @template TStepsConfig - Array readonly de StepDefinition (inferido do argumento)
  *
- * @param config - Configuração do wizard
- * @returns A mesma configuração com tipos inferidos corretamente
+ * @param config - Objeto com `steps` (array de { name, fields }) e opcionalmente `shouldIncludeStep`
+ * @returns WizardConfig com steps (array de nomes) e fields (map step -> campos)
  *
  * @example
  * ```ts
  * const config = createWizardConfig({
- *   steps: ["step1", "step2"] as const,
- *   fields: {
- *     step1: [NameField],
- *     step2: [EmailField]
- *   },
+ *   steps: [
+ *     { name: "credentials", fields: [NameField, EmailField] },
+ *     { name: "security", fields: [PasswordField] },
+ *   ],
  *   shouldIncludeStep: (step, formValues) => {
- *     // formValues tem tipo correto inferido dos fields!
  *     return formValues["name"] !== "";
- *   }
+ *   },
  * });
  * ```
  */
-export function createWizardConfig<
-	const Steps extends readonly string[],
-	TStepFieldsMap extends StepFieldsMap<Steps>,
->(config: {
-	steps: Steps;
-	fields: TStepFieldsMap;
-	shouldIncludeStep?: (
-		step: Steps[number],
-		formValues: WizardFormValues<TStepFieldsMap>
-	) => boolean;
-}): WizardConfig<Steps, TStepFieldsMap> {
-	return config;
+export function createWizardConfig<TStepsConfig extends readonly StepDefinition[]>(
+	config: {
+		steps: TStepsConfig;
+		shouldIncludeStep?: (
+			step: ExtractStepsFromStepsConfig<TStepsConfig>[number],
+			formValues: WizardFormValues<ExtractStepFieldsMapFromStepsConfig<TStepsConfig>>
+		) => boolean;
+	}
+): WizardConfig<
+	ExtractStepsFromStepsConfig<TStepsConfig>,
+	ExtractStepFieldsMapFromStepsConfig<TStepsConfig> & StepFieldsMap<ExtractStepsFromStepsConfig<TStepsConfig>>
+> & {
+	/** Propriedade fantasma para inferência de FormData (usa map do config, não interseção). */
+	readonly __formData?: WizardFormData<ExtractStepFieldsMapFromStepsConfig<TStepsConfig>>;
+	/** Propriedade fantasma para inferência de FormValues. */
+	readonly __formValues?: WizardFormValues<ExtractStepFieldsMapFromStepsConfig<TStepsConfig>>;
+} {
+	const steps = config.steps.map((s) => s.name) as ExtractStepsFromStepsConfig<TStepsConfig>;
+	const fields = Object.fromEntries(
+		config.steps.map((s) => [s.name, s.fields])
+	) as ExtractStepFieldsMapFromStepsConfig<TStepsConfig> &
+		StepFieldsMap<ExtractStepsFromStepsConfig<TStepsConfig>>;
+	return {
+		steps,
+		fields,
+		shouldIncludeStep: config.shouldIncludeStep,
+	};
 }

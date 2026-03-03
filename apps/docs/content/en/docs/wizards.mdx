@@ -13,12 +13,11 @@ Wizards organize forms into **multiple steps**, with per-step validation and nav
 
 ## Concepts
 
-1. **Steps** — array of names (e.g., `["personal", "contact"] as const`).
-2. **Fields per step** — mapping `{ personal: [NameField], contact: [EmailField] }`.
-3. **Configuration** — `createWizardConfig({ steps, fields })` (and optionally `shouldIncludeStep`).
-4. **Components** — `createWizardComponents(config)` returns `{ Wizard, Step }`.
-5. **Hook** — `useWizard({ ...config, defaultValues, onComplete, ... })`.
-6. **Render** — `<Wizard methods={wizard}>` and `<Step step="personal">` with fields and navigation buttons.
+1. **Steps** — array of definitions `{ name, fields }`: each step has a name (string) and array of fields.
+2. **Configuration** — `createWizardConfig({ steps: [{ name: "personal", fields: [NameField] }, ...] })` (and optionally `shouldIncludeStep`).
+3. **Components** — `createWizardComponents(config)` returns `{ Wizard, Step }`.
+4. **Hook** — `useWizard({ steps: [...], defaultValues, onComplete, ... })`.
+5. **Render** — `<Wizard methods={wizard}>` and `<Step step="personal">` with fields and navigation buttons.
 
 ## Minimal example
 
@@ -74,12 +73,11 @@ For steps that appear or disappear based on form values, use `shouldIncludeStep`
 
 ```tsx
 const wizardConfig = createWizardConfig({
-	steps: ["personal", "address", "payment"] as const,
-	fields: {
-		personal: [NameField],
-		address: [StreetField, CityField],
-		payment: [CardField],
-	},
+	steps: [
+		{ name: "personal", fields: [NameField] },
+		{ name: "address", fields: [StreetField, CityField] },
+		{ name: "payment", fields: [CardField] },
+	],
 	shouldIncludeStep: (step, formValues) => {
 		if (step === "address") return formValues.needsShipping === true;
 		if (step === "payment") return true;

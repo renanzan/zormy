@@ -41,9 +41,9 @@ Peer dependencies: `react` (^18), `react-hook-form` (^7.71.1), `zod` (^3.25.28),
 | `useZormy({ fields, ...useFormOptions })`                   | Hook que injeta `zormyResolver` e infere tipo a partir do array de campos (sem passar `resolver`) |
 | `Form`                                                      | `<Form methods={form}>` ou `<Form fields={[...]} defaultValues? mode? />` — fornece contexto; com `fields` usa useZormy internamente |
 | `useForm`                                                   | Re-export do react-hook-form (para tipagem consistente)                                   |
-| `createWizardConfig({ steps, fields, shouldIncludeStep? })` | Configuração do wizard (steps e campos por step)                                          |
-| `createWizardComponents(config)`                            | Retorna `{ Wizard, Step }` tipados                                                        |
-| `useWizard(config & { defaultValues, onComplete?, ... })`    | Hook do wizard (form + navegação entre steps)                                             |
+| `createWizardConfig({ steps: [{ name, fields }, ...], shouldIncludeStep? })` | Configuração do wizard (array de steps com nome e campos)                          |
+| `createWizardComponents(config)`                             | Retorna `{ Wizard, Step }` tipados                                                       |
+| `useWizard({ steps: [{ name, fields }, ...], defaultValues, onComplete?, ... })` | Hook do wizard (form + navegação entre steps)                                    |
 | `useWizardContext`                                          | Acesso ao contexto do wizard                                                              |
 | `useAutoSaveContext`, `AutoSaveStatus`                      | Auto-save no wizard                                                                       |
 | `Controller`, `SubmitHandler`                               | Re-export do react-hook-form                                                              |
@@ -147,27 +147,27 @@ const EmailField = BaseText.extend({ key: "email" });
 
 ## Wizard multi-step
 
-1. Definir `steps` (array de strings literais, ex: `["personal", "contact"] as const`).
-2. Mapear cada step para um array de campos em `fields`: `{ personal: [NameField], contact: [EmailField] }`.
-3. `createWizardConfig({ steps, fields, shouldIncludeStep? })`.
-4. `createWizardComponents(config)` → `{ Wizard, Step }`.
-5. `useWizard({ ...config, defaultValues, onComplete?, onStepSubmit?, initialStep?, mode?, autoSave?, ... })`.
-6. Renderizar: `<Wizard methods={wizard}>` e dentro `<Step step="personal">` etc.; usar `wizard.next`, `wizard.back` para navegação. Não passar `onComplete` no `<Wizard>` — o submit do form chama `wizard.next()` e o `onComplete` de `useWizard` recebe **todos os dados acumulados**.
+1. Definir steps como array de `{ name, fields }`: cada item tem o nome do step e o array de campos.
+2. `createWizardConfig({ steps: [{ name: "personal", fields: [NameField] }, { name: "contact", fields: [EmailField] }], shouldIncludeStep? })`.
+3. `createWizardComponents(config)` → `{ Wizard, Step }`.
+4. `useWizard({ steps: [...], defaultValues, onComplete?, onStepSubmit?, initialStep?, mode?, autoSave?, ... })`.
+5. Renderizar: `<Wizard methods={wizard}>` e dentro `<Step step="personal">` etc.; usar `wizard.next`, `wizard.back` para navegação. Não passar `onComplete` no `<Wizard>` — o submit do form chama `wizard.next()` e o `onComplete` de `useWizard` recebe **todos os dados acumulados**.
 
 Callbacks:
 - **`onComplete(data)`** — chamado só ao finalizar o wizard (último step); `data` = todos os dados de todos os steps (acumulados internamente, pois só o step atual está montado).
 - **`onStepSubmit(stepData, step, allDataSoFar)`** — chamado ao avançar de step (Próximo ou Finalizar); `stepData` = dados do step atual; `allDataSoFar` = dados acumulados até o momento.
 
 ```tsx
-const config = createWizardConfig({
-	steps: ["personal", "contact"] as const,
-	fields: { personal: [NameField], contact: [EmailField] },
-});
+const stepsConfig = [
+	{ name: "personal", fields: [NameField] },
+	{ name: "contact", fields: [EmailField] },
+];
+const config = createWizardConfig({ steps: stepsConfig });
 const { Wizard, Step } = createWizardComponents(config);
 
 function MyWizard() {
 	const wizard = useWizard({
-		...config,
+		steps: stepsConfig,
 		defaultValues: { name: "", email: "" },
 		onStepSubmit: (stepData, step, allDataSoFar) => { /* opcional */ },
 		onComplete: (data) => console.log(data),

@@ -2,30 +2,25 @@
  * Core da tipagem do sistema de wizard.
  *
  * Este arquivo contém toda a lógica de tipagem que permite inferir corretamente
- * os tipos do formulário a partir da configuração de steps e fields.
+ * os tipos do formulário a partir da configuração de steps (array de { name, fields }).
  *
  * ## Fluxo de Tipagem
  *
- * 1. **StepFieldsMap**: Mapeia steps para seus campos
- * 2. **ExtractStepSchema**: Extrai o schema Zod de um step específico
- * 3. **ExtractCompleteWizardSchema**: Combina todos os schemas dos steps em um único tipo
- * 4. **WizardFormValues**: Tipo completo dos valores (sem Partial)
- * 5. **WizardFormData**: Tipo usado pelo react-hook-form (Partial + sem índices genéricos)
- * 6. **ExtractWizardFormData/ExtractWizardFormValues**: Extraem tipos a partir de uma config
+ * 1. **StepDefinition** / **StepsConfig**: Array de steps com nome e campos
+ * 2. **ExtractStepsFromStepsConfig** / **ExtractStepFieldsMapFromStepsConfig**: Extraem steps e fields do config
+ * 3. **StepFieldsMap**: Mapeia steps para seus campos (representação interna)
+ * 4. **WizardConfig**: Config normalizada (steps + fields) usada internamente
+ * 5. **ExtractWizardFormData/ExtractWizardFormValues**: Extraem tipos a partir de uma config
  *
  * @example
  * ```ts
  * const config = createWizardConfig({
- *   steps: ["step1", "step2"] as const,
- *   fields: {
- *     step1: [NameField],
- *     step2: [EmailField]
- *   }
+ *   steps: [
+ *     { name: "step1", fields: [NameField] },
+ *     { name: "step2", fields: [EmailField] }
+ *   ],
  * });
- *
- * // Tipo inferido automaticamente
  * type FormData = ExtractWizardFormData<typeof config>;
- * // FormData = Partial<{ name: string; email: string }>
  * ```
  */
 
@@ -33,9 +28,58 @@ import type { FieldComponentBase } from "../../../fields/field/types/field";
 import type { WizardFormValues } from "./extractors";
 
 /**
+ * Definição de um step: nome (string literal) e array de campos.
+ *
+ * @template Name - Nome do step (inferido como literal quando possível)
+ * @template Fields - Array de campos do step
+ */
+export type StepDefinition<
+	Name extends string = string,
+	Fields extends readonly FieldComponentBase[] = readonly FieldComponentBase[],
+> = {
+	readonly name: Name;
+	readonly fields: Fields;
+};
+
+/**
+ * Configuração de steps como array de definições (nome + campos).
+ * Ordem do array define a ordem dos steps no wizard.
+ */
+export type StepsConfig = readonly StepDefinition[];
+
+/**
+ * Configuração de steps com pelo menos um step (tupla não vazia).
+ * Usado em useWizard/UseWizardArgs para garantir que Steps[number] não seja never.
+ */
+export type NonEmptyStepsConfig = readonly [
+	StepDefinition<string, readonly FieldComponentBase[]>,
+	...StepDefinition<string, readonly FieldComponentBase[]>[],
+];
+
+/**
+ * Extrai o tuple de nomes dos steps a partir do config (array de { name, fields }).
+ */
+export type ExtractStepsFromStepsConfig<T> = T extends readonly [infer F, ...infer R]
+	? F extends { readonly name: infer N extends string }
+		? [N, ...(R extends readonly unknown[] ? ExtractStepsFromStepsConfig<R> : [])]
+		: never
+	: [];
+
+/**
+ * Extrai o mapeamento step -> campos a partir do config (array de { name, fields }).
+ */
+export type ExtractStepFieldsMapFromStepsConfig<T> = T extends readonly [infer F, ...infer R]
+	? F extends { readonly name: infer N extends string; readonly fields: infer Fld }
+		? Fld extends readonly FieldComponentBase[]
+			? { [K in N]: Fld } &
+					(R extends readonly unknown[] ? ExtractStepFieldsMapFromStepsConfig<R> : never)
+			: never
+		: never
+	: {};
+
+/**
  * Mapeamento de steps para seus campos.
  * Aceita arrays de FieldComponentBase ou tipos mais específicos que preservam tipos literais.
- * Quando arrays preservam tipos literais (como tuples), os tipos são corretamente inferidos.
  *
  * @template Steps - Array de strings literais representando os steps do wizard
  */

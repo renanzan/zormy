@@ -51,21 +51,20 @@ describe("useWizard - ordem dos steps", () => {
 		.schema(z.string().optional())
 		.render(() => null);
 
-	const fields = {
-		wantToContribute: [WantToContributeField],
-		refuseReason: [RefuseReasonField],
-		selectQuota: [SelectQuotaField],
-		manageCompanies: [ManageCompaniesField],
-		review: [ReviewField],
-		proposal: [ProposalField],
-	};
+	const stepsConfig = [
+		{ name: "wantToContribute", fields: [WantToContributeField] },
+		{ name: "refuseReason", fields: [RefuseReasonField] },
+		{ name: "selectQuota", fields: [SelectQuotaField] },
+		{ name: "manageCompanies", fields: [ManageCompaniesField] },
+		{ name: "review", fields: [ReviewField] },
+		{ name: "proposal", fields: [ProposalField] },
+	] as const;
 
 	describe("ordem dos steps sem shouldIncludeStep", () => {
 		it("deve manter a ordem exata dos steps definidos no array", () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						wantToContribute: true,
 						refuseReason: "",
@@ -90,8 +89,7 @@ describe("useWizard - ordem dos steps", () => {
 		it("deve navegar pelos steps na ordem correta (next)", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						wantToContribute: true,
 						refuseReason: "",
@@ -137,8 +135,7 @@ describe("useWizard - ordem dos steps", () => {
 		it("deve navegar pelos steps na ordem correta (back)", () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						wantToContribute: true,
 						refuseReason: "",
@@ -182,8 +179,7 @@ describe("useWizard - ordem dos steps", () => {
 		it("deve iniciar no primeiro step do array original quando wantToContribute é undefined", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						// wantToContribute não está definido (undefined)
 						refuseReason: "",
@@ -224,8 +220,7 @@ describe("useWizard - ordem dos steps", () => {
 		it("deve manter a ordem original dos steps quando filtrados (wantToContribute = false)", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						wantToContribute: false,
 						refuseReason: "",
@@ -272,8 +267,7 @@ describe("useWizard - ordem dos steps", () => {
 		it("deve manter a ordem original dos steps quando filtrados (wantToContribute = true)", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						wantToContribute: true,
 						refuseReason: "",
@@ -329,8 +323,7 @@ describe("useWizard - ordem dos steps", () => {
 		it("deve navegar pelos steps filtrados na ordem correta (next) - wantToContribute = false", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						wantToContribute: false,
 						refuseReason: "",
@@ -386,8 +379,7 @@ describe("useWizard - ordem dos steps", () => {
 		it("deve navegar pelos steps filtrados na ordem correta (next) - wantToContribute = true", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						wantToContribute: true,
 						refuseReason: "",
@@ -473,8 +465,7 @@ describe("useWizard - ordem dos steps", () => {
 		it("deve navegar pelos steps filtrados na ordem correta (back) - wantToContribute = true", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						wantToContribute: true,
 						refuseReason: "",
@@ -554,8 +545,7 @@ describe("useWizard - ordem dos steps", () => {
 			const { result } = renderHook(
 				({ wantToContribute }) =>
 					useWizard({
-						steps: allSteps,
-						fields,
+						steps: stepsConfig,
 						defaultValues: {
 							wantToContribute,
 							refuseReason: "",
@@ -623,8 +613,7 @@ describe("useWizard - ordem dos steps", () => {
 		it("deve calcular currentStepIndex corretamente baseado nos steps filtrados", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						wantToContribute: true,
 						refuseReason: "",
@@ -692,8 +681,7 @@ describe("useWizard - ordem dos steps", () => {
 		it("deve calcular isFirstStep e isLastStep corretamente baseado nos steps filtrados", async () => {
 			const { result } = renderHook(() =>
 				useWizard({
-					steps: allSteps,
-					fields,
+					steps: stepsConfig,
 					defaultValues: {
 						wantToContribute: true,
 						refuseReason: "",

@@ -7,8 +7,6 @@ import { createWizard } from "../../../src/wizards/wizard/utils/create-wizard";
 
 import type { ReactElement, ReactNode } from "react";
 
-const steps = ["step1", "step2"] as const;
-
 /**
  * Forma do retorno de createWizard usada nos testes (type-safe).
  * Evita dependência do tipo genérico que pode narrow para never.
@@ -45,11 +43,10 @@ describe("createWizard - testes unitários", () => {
 		.render(() => null);
 
 	const defaultArgs = {
-		steps,
-		fields: {
-			step1: [NameField],
-			step2: [EmailField],
-		},
+		steps: [
+			{ name: "step1", fields: [NameField] },
+			{ name: "step2", fields: [EmailField] },
+		] as const,
 		defaultValues: { name: "", email: "" },
 	} as const;
 
@@ -105,7 +102,7 @@ describe("createWizard - testes unitários", () => {
 			expect(config).not.toBeNull();
 			if (config === null) throw new Error("unreachable");
 			const c: CreateWizardTestResult["config"] = config;
-			expect(c.steps).toEqual(steps);
+			expect(c.steps).toEqual(["step1", "step2"]);
 			expect(c.fields).toHaveProperty("step1");
 			expect(c.fields).toHaveProperty("step2");
 		});
@@ -137,7 +134,7 @@ describe("createWizard - testes unitários", () => {
 			expect(typeof m.setValue).toBe("function");
 			expect(typeof m.next).toBe("function");
 			expect(typeof m.back).toBe("function");
-			expect(m.steps).toEqual(steps);
+			expect(m.steps).toEqual(["step1", "step2"]);
 		});
 	});
 

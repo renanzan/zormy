@@ -6,21 +6,17 @@ import type { ComponentProps, FC } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import type { UseWizardArgs } from "../hooks/use-wizard";
 import type { ExtractWizardFormData } from "../types/extractors";
-import type { StepFieldsMap } from "../types/wizard";
+import type { NonEmptyStepsConfig } from "../types/wizard";
 
-type CreateWizardArgs<
-	T extends readonly string[],
-	TStepFieldsMap extends StepFieldsMap<T>,
-> = UseWizardArgs<T, TStepFieldsMap>;
-
-export const createWizard = <T extends readonly string[], TStepFieldsMap extends StepFieldsMap<T>>(
-	args: CreateWizardArgs<T, TStepFieldsMap>
+export const createWizard = <TStepsConfig extends NonEmptyStepsConfig>(
+	args: UseWizardArgs<TStepsConfig>
 ) => {
-	const { steps, fields, ...rest } = args;
+	const config = createWizardConfig({
+		steps: args.steps,
+		shouldIncludeStep: args.shouldIncludeStep,
+	});
 
-	const config = createWizardConfig({ steps, fields });
-
-	const methods = useWizard({ ...config, ...rest });
+	const methods = useWizard(args);
 
 	const { Wizard: RawWizard, Step } = createWizardComponents(config);
 
