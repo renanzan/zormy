@@ -1,0 +1,53 @@
+---
+title: Campos Aninhados
+description: Trabalhando com estruturas de dados aninhadas
+---
+
+# Campos Aninhados
+
+<Callout>Use dot notation (ex: `"user.name"`) para trabalhar com estruturas aninhadas</Callout>
+
+Exemplo de campos com estrutura aninhada:
+
+```tsx
+import { z } from "zod";
+import { field, Form, useForm, zormyResolver } from "zormy";
+
+const UserNameField = field("user.name")
+	.schema(z.string().min(3, "Nome deve ter pelo menos 3 caracteres"))
+	.render(({ register, fieldState }) => (
+		<div>
+			<label>Nome do Usuário</label>
+			<input {...register()} />
+			{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
+		</div>
+	));
+
+const UserEmailField = field("user.email")
+	.schema(z.string().email("Email inválido"))
+	.render(({ register, fieldState }) => (
+		<div>
+			<label>Email do Usuário</label>
+			<input type="email" {...register()} />
+			{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
+		</div>
+	));
+
+function NestedFieldsForm() {
+	const form = useForm({
+		resolver: zormyResolver({ fields: [UserNameField, UserEmailField] }),
+		defaultValues: { user: { name: "", email: "" } },
+	});
+
+	return (
+		<Form
+			methods={form}
+			onSubmit={form.handleSubmit((data) => alert(JSON.stringify(data, null, 2)))}
+		>
+			<UserNameField />
+			<UserEmailField />
+			<button type="submit">Enviar</button>
+		</Form>
+	);
+}
+```

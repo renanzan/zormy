@@ -1,11 +1,11 @@
 /**
- * Traduções da landing page (en / pt-BR).
- * Use com useParams().lang e getLandingT(lang).
+ * Traduções da landing page (en / pt-BR)
+ * Use com useParams().lang e intl("landing", lang) para acessar as traduções
  */
 
-export type LandingLocale = "en" | "pt-BR";
+export const key = "landing" as const;
 
-export const landingI18n = {
+export const i18n = {
 	en: {
 		// Hero
 		heroBadge: "Smart forms",
@@ -46,23 +46,18 @@ export const landingI18n = {
 		featuresTitle: "Features",
 		featuresSubtitle: "Everything you need to build modern forms",
 		feature1Title: "Strong Typing",
-		feature1Desc:
-			"Automatic type inference from your fields to the form. Zero manual casting.",
+		feature1Desc: "Automatic type inference from your fields to the form. Zero manual casting.",
 		feature2Title: "Zod Validation",
-		feature2Desc:
-			"Built-in declarative validation. Define the schema once, use it everywhere.",
+		feature2Desc: "Built-in declarative validation. Define the schema once, use it everywhere.",
 		feature3Title: "Reusable Fields",
 		feature3Desc:
 			"Create isolated fields with their own render and schema. Compose like building blocks.",
 		feature4Title: "Multi-Step Wizards",
-		feature4Desc:
-			"Build wizards with multiple typed steps. Data aggregated automatically.",
+		feature4Desc: "Build wizards with multiple typed steps. Data aggregated automatically.",
 		feature5Title: "Nested Fields",
-		feature5Desc:
-			"Support for nested objects and arrays with deep typing and validation.",
+		feature5Desc: "Support for nested objects and arrays with deep typing and validation.",
 		feature6Title: "Dynamic Dependencies",
-		feature6Desc:
-			"Fields that react to other fields. Conditional logic with preserved typing.",
+		feature6Desc: "Fields that react to other fields. Conditional logic with preserved typing.",
 
 		// How it works
 		howTitle: "How it ",
@@ -129,20 +124,15 @@ export const landingI18n = {
 		feature1Desc:
 			"Inferência automática de tipos dos seus campos para o formulário. Zero casting manual.",
 		feature2Title: "Validação Zod",
-		feature2Desc:
-			"Validação declarativa integrada. Defina o schema uma vez, use em todo lugar.",
+		feature2Desc: "Validação declarativa integrada. Defina o schema uma vez, use em todo lugar.",
 		feature3Title: "Campos Reutilizáveis",
-		feature3Desc:
-			"Crie campos isolados com render e schema próprio. Componha como blocos.",
+		feature3Desc: "Crie campos isolados com render e schema próprio. Componha como blocos.",
 		feature4Title: "Wizards Multi-Step",
-		feature4Desc:
-			"Monte wizards com múltiplos steps tipados. Dados agregados automaticamente.",
+		feature4Desc: "Monte wizards com múltiplos steps tipados. Dados agregados automaticamente.",
 		feature5Title: "Campos Aninhados",
-		feature5Desc:
-			"Suporte a objetos e arrays aninhados com tipagem e validação profundas.",
+		feature5Desc: "Suporte a objetos e arrays aninhados com tipagem e validação profundas.",
 		feature6Title: "Dependências Dinâmicas",
-		feature6Desc:
-			"Campos que reagem a outros campos. Lógica condicional com tipagem preservada.",
+		feature6Desc: "Campos que reagem a outros campos. Lógica condicional com tipagem preservada.",
 
 		// How it works
 		howTitle: "Como ",
@@ -167,9 +157,3 @@ export const landingI18n = {
 		footerCopyright: "Open source sob MIT.",
 	},
 } as const;
-
-export type LandingT = (typeof landingI18n)[LandingLocale];
-
-export function getLandingT(lang: string) {
-	return landingI18n[lang as LandingLocale] ?? landingI18n["en"];
-}

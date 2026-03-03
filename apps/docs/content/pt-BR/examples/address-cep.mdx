@@ -1,0 +1,34 @@
+---
+title: Endereço + CEP (API)
+description: Cenário real — formulário de endereço com busca por CEP via API ViaCEP
+---
+
+import { addressCepCode } from "../snippets/address-cep";
+
+# Formulário de endereço com busca por CEP
+
+Este exemplo mostra um **padrão real**: formulário de endereço em que o usuário informa o CEP. Quando o CEP é válido (8 dígitos), o formulário chama a API [ViaCEP](https://viacep.com.br) e preenche logradouro, bairro, cidade e UF automaticamente.
+
+## Recursos
+
+- **Campos aninhados** para `address.*` (dot notation)
+- **`watch` + `useEffect`** para reagir à mudança do CEP
+- **`setValue`** para preencher os campos a partir da resposta da API
+- **ViaCEP** — API pública (não precisa de chave)
+
+<Callout type="info">
+	Em um sandbox (ex.: StackBlitz), o fetch para `viacep.com.br` pode ser permitido; se não for, você pode rodar o mesmo código localmente ou mockar a API em testes.
+</Callout>
+
+## Exemplo ao vivo
+
+<CodeExample editorHeight={520} code={addressCepCode} />
+
+## Fluxo
+
+1. Usuário digita um CEP (ex.: `01310-100`).
+2. Quando o CEP tiver 8 dígitos, o efeito dispara e chama `https://viacep.com.br/ws/{cep}/json/`.
+3. A resposta é mapeada para `setValue("address.street", ...)`, etc.
+4. O usuário pode editar qualquer campo antes de enviar.
+
+Você pode reutilizar esse padrão para outras APIs (ex.: empresa por CNPJ) trocando o endpoint e o mapeamento dos campos.

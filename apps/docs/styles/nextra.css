@@ -1,0 +1,31 @@
+:root {
+	--nextra-banner-gradient-start: var(--gradient-blue, 219 100% 70%);
+	--nextra-banner-gradient-end: var(--gradient-purple, 291 48% 58%);
+	--nextra-banner-text: hsl(0, 0%, 100%);
+}
+
+.dark {
+	--nextra-banner-gradient-start: var(--gradient-blue-dark, 219 62% 30%);
+	--nextra-banner-gradient-end: var(--gradient-purple-dark, 291 54% 32%);
+	--nextra-banner-text: hsl(0, 0%, 100%);
+}
+
+.nextra-banner {
+	background-image: linear-gradient(
+		135deg,
+		hsl(var(--nextra-banner-gradient-start)) 0%,
+		hsl(var(--nextra-banner-gradient-end)) 100%
+	);
+	@apply text-(--nextra-banner-text);
+	border: none;
+	box-shadow: 0 2px 16px 0 hsl(219 70% 40% / 0.09);
+}
+
+.nextra-mobile-nav {
+	@apply border-b border-border/40;
+	@apply bg-background;
+}
+
+.nextra-search-results {
+	@apply bg-background;
+}

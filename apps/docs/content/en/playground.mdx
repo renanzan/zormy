@@ -10,13 +10,13 @@ Try creating complex wizards and see how a Schema transforms into a multi-step W
 
 ## How to Use
 
-1. **Define the Steps**: List the wizard steps in the `steps` array
+1. **Define the Steps**: List the wizard steps in the `steps` array.
 2. **Define the Fields**: For each step, define the fields with:
    - `key`: Unique field key
-   - `schema`: Zod schema (use `z.` to access validators)
+   - `schema`: **Real Zod code** — evaluated at runtime. Use any Zod API: `z.string()`, `z.coerce.number()`, `.transform()`, `.preprocess()`, `.refine()`, etc.
    - `defaultValue` (optional): Field default value
 
-3. **Apply the Schema**: Click "Apply Schema" to see the rendered wizard
+3. **Live Preview**: The preview updates automatically as you edit (debounced). No "Apply" button needed. Use "Restaurar padrão" to reset.
 
 ## Basic Example
 
@@ -97,7 +97,8 @@ Try creating complex wizards and see how a Schema transforms into a multi-step W
 
 ## Tips
 
-- Use default values for optional fields
-- Combine validations (e.g., `z.string().min(3).max(100)`)
-- Use `.optional()` for fields that can be empty
-- Test different schemas to see how validation works
+- **Number fields**: Use `z.number()` — the playground renders a number input and sends values as numbers.
+- **Booleans**: Use `z.boolean()` — a checkbox is rendered.
+- **Enums**: Use `z.enum(['a','b'])` — a select is rendered.
+- Use `.transform()`, `.preprocess()`, `.refine()` and any Zod API in `schema`; the code is evaluated in a sandbox with `z` in scope.
+- After submitting, expand "Dados enviados (onComplete)" to see the parsed payload.

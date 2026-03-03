@@ -1,0 +1,42 @@
+---
+title: Forms
+description: Formulários no Zormy — Form, useForm, zormyResolver e modo de validação
+---
+
+import { simpleFormCode } from "../../snippets/simple-form";
+
+# Forms
+
+Formulários no Zormy são montados com **react-hook-form** (via `useForm`) e o **resolver** `zormyResolver`, que monta o schema Zod a partir dos campos e integra com a validação.
+
+## Fluxo básico
+
+1. Defina os **campos** com `field("key").schema(...).render(...)` (veja [Fields](/docs/fields)).
+2. Use **`<Form fields={[Field1, Field2, ...]} defaultValues? mode? onSubmit? />`** ou crie o form com `useZormy` / `useForm` e passe **`<Form methods={form}>`**.
+3. Renderize os campos dentro do Form.
+
+<CodeExample editorHeight={400} code={simpleFormCode} />
+
+## `zormyResolver({ fields })`
+
+O resolver recebe um **array de componentes de campo**. Ele monta o schema Zod (flat ou aninhado), suporta schemas dinâmicos e retorna um resolver compatível com `useForm`.
+
+<Callout type="info">
+	O array `fields` deve conter **exatamente** os campos que serão renderizados no formulário (ou no step, no caso de wizards). Inclua também os campos usados em `dependsOn` de outros campos.
+</Callout>
+
+## Componente `Form`
+
+O Form aceita **dois modos**: com **`methods`** ou com **`fields`**. Em ambos os casos fornece o contexto (FormProvider) e, por padrão, renderiza um `<form>`.
+
+Para **useForm vs useZormy vs createForm**, veja [Hooks](/docs/forms/hooks).
+
+## Modo de validação (`mode`)
+
+O **quando** os campos são validados é definido pela opção `mode` do `useForm` (e do `useWizard`): `"onChange"`, `"onBlur"`, `"onSubmit"`, `"onTouched"`, `"all"`.
+
+## `defaultValues`
+
+Devem cobrir **todas as chaves** dos campos (incluindo aninhadas).
+
+Para a API completa de `Form` e `zormyResolver`, veja [Referência API](/docs/api-reference).

@@ -1,0 +1,68 @@
+---
+title: Fields with custom props
+description: Passing custom props to field components and defaultProps in extend
+---
+
+# Fields with custom props
+
+Zormy fields are React components. You can define **custom props** (e.g. `label`, `placeholder`, `disabled`) and pass them when rendering the field. You can also set **default props** in `.extend({ props: { ... } })`.
+
+## Typing custom props
+
+The `render` function receives the react-hook-form context and a second argument `props` (your custom props). The type is inferred from what you pass to `render`:
+
+```tsx
+const NameField = field("name")
+	.schema(z.string().min(3))
+	.render(({ register, fieldState }, props: { label?: string; placeholder?: string }) => (
+		<div>
+			<label>{props?.label ?? "Name"}</label>
+			<input placeholder={props?.placeholder} {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
+
+// Usage:
+<NameField label="Full name" placeholder="John Doe" />
+```
+
+## Default props with `.extend()`
+
+When using `abstractField()` or reusing a field, you can set default props so that each concrete field has its own label/placeholder without repeating them at the call site:
+
+```tsx
+const BaseInput = abstractField()
+	.schema(z.string())
+	.render(({ register, fieldState }, props: { label: string }) => (
+		<div>
+			<label>{props.label}</label>
+			<input {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
+
+const NameField = BaseInput.extend({
+	key: "name",
+	props: { label: "Name" },
+});
+const EmailField = BaseInput.extend({
+	key: "email",
+	props: { label: "Email" },
+});
+
+// Usage: props are optional if you set defaults
+<NameField />
+<EmailField />
+<NameField label="Custom label" />  // overrides default
+```
+
+## Overriding props at the call site
+
+Props passed when rendering the component take precedence over default props from `.extend({ props })`. So you can always override per instance:
+
+```tsx
+<NameField label="User name" />
+<NameField />  // uses default "Name" if defined in extend
+```
+
+This is useful for forms where most fields use the same UI but different labels or options, and you want to define those once in `.extend()`.

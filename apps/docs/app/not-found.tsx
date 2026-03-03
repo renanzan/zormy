@@ -1,10 +1,9 @@
-import Navbar from "@/components/landing/Navbar";
-import { getPagesFromPageMap } from "@/lib/getPagesFromPageMap";
+import { Navbar } from "@/components/layout/Navbar";
 import { Layout, NotFoundPage } from "nextra-theme-docs";
 import { getPageMap } from "nextra/page-map";
 
 const DEFAULT_LOCALE = "pt-BR";
-const DOCS_REPO_BASE = "https://github.com/phucbm/nextra-docs-starter/tree/main";
+const DOCS_REPO_BASE = "https://github.com/renanzan/zormy/tree/main";
 const LOCALES: { locale: string; name: string }[] = [
 	{ locale: "pt-BR", name: "Português" },
 	{ locale: "en", name: "English" },
@@ -16,11 +15,10 @@ const LOCALES: { locale: string; name: string }[] = [
  */
 export default async function NotFound() {
 	const pageMap = await getPageMap(`/${DEFAULT_LOCALE}`);
-	const pages = await getPagesFromPageMap({ pageMapArray: pageMap });
 
 	return (
 		<Layout
-			navbar={<Navbar lang={DEFAULT_LOCALE} pages={pages} />}
+			navbar={<Navbar lang={DEFAULT_LOCALE} />}
 			pageMap={pageMap}
 			docsRepositoryBase={DOCS_REPO_BASE}
 			footer={null}

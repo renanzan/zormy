@@ -1,15 +1,17 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { intl } from "@/translations";
 import { motion } from "framer-motion";
 import { Github } from "lucide-react";
 import Image from "next/image";
-import { getLandingT } from "@/translations/landing";
+import { useParams } from "next/navigation";
+
+import type { LandingLocale } from "@/translations";
 
 const Footer = () => {
 	const params = useParams();
-	const lang = (params?.lang as string) ?? "en";
-	const t = getLandingT(lang);
+	const lang = (params?.lang as LandingLocale) ?? "en";
+	const t = intl("landing", lang);
 
 	return (
 		<motion.footer

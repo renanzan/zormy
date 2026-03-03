@@ -1,8 +1,12 @@
-import Navbar from "@/components/landing/Navbar";
-import { getPagesFromPageMap } from "@/lib/getPagesFromPageMap";
+import { Navbar } from "@/components/layout/Navbar";
+import { Search } from "@/components/layout/search";
+import { intl } from "@/translations";
 import { notFound } from "next/navigation";
 import { Layout } from "nextra-theme-docs";
+import { Banner } from "nextra/components";
 import { getPageMap } from "nextra/page-map";
+
+import type { LandingLocale } from "@/translations";
 
 const LOCALES = [
 	{ locale: "pt-BR", name: "Português" },
@@ -20,27 +24,51 @@ export default async function LangLayout({
 	params,
 }: {
 	children: React.ReactNode;
-	params: Promise<{ lang: string }>;
+	params: Promise<{ lang: LandingLocale }>;
 }) {
 	const { lang } = await params;
 
-	// Evita que URLs como /.well-known/... ou /images/... disparem getPageMap com "lang" inválido
 	if (!VALID_LANGS.has(lang)) {
 		notFound();
 	}
 
 	const pageMap = await getPageMap(`/${lang}`);
-	const pages = await getPagesFromPageMap({ pageMapArray: pageMap });
 
 	return (
 		<Layout
 			key="docs-layout"
-			navbar={<Navbar lang={lang} pages={pages} />}
 			pageMap={pageMap}
+			navbar={<Navbar lang={lang} />}
+			search={
+				<Search
+					lang={lang}
+					placeholder={intl("nextraThemeDocs", lang).search.placeholder}
+					emptyResult={intl("nextraThemeDocs", lang).search.emptyResult}
+					loading={intl("nextraThemeDocs", lang).search.loading}
+				/>
+			}
+			toc={{
+				title: intl("nextraThemeDocs", lang).TOC.title,
+				backToTop: intl("nextraThemeDocs", lang).TOC.backToTop,
+			}}
+			editLink={intl("nextraThemeDocs", lang).editLink}
+			feedback={{
+				content: intl("nextraThemeDocs", lang).feedback.content,
+				labels: intl("nextraThemeDocs", lang).feedback.labels,
+			}}
+			i18n={LOCALES}
 			docsRepositoryBase="https://github.com/phucbm/nextra-docs-starter/tree/main"
 			footer={null}
-			search={null}
-			i18n={LOCALES}
+			copyPageButton={false}
+			sidebar={{
+				defaultMenuCollapseLevel: 1,
+			}}
+			banner={
+				<Banner storageKey="v1-release">
+					🚀 Chegou o Zormy v1! Experimente formulários com tipagem garantida e muito mais
+					agilidade.
+				</Banner>
+			}
 		>
 			{children}
 		</Layout>

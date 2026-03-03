@@ -13,10 +13,10 @@ Experimente criar wizards complexos e veja como um Schema se transforma em um Wi
 1. **Defina os Steps**: Liste os steps do wizard no array `steps`
 2. **Defina os Campos**: Para cada step, defina os campos com:
    - `key`: Chave única do campo
-   - `schema`: Schema Zod (use `z.` para acessar os validadores)
+   - `schema`: **Código Zod real** — avaliado em tempo de execução. Use qualquer API do Zod: `z.string()`, `z.coerce.number()`, `.transform()`, `.preprocess()`, `.refine()`, etc.
    - `defaultValue` (opcional): Valor padrão do campo
 
-3. **Aplique o Schema**: Clique em "Aplicar Schema" para ver o wizard renderizado
+3. **Preview ao vivo**: O preview atualiza automaticamente ao editar (com debounce). Não é preciso clicar em "Aplicar". Use "Restaurar padrão" para resetar.
 
 ## Exemplo Básico
 
@@ -97,7 +97,8 @@ Experimente criar wizards complexos e veja como um Schema se transforma em um Wi
 
 ## Dicas
 
-- Use valores padrão para campos opcionais
-- Combine validações (ex: `z.string().min(3).max(100)`)
-- Use `.optional()` para campos que podem ser vazios
-- Teste diferentes schemas para ver como a validação funciona
+- **Campos numéricos**: Use `z.number()` — o playground renderiza input numérico e envia valores como número.
+- **Booleanos**: Use `z.boolean()` — é renderizado um checkbox.
+- **Enums**: Use `z.enum(['a','b'])` — é renderizado um select.
+- Use `.transform()`, `.preprocess()`, `.refine()` e qualquer API do Zod em `schema`; o código é avaliado em um sandbox com `z` no escopo.
+- Após enviar, expanda "Dados enviados (onComplete)" para ver o payload parseado.

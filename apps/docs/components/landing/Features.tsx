@@ -1,14 +1,16 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { intl } from "@/translations";
 import { motion } from "framer-motion";
 import { Box, CheckCircle, GitBranch, Layers, Shield, Zap } from "lucide-react";
-import { getLandingT } from "@/translations/landing";
+import { useParams } from "next/navigation";
+
+import type { LandingLocale } from "@/translations";
 
 const Features = () => {
 	const params = useParams();
-	const lang = (params?.lang as string) ?? "en";
-	const t = getLandingT(lang);
+	const lang = (params?.lang as LandingLocale) ?? "en";
+	const t = intl("landing", lang);
 
 	const features = [
 		{ icon: Shield, titleKey: "feature1Title" as const, descKey: "feature1Desc" as const },
@@ -30,9 +32,7 @@ const Features = () => {
 					className="text-center mb-16"
 				>
 					<h2 className="text-3xl sm:text-4xl font-bold mb-4">{t.featuresTitle}</h2>
-					<p className="text-muted-foreground text-lg max-w-xl mx-auto">
-						{t.featuresSubtitle}
-					</p>
+					<p className="text-muted-foreground text-lg max-w-xl mx-auto">{t.featuresSubtitle}</p>
 				</motion.div>
 
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">

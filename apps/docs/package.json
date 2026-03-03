@@ -20,6 +20,7 @@
 	"homepage": "https://github.com/phucbm/nextra-docs-starter#readme",
 	"dependencies": {
 		"@codesandbox/sandpack-react": "^2.20.0",
+		"@headlessui/react": "^2.2.9",
 		"@radix-ui/react-dialog": "^1.1.15",
 		"@radix-ui/react-slot": "^1.2.4",
 		"@radix-ui/react-tabs": "^1.1.13",
@@ -27,7 +28,7 @@
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"cmdk": "^1.1.1",
-		"framer-motion": "^12.34.4",
+		"framer-motion": "^12.34.5",
 		"lucide-react": "^0.576.0",
 		"next": "^16.1.6",
 		"next-themes": "^0.4.6",

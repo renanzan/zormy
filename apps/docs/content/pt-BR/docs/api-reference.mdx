@@ -3,8 +3,6 @@ title: API Reference
 description: Referência completa da API do Zormy
 ---
 
-import { Callout, Tabs } from "nextra/components";
-
 # API Reference
 
 Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
@@ -237,7 +235,7 @@ Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
     |-----------|------|-----------|
     | `config` | `WizardConfig<Steps, TStepFieldsMap>` | Configuração do wizard criada com `createWizardConfig` |
 
-    **Retorna:** `{ Wizard, Step }` - Componentes tipados
+    **Retorna:** `{ Wizard, Step, WizardNav, WizardNavBack, WizardNavNext }` — Componentes tipados. Use `WizardNav`, `WizardNavBack` e `WizardNavNext` para botões de navegação sem condicionais (todos com prop `as`).
 
     **Propriedades do Wizard:**
     - `methods`: `UseWizardFormReturn` - Instância do wizard retornada por `useWizard`
@@ -249,6 +247,11 @@ Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
     - `step`: `Steps[number]` - Step do wizard (tipado)
     - `as?`: `ElementType` - Elemento HTML ou componente a ser renderizado (padrão: `"div"`)
     - `children`: `ReactNode` - Conteúdo do step
+
+    **Componentes de navegação (WizardNav):**
+    - `WizardNav`: container (padrão `as="div"`) para o grupo de botões.
+    - `WizardNavBack`: botão Voltar; só renderiza quando `!isFirstStep`; padrão `as="button"`.
+    - `WizardNavNext`: botão Próximo/Finalizar; no último step `type="submit"`; aceita `nextLabel` e `submitLabel`.
 
     **Exemplo:**
     ```tsx

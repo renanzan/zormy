@@ -50,6 +50,7 @@ export function CodeExample({
 			className={cn(
 				"my-6 overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900/50",
 				"[&_.sp-wrapper]:rounded-xl! [&_.sp-layout]:rounded-b-xl! [&_.sp-editor]:rounded-bl-xl! [&_.sp-preview-container]:rounded-br-xl!",
+				"[&_.sp-editor]:w-0! sm:[&_.sp-editor]:w-full",
 				className
 			)}
 		>
@@ -66,7 +67,6 @@ export function CodeExample({
 					showRefreshButton: true,
 					editorHeight,
 					editorWidthPercentage: 55,
-					// Injetamos o script do Tailwind e logo depois a nossa configuração via Data URI
 					externalResources: ["https://cdn.tailwindcss.com", TAILWIND_CONFIG_URL],
 				}}
 				customSetup={{

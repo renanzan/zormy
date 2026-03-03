@@ -1,0 +1,102 @@
+---
+title: Abstract fields
+description: Reusable field templates with abstractField() — currency, date, file, etc.
+---
+
+# Abstract fields
+
+**Abstract fields** are field templates without a fixed key. You define schema and render once, then create concrete fields with `.extend({ key: "..." })`. This reduces duplication when many fields share the same type and UI.
+
+## Basic usage
+
+```tsx
+import { z } from "zod";
+import { abstractField, Form, useZormy } from "zormy";
+
+const BaseTextField = abstractField()
+	.schema(z.string().min(3, "Min 3 characters"))
+	.render(({ register, fieldState }) => (
+		<div>
+			<input {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
+
+const NameField = BaseTextField.extend({ key: "name" });
+const EmailField = BaseTextField.extend({ key: "email" });
+```
+
+## Example: currency field
+
+A reusable currency field that formats and parses numbers:
+
+```tsx
+const CurrencyFieldBase = abstractField()
+	.schema(z.number().min(0, "Must be positive"))
+	.render(({ register, fieldState }, props) => (
+		<div>
+			<label>{props?.label ?? "Amount"}</label>
+			<input
+				type="number"
+				step="0.01"
+				{...register({ valueAsNumber: true })}
+			/>
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
+
+const PriceField = CurrencyFieldBase.extend({ key: "price" });
+const DiscountField = CurrencyFieldBase.extend({ key: "discount" });
+```
+
+You can override schema or render in `.extend()` for variants (e.g. different min/max).
+
+## Example: date field
+
+```tsx
+const DateFieldBase = abstractField()
+	.schema(z.string().min(1, "Required"))
+	.render(({ register, fieldState }, props) => (
+		<div>
+			<label>{props?.label ?? "Date"}</label>
+			<input type="date" {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
+
+const BirthDateField = DateFieldBase.extend({ key: "birthDate" });
+const DueDateField = DateFieldBase.extend({ key: "dueDate" });
+```
+
+## Example: file field
+
+```tsx
+const FileFieldBase = abstractField()
+	.schema(
+		z
+			.instanceof(FileList)
+			.refine((files) => files?.length > 0, "Select a file")
+	)
+	.render(({ register, fieldState }) => (
+		<div>
+			<input type="file" {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
+
+const AvatarField = FileFieldBase.extend({ key: "avatar" });
+const DocumentField = FileFieldBase.extend({ key: "document" });
+```
+
+## Overriding in `.extend()`
+
+You can override `key`, `schema`, `render`, `dependsOn`, or `props` (default props for the component):
+
+```tsx
+const RequiredEmailField = BaseTextField.extend({
+	key: "email",
+	schema: z.string().email("Invalid email").min(1, "Required"),
+});
+```
+
+See [Custom props](/docs/fields/custom-props) for using `props` in render and `.extend({ props: { ... } })`.

@@ -13,6 +13,7 @@ import { field } from "../../../src/fields/field/builder/builder";
 import { createWizardComponents } from "../../../src/wizards/wizard/builder/components";
 import { createWizardConfig } from "../../../src/wizards/wizard/builder/config";
 
+import type { ComponentProps, ReactNode } from "react";
 import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import type {
 	TypedStepProps,
@@ -44,6 +45,49 @@ describe("Type Safety - createWizardComponents", () => {
 			expectTypeOf(components).toExtend<WizardComponents<typeof config>>();
 			expectTypeOf(components.Wizard).toBeFunction();
 			expectTypeOf(components.Step).toBeFunction();
+			expectTypeOf(components.WizardNav).toBeFunction();
+			expectTypeOf(components.WizardNavBack).toBeFunction();
+			expectTypeOf(components.WizardNavNext).toBeFunction();
+		});
+	});
+
+	describe("componente WizardNav - props e 'as'", () => {
+		it("deve aceitar WizardNav com as e children", () => {
+			const NameField = field("name")
+				.schema(z.string())
+				.render(() => null);
+			const config = createWizardConfig({
+				steps: [{ name: "step1", fields: [NameField] }],
+			});
+			const { WizardNav } = createWizardComponents(config);
+			// Verifica que WizardNav aceita as opcional e children
+			const _divUsage: ComponentProps<typeof WizardNav> = {
+				as: "div",
+				children: null,
+			};
+			const _navUsage: ComponentProps<typeof WizardNav> = {
+				as: "nav",
+				className: "flex",
+			};
+			expectTypeOf(WizardNav).toBeFunction();
+		});
+
+		it("deve aceitar WizardNavNextProps com nextLabel e submitLabel", () => {
+			const NameField = field("name")
+				.schema(z.string())
+				.render(() => null);
+			const config = createWizardConfig({
+				steps: [{ name: "step1", fields: [NameField] }],
+			});
+			const { WizardNavNext } = createWizardComponents(config);
+			type NextProps = Parameters<typeof WizardNavNext>[0];
+			const props: NextProps = {
+				as: "button",
+				nextLabel: "Próximo",
+				submitLabel: "Finalizar",
+			};
+			expectTypeOf(props.nextLabel).toEqualTypeOf<ReactNode | undefined>();
+			expectTypeOf(props.submitLabel).toEqualTypeOf<ReactNode | undefined>();
 		});
 	});
 

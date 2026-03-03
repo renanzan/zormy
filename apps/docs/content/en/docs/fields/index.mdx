@@ -3,9 +3,7 @@ title: Fields
 description: Reusable fields in Zormy — key, schema, render, dependencies, and nesting
 ---
 
-import { Callout } from "nextra/components";
-
-import { fieldExampleCode } from "../snippets/field-example";
+import { fieldExampleCode } from "../../snippets/field-example";
 
 # Fields
 
@@ -44,7 +42,7 @@ const NameField = BaseTextField.extend({ key: "name" });
 const EmailField = BaseTextField.extend({ key: "email" });
 ```
 
-You can also override `schema`, `render`, `dependsOn`, or `props` in `.extend()`.
+You can also override `schema`, `render`, `dependsOn`, or `props` in `.extend()`. See [Abstract fields](/docs/fields/abstract) and [Custom props](/docs/fields/custom-props).
 
 ## Fields with dependencies: `.dependsOn()`
 

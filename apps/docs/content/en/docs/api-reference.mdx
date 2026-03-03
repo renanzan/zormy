@@ -3,8 +3,6 @@ title: API Reference
 description: Complete API reference for Zormy
 ---
 
-import { Callout, Tabs } from "nextra/components";
-
 # API Reference
 
 Complete API reference for Zormy with practical examples and TypeScript types.
@@ -203,7 +201,7 @@ Complete API reference for Zormy with practical examples and TypeScript types.
     |-----------|------|------------|
     | `config` | `WizardConfig<Steps, TStepFieldsMap>` | Wizard configuration created with `createWizardConfig` |
 
-    **Returns:** `{ Wizard, Step }` - Typed components
+    **Returns:** `{ Wizard, Step, WizardNav, WizardNavBack, WizardNavNext }` — Typed components. Use `WizardNav`, `WizardNavBack`, and `WizardNavNext` for navigation buttons without manual conditionals (all support the `as` prop).
 
     ### `WizardProvider`
 

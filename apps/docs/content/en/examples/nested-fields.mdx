@@ -1,0 +1,53 @@
+---
+title: Nested Fields
+description: Working with nested data structures
+---
+
+# Nested Fields
+
+<Callout>Use dot notation (e.g., `"user.name"`) to work with nested structures</Callout>
+
+Example of fields with a nested structure:
+
+```tsx
+import { z } from "zod";
+import { field, Form, useForm, zormyResolver } from "zormy";
+
+const UserNameField = field("user.name")
+	.schema(z.string().min(3, "Name must be at least 3 characters"))
+	.render(({ register, fieldState }) => (
+		<div>
+			<label>User Name</label>
+			<input {...register()} />
+			{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
+		</div>
+	));
+
+const UserEmailField = field("user.email")
+	.schema(z.string().email("Invalid email"))
+	.render(({ register, fieldState }) => (
+		<div>
+			<label>User Email</label>
+			<input type="email" {...register()} />
+			{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
+		</div>
+	));
+
+function NestedFieldsForm() {
+	const form = useForm({
+		resolver: zormyResolver({ fields: [UserNameField, UserEmailField] }),
+		defaultValues: { user: { name: "", email: "" } },
+	});
+
+	return (
+		<Form
+			methods={form}
+			onSubmit={form.handleSubmit((data) => alert(JSON.stringify(data, null, 2)))}
+		>
+			<UserNameField />
+			<UserEmailField />
+			<button type="submit">Submit</button>
+		</Form>
+	);
+}
+```

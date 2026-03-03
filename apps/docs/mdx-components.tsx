@@ -1,21 +1,22 @@
 import { useMDXComponents as getThemeComponents } from "nextra-theme-docs";
-import { Callout, FileTree } from "nextra/components";
+import { Callout, FileTree, Steps, Tabs } from "nextra/components";
 
-import { BeautifulCards } from "./components/BeautifulCards";
+import { Cards } from "./components/BeautifulCards";
 import { CodeExample } from "./components/CodeExample";
 import { HomePage } from "./components/HomePage";
 import { Playground } from "./components/Playground";
 
-// Get the default MDX components
 const themeComponents = getThemeComponents();
 
-// Merge components
 export function useMDXComponents() {
 	return {
 		...themeComponents,
-		Callout: Callout,
-		FileTree: FileTree,
-		Cards: BeautifulCards,
+		wrapper: (props) => <div {...props}>{themeComponents.wrapper(props)}</div>,
+		Callout,
+		FileTree,
+		Cards,
+		Steps,
+		Tabs,
 		CodeExample,
 		Playground,
 		HomePage,

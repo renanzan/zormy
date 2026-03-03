@@ -1,0 +1,16 @@
+---
+title: Campos com Dependências
+description: Campos que aparecem baseados em outros campos
+---
+
+import { dependentFieldsCode } from "../snippets/dependent-fields";
+
+# Campos com Dependências
+
+<Callout type="tip">
+	Use `.dependsOn()` para criar campos que aparecem ou validam baseados em outros campos
+</Callout>
+
+Exemplo de campo que depende de outro campo. Marque "Possui senha?" e preencha (ou não) para ver a validação:
+
+<CodeExample editorHeight={440} code={dependentFieldsCode} />

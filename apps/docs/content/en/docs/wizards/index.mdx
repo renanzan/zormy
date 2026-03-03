@@ -1,0 +1,81 @@
+---
+title: Wizards
+description: Multi-step forms in Zormy — configuration, steps, navigation, conditionals, and auto-save
+---
+
+import { minimumWizardCode } from "../../snippets/minimum-wizard";
+
+# Wizards
+
+Wizards organize forms into **multiple steps**, with per-step validation and navigation (next/back). Zormy provides strong typing for steps and fields.
+
+## Concepts
+
+1. **Steps** — array of definitions `{ name, fields }`: each step has a name (string) and array of fields.
+2. **Configuration** — `createWizardConfig({ steps: [{ name: "personal", fields: [NameField] }, ...] })` (and optionally `shouldIncludeStep`).
+3. **Components** — `createWizardComponents(config)` returns `{ Wizard, Step, WizardNav, WizardNavBack, WizardNavNext }`.
+4. **Hook** — `useWizard({ steps: [...], defaultValues, onComplete, ... })`.
+5. **Render** — `<Wizard methods={wizard}>` and `<Step step="personal">` with fields and navigation buttons.
+
+## Minimal example
+
+<CodeExample code={minimumWizardCode} editorHeight={460} />
+
+<Callout type="tip">
+	Keep `wizardConfig` **outside the component** (in the module or above the component) for stable
+	references and better performance.
+</Callout>
+
+For **useWizard vs createWizard**, see [Hooks](/docs/wizards/hooks). For **auto-save** when advancing steps, see [Auto save](/docs/wizards/auto-save).
+
+## Navigation
+
+The object returned by `useWizard` includes:
+
+| Property / Method            | Description                                                                 |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| `currentStep`                | Current step                                                                |
+| `currentStepIndex`           | Step index (0-based)                                                        |
+| `steps`                      | List of steps (filtered if using `shouldIncludeStep`)                       |
+| `totalSteps`                 | Number of steps                                                             |
+| `isFirstStep` / `isLastStep` | Booleans for UI                                                             |
+| `next()`                     | Advances to the next step (validates current step; returns `Promise<void>`) |
+| `back()`                     | Goes back to the previous step                                              |
+| `goToStep(step)`             | Goes to a specific step                                                     |
+
+### Navigation components (WizardNav)
+
+To avoid manual conditionals for back/next buttons, use the **WizardNav** family (all support the `as` prop for polymorphic rendering):
+
+- **WizardNav** — wrapper (default `as="div"`) for the button group.
+- **WizardNavBack** — "Back" button; only renders when `!isFirstStep`. Default `as="button"`, `type="button"`, `onClick={back}`.
+- **WizardNavNext** — "Next" or "Submit" button: on the last step it renders `type="submit"` and shows `submitLabel`; otherwise `type="button"`, `onClick={next}` and shows `nextLabel`.
+
+Example:
+
+```tsx
+const { Wizard, Step, WizardNav, WizardNavBack, WizardNavNext } = createWizardComponents(config);
+
+<Wizard methods={wizard}>
+  <Step step="personal">
+    <NameField />
+    <WizardNav as="div" className="flex gap-3">
+      <WizardNavBack as="button">Voltar</WizardNavBack>
+      <WizardNavNext as="button" nextLabel="Próximo" submitLabel="Finalizar" />
+    </WizardNav>
+  </Step>
+  <Step step="contact">
+    <EmailField />
+    <WizardNav as="div" className="flex gap-3">
+      <WizardNavBack as="button">Voltar</WizardNavBack>
+      <WizardNavNext as="button" nextLabel="Próximo" submitLabel="Finalizar" />
+    </WizardNav>
+  </Step>
+</Wizard>
+```
+
+## Conditional steps
+
+For steps that appear or disappear based on form values, use `shouldIncludeStep` in `createWizardConfig`. See the main [Wizards](/docs/wizards) page and [API Reference](/docs/api-reference).
+
+For the complete API (including `WizardProvider`, types, and auto-save), see [API Reference](/docs/api-reference).

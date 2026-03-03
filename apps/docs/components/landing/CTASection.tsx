@@ -1,16 +1,18 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { intl } from "@/translations";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { getLandingT } from "@/translations/landing";
+import { useParams } from "next/navigation";
+
+import type { LandingLocale } from "@/translations";
 
 const CTASection = () => {
 	const params = useParams();
-	const lang = (params?.lang as string) ?? "en";
-	const t = getLandingT(lang);
+	const lang = (params?.lang as LandingLocale) ?? "en";
+	const t = intl("landing", lang);
 	const base = `/${lang}`;
 
 	return (
@@ -37,7 +39,9 @@ const CTASection = () => {
 					transition={{ duration: 0.6 }}
 					className="text-3xl sm:text-4xl font-bold mb-4"
 				>
-					{t.ctaTitle}<span className="text-gradient">{t.ctaTitleHighlight}</span>{t.ctaTitleSuffix}
+					{t.ctaTitle}
+					<span className="text-gradient">{t.ctaTitleHighlight}</span>
+					{t.ctaTitleSuffix}
 				</motion.h2>
 				<motion.p
 					initial={{ opacity: 0, y: 20 }}

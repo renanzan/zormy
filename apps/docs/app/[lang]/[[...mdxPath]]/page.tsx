@@ -1,6 +1,5 @@
+import { notFound, redirect } from "next/navigation";
 import { generateStaticParamsFor, importPage } from "nextra/pages";
-import { notFound } from "next/navigation";
-import { redirect } from "next/navigation";
 
 import { useMDXComponents as getMDXComponents } from "../../../mdx-components";
 
@@ -53,7 +52,7 @@ export default async function Page(props: {
 	} catch {
 		notFound();
 	}
-	const { default: MDXContent, toc, metadata } = result;
+	const { default: MDXContent, toc, metadata, sourceCode } = result;
 
 	const isIndex =
 		result.metadata.filePath === `content/${params.lang}/index.mdx` ||
@@ -64,11 +63,8 @@ export default async function Page(props: {
 	}
 
 	return (
-		<div className="pt-14">
-			{/* @ts-expect-error - TODO: fix this */}
-			<Wrapper toc={toc} metadata={metadata}>
-				<MDXContent {...props} params={params} />
-			</Wrapper>
-		</div>
+		<Wrapper toc={toc} metadata={metadata} sourceCode={sourceCode}>
+			<MDXContent {...props} params={params} />
+		</Wrapper>
 	);
 }

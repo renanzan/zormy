@@ -1,17 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
-import { createWizardComponents, createWizardConfig, field, useWizard } from "zormy";
+import {
+	createWizardComponents,
+	createWizardConfig,
+	field,
+	useWizard,
+} from "zormy";
+import type { NonEmptyStepsConfig } from "zormy";
+import type { ZodType } from "zod";
+import type { FieldComponent } from "zormy/fields/field/types/field";
+import type { StepFieldsMap } from "zormy/wizards/wizard/types/wizard";
 
-interface PlaygroundProps {
-	initialSchema?: string;
-}
-
-export function Playground({ initialSchema }: PlaygroundProps) {
-	const [schemaCode, setSchemaCode] = useState(
-		initialSchema ||
-			`{
+const DEFAULT_SCHEMA = `{
   "steps": ["personal", "contact"],
   "fields": {
     "personal": [
@@ -23,231 +25,337 @@ export function Playground({ initialSchema }: PlaygroundProps) {
       { "key": "phone", "schema": "z.string().optional()" }
     ]
   }
-}`
-	);
+}`;
 
-	const [error, setError] = useState<string | null>(null);
-	const [wizardData, setWizardData] = useState<any>(null);
+interface PlaygroundProps {
+	initialSchema?: string;
+}
 
-	const parseSchema = () => {
+interface PlaygroundSchema {
+	steps: string[];
+	fields: Record<string, PlaygroundFieldDef[]>;
+}
+
+interface PlaygroundFieldDef {
+	key: string;
+	schema?: string;
+	defaultValue?: unknown;
+}
+
+const DEBOUNCE_MS = 600;
+
+/**
+ * Avalia a string do schema no contexto seguro com apenas `z` (Zod).
+ * Suporta qualquer API do Zod: preprocess, transform, refine, etc.
+ */
+function evalSchema(schemaCode: string): z.ZodType {
+	const trimmed = schemaCode.trim();
+	if (!trimmed) return z.string();
+	try {
+		const fn = new Function(
+			"z",
+			`"use strict"; return (${trimmed});`
+		) as (zRef: unknown) => unknown;
+		const result = fn(z);
+		if (result && typeof (result as { _def?: unknown })._def !== "undefined") {
+			return result as z.ZodType;
+		}
+		throw new Error("Schema deve retornar um tipo Zod (ex: z.string(), z.number())");
+	} catch (e) {
+		throw e instanceof Error ? e : new Error(String(e));
+	}
+}
+
+function getDefaultForSchema(schema: z.ZodType): unknown {
+	if (schema instanceof z.ZodString) return "";
+	if (schema instanceof z.ZodNumber) return 0;
+	if (schema instanceof z.ZodBoolean) return false;
+	if (schema instanceof z.ZodDate) return undefined;
+	if (schema instanceof z.ZodEnum) {
+		const enumDef = schema._def.values as [string, ...string[]];
+		return enumDef[0];
+	}
+	return "";
+}
+
+function isZodNumber(schema: z.ZodType): boolean {
+	return schema instanceof z.ZodNumber;
+}
+
+function isZodBoolean(schema: z.ZodType): boolean {
+	return schema instanceof z.ZodBoolean;
+}
+
+function getZodEnumOptions(schema: z.ZodType): string[] | null {
+	if (schema instanceof z.ZodEnum) {
+		return schema._def.values as string[];
+	}
+	return null;
+}
+
+export function Playground({ initialSchema }: PlaygroundProps) {
+	const [schemaCode, setSchemaCode] = useState(initialSchema ?? DEFAULT_SCHEMA);
+	const [parseError, setParseError] = useState<string | null>(null);
+	const [wizardData, setWizardData] = useState<PlaygroundSchema | null>(null);
+	const [submittedData, setSubmittedData] = useState<unknown>(null);
+	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	const tryParse = useCallback(() => {
+		setParseError(null);
 		try {
-			setError(null);
-			const parsed = JSON.parse(schemaCode);
+			const parsed = JSON.parse(schemaCode) as PlaygroundSchema;
+			if (!parsed.steps || !Array.isArray(parsed.steps) || !parsed.fields || typeof parsed.fields !== "object") {
+				setParseError("Schema deve ter 'steps' (array) e 'fields' (objeto).");
+				return;
+			}
 			setWizardData(parsed);
 		} catch (e) {
-			setError(`Erro ao parsear schema: ${e instanceof Error ? e.message : "Erro desconhecido"}`);
+			setParseError(e instanceof SyntaxError ? `JSON inválido: ${e.message}` : String(e));
 		}
+	}, [schemaCode]);
+
+	useEffect(() => {
+		if (debounceRef.current) clearTimeout(debounceRef.current);
+		debounceRef.current = setTimeout(tryParse, DEBOUNCE_MS);
+		return () => {
+			if (debounceRef.current) clearTimeout(debounceRef.current);
+		};
+	}, [tryParse]);
+
+	useEffect(() => {
+		tryParse();
+	}, []);
+
+	const resetSchema = () => {
+		setSchemaCode(DEFAULT_SCHEMA);
+		setParseError(null);
+		setSubmittedData(null);
 	};
 
 	const renderWizard = () => {
-		if (!wizardData || !wizardData.steps || !wizardData.fields) {
-			return null;
-		}
+		if (!wizardData?.steps?.length || !wizardData.fields) return null;
 
-		try {
-			const fieldMap: Record<string, any[]> = {};
-			const defaultValues: Record<string, any> = {};
+		const fieldMap: StepFieldsMap<readonly string[]> = {};
+		const defaultValues: Record<string, unknown> = {};
 
-			const schemaMap: Record<string, (args?: any) => z.ZodType> = {
-				"z.string()": () => z.string(),
-				"z.string().min(3)": () => z.string().min(3),
-				"z.string().email()": () => z.string().email(),
-				"z.string().optional()": () => z.string().optional(),
-				"z.string().min(8)": () => z.string().min(8),
-				"z.number()": () => z.number(),
-				"z.number().min(18)": () => z.number().min(18),
-				"z.boolean()": () => z.boolean(),
-			};
+		for (const step of wizardData.steps) {
+			const fields = wizardData.fields[step];
+			if (!Array.isArray(fields)) continue;
 
-			Object.entries(wizardData.fields).forEach(([step, fields]: [string, any]) => {
-				fieldMap[step] = fields.map((fieldDef: any) => {
-					let schema: z.ZodType;
-					const schemaStr = fieldDef.schema?.trim() || "z.string()";
+			fieldMap[step] = fields.map((fieldDef: PlaygroundFieldDef) => {
+				const schemaStr = fieldDef.schema?.trim() || "z.string()";
+				let schema: z.ZodType;
+				try {
+					schema = evalSchema(schemaStr);
+				} catch (e) {
+					throw new Error(`Campo "${fieldDef.key}": ${e instanceof Error ? e.message : schemaStr}`);
+				}
 
-					if (schemaMap[schemaStr]) {
-						schema = schemaMap[schemaStr]();
-					} else {
-						try {
-							if (schemaStr.includes("z.string()")) {
-								if (schemaStr.includes(".email()")) {
-									schema = z.string().email();
-								} else if (schemaStr.includes(".optional()")) {
-									schema = z.string().optional();
-								} else if (schemaStr.includes(".min(")) {
-									const match = schemaStr.match(/\.min\((\d+)\)/);
-									const min = match ? parseInt(match[1], 10) : 1;
-									schema = z.string().min(min);
-								} else {
-									schema = z.string();
-								}
-							} else if (schemaStr.includes("z.number()")) {
-								if (schemaStr.includes(".min(")) {
-									const match = schemaStr.match(/\.min\((\d+)\)/);
-									const min = match ? parseInt(match[1], 10) : 0;
-									schema = z.number().min(min);
-								} else {
-									schema = z.number();
-								}
-							} else if (schemaStr.includes("z.boolean()")) {
-								schema = z.boolean();
-							} else {
-								schema = z.string();
-							}
-						} catch {
-							schema = z.string();
-						}
-					}
+				const enumOptions = getZodEnumOptions(schema);
+				const isNumber = isZodNumber(schema);
+				const isBoolean = isZodBoolean(schema);
 
-					const Field = field(fieldDef.key)
-						.schema(schema)
-						.render(({ register, fieldState }) => {
-							const error = fieldState?.error;
+				const Field = field(fieldDef.key)
+					.schema(schema)
+					.render(({ register, fieldState }) => {
+						const err = fieldState?.error;
+						const inputCn = `w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none transition-colors focus:ring-2 focus:ring-blue-500 focus:border-transparent ${err ? "border-red-500" : "border-gray-300 dark:border-gray-600"}`;
+
+						if (isBoolean) {
 							return (
-								<div className="mb-6">
-									<label
-										className="block mb-1 font-medium text-gray-700 dark:text-gray-200"
-										htmlFor={fieldDef.key}
-									>
-										{fieldDef.key}
+								<div className="mb-5">
+									<label className="flex items-center gap-2 cursor-pointer">
+										<input
+											type="checkbox"
+											{...register()}
+											className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+										/>
+										<span className="font-medium text-gray-700 dark:text-gray-200">{fieldDef.key}</span>
 									</label>
-									<input
-										id={fieldDef.key}
-										{...register()}
-										className={`w-full px-3 py-2 rounded-md outline-none transition-colors border text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:border-blue-500 ${error ? "border-red-500 focus:border-red-500" : "border-gray-300 dark:border-gray-700"}`}
-									/>
-									{error && (
-										<span className="text-red-600 text-xs mt-1 block">
-											{error.message as string}
-										</span>
-									)}
+									{err && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{err.message as string}</p>}
 								</div>
 							);
-						});
+						}
 
-					if (fieldDef.defaultValue !== undefined) {
-						defaultValues[fieldDef.key] = fieldDef.defaultValue;
-					} else if (schema instanceof z.ZodString) {
-						defaultValues[fieldDef.key] = "";
-					} else if (schema instanceof z.ZodNumber) {
-						defaultValues[fieldDef.key] = 0;
-					} else if (schema instanceof z.ZodBoolean) {
-						defaultValues[fieldDef.key] = false;
-					}
+						if (enumOptions?.length) {
+							return (
+								<div className="mb-5">
+									<label className="block mb-1 font-medium text-gray-700 dark:text-gray-200" htmlFor={fieldDef.key}>
+										{fieldDef.key}
+									</label>
+									<select id={fieldDef.key} {...register()} className={inputCn}>
+										<option value="">Selecione...</option>
+										{enumOptions.map((opt) => (
+											<option key={opt} value={opt}>
+												{opt}
+											</option>
+										))}
+									</select>
+									{err && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{err.message as string}</p>}
+								</div>
+							);
+						}
 
-					return Field;
-				});
-			});
-
-			const WizardComponent = () => {
-				const config = createWizardConfig({
-					steps: wizardData.steps,
-					fields: fieldMap,
-				});
-
-				const wizard = useWizard({
-					...config,
-					defaultValues,
-					onSubmit: (data) => {
-						alert(JSON.stringify(data, null, 2));
-					},
-				});
-
-				const { Wizard } = createWizardComponents(config);
-
-				return (
-					<Wizard methods={wizard} contextOnly>
-						<div className="border border-gray-200 dark:border-gray-700 rounded-xl p-8 bg-white dark:bg-gray-900 shadow-sm">
-							<div className="mb-4">
-								<p className="text-sm font-semibold text-gray-600 dark:text-gray-300">
-									Step {wizard.currentStepIndex + 1} de {wizard.totalSteps} - {wizard.currentStep}
-								</p>
+						return (
+							<div className="mb-5">
+								<label className="block mb-1 font-medium text-gray-700 dark:text-gray-200" htmlFor={fieldDef.key}>
+									{fieldDef.key}
+								</label>
+								<input
+									id={fieldDef.key}
+									type={isNumber ? "number" : "text"}
+									{...(isNumber ? register({ valueAsNumber: true }) : register())}
+									className={inputCn}
+									placeholder={isNumber ? "0" : undefined}
+								/>
+								{err && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{err.message as string}</p>}
 							</div>
-							<form
-								onSubmit={wizard.handleSubmit((data) => {
-									alert(JSON.stringify(data, null, 2));
-								})}
-							>
-								{wizard.getFieldComponentsForStep(wizard.currentStep).map((Field, i) => (
+						);
+					});
+
+				defaultValues[fieldDef.key] =
+					fieldDef.defaultValue !== undefined ? fieldDef.defaultValue : getDefaultForSchema(schema);
+				return Field;
+			});
+		}
+
+		const stepsConfig = wizardData.steps.map((step) => ({
+			name: step,
+			fields: fieldMap[step] ?? [],
+		}));
+		if (stepsConfig.length === 0) return null;
+
+		const WizardComponent = () => {
+			const config = createWizardConfig({
+				steps: stepsConfig as unknown as NonEmptyStepsConfig,
+			});
+			const wizard = useWizard({
+				steps: stepsConfig as unknown as NonEmptyStepsConfig,
+				defaultValues,
+				onComplete: (data) => setSubmittedData(data),
+			});
+			const { Wizard, WizardNav, WizardNavBack, WizardNavNext } =
+				createWizardComponents(config);
+
+			return (
+				<Wizard methods={wizard} contextOnly>
+					<div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+						<div className="px-5 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+							<p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+								Step {wizard.currentStepIndex + 1} de {wizard.totalSteps}
+								<span className="text-gray-500 dark:text-gray-400"> — {wizard.currentStep}</span>
+							</p>
+						</div>
+						<form
+							className="p-6"
+							onSubmit={wizard.handleSubmit((data) => setSubmittedData(data))}
+						>
+							{wizard
+								.getFieldComponentsForStep(wizard.currentStep)
+								.map((Field: FieldComponent<string, ZodType>, i) => (
 									<Field key={i} />
 								))}
-								<div className="mt-6 flex gap-2">
-									{!wizard.isFirstStep && (
-										<button
-											type="button"
-											onClick={wizard.back}
-											className="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-										>
-											Voltar
-										</button>
-									)}
-									{wizard.isLastStep ? (
-										<button
-											type="submit"
-											className="px-4 py-2 rounded-md bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition-colors"
-										>
-											Finalizar
-										</button>
-									) : (
-										<button
-											type="button"
-											onClick={wizard.next}
-											className="px-4 py-2 rounded-md bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition-colors"
-										>
-											Próximo
-										</button>
-									)}
-								</div>
-							</form>
-						</div>
-					</Wizard>
-				);
-			};
-
-			return <WizardComponent />;
-		} catch (e) {
-			return (
-				<div className="text-red-500 dark:text-red-400 p-4">
-					Erro ao renderizar wizard: {e instanceof Error ? e.message : "Erro desconhecido"}
-				</div>
+							<WizardNav as="div" className="mt-6 flex gap-3">
+								<WizardNavBack
+									as="button"
+									className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors"
+								>
+									Voltar
+								</WizardNavBack>
+								<WizardNavNext
+									as="button"
+									nextLabel="Próximo"
+									submitLabel="Finalizar"
+									className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow-sm hover:bg-blue-700 transition-colors"
+								/>
+							</WizardNav>
+						</form>
+					</div>
+				</Wizard>
 			);
-		}
+		};
+
+		return <WizardComponent />;
 	};
 
-	return (
-		<div className="flex flex-col gap-8">
-			<div>
-				<h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
-					Schema do Wizard
-				</h3>
-				<p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-					Edite o JSON abaixo para definir os steps e campos do wizard. Clique em "Aplicar" para ver
-					o resultado.
-				</p>
-				<textarea
-					value={schemaCode}
-					onChange={(e) => setSchemaCode(e.target.value)}
-					className="w-full min-h-[200px] p-3 font-mono text-sm rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-500"
-				/>
-				{error && <div className="text-red-600 dark:text-red-500 mt-2 text-xs">{error}</div>}
-				<button
-					onClick={parseSchema}
-					className="mt-3 px-4 py-2 rounded-md bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition-colors"
-				>
-					Aplicar Schema
-				</button>
-			</div>
+	let previewContent: React.ReactNode;
+	let previewError: string | null = null;
 
-			<div>
-				<h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
-					Preview do Wizard
-				</h3>
-				{wizardData ? (
-					renderWizard()
-				) : (
-					<div className="border border-gray-200 dark:border-gray-700 rounded-xl px-8 py-16 text-center text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 transition-colors">
-						<p>Defina um schema e clique em "Aplicar Schema" para ver o wizard</p>
+	if (parseError) {
+		previewContent = null;
+		previewError = parseError;
+	} else if (wizardData) {
+		try {
+			previewContent = renderWizard();
+		} catch (e) {
+			previewContent = null;
+			previewError = e instanceof Error ? e.message : String(e);
+		}
+	} else {
+		previewContent = null;
+		previewError = null;
+	}
+
+	return (
+		<div className="my-8 flex flex-col gap-6">
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+				{/* Editor */}
+				<div className="flex flex-col">
+					<div className="flex items-center justify-between mb-2">
+						<label className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+							Schema JSON — o que você edita aqui vale no preview (Zod real)
+						</label>
+						<button
+							type="button"
+							onClick={resetSchema}
+							className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 underline"
+						>
+							Restaurar padrão
+						</button>
 					</div>
-				)}
+					<textarea
+						value={schemaCode}
+						onChange={(e) => setSchemaCode(e.target.value)}
+						spellCheck={false}
+						className="min-h-[280px] w-full p-4 font-mono text-sm rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+						placeholder='{ "steps": [...], "fields": { ... } }'
+					/>
+					{parseError && (
+						<div className="mt-2 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300">
+							{parseError}
+						</div>
+					)}
+				</div>
+
+				{/* Preview */}
+				<div className="flex flex-col">
+					<div className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
+						Preview do wizard
+					</div>
+					<div className="min-h-[320px] rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 p-4 flex flex-col">
+						{previewError ? (
+							<div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-sm text-amber-800 dark:text-amber-200 p-4">
+								{previewError}
+							</div>
+						) : previewContent ? (
+							previewContent
+						) : (
+							<div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm text-center px-4">
+								Edite o JSON ao lado. O preview atualiza automaticamente. Use qualquer API do Zod nos campos <code className="px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700">schema</code> (ex.: preprocess, transform).
+							</div>
+						)}
+					</div>
+					{submittedData !== null && (
+						<details className="mt-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden">
+							<summary className="px-4 py-3 cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
+								Dados enviados (onComplete)
+							</summary>
+							<pre className="p-4 text-xs overflow-auto max-h-48 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200">
+								{JSON.stringify(submittedData, null, 2)}
+							</pre>
+						</details>
+					)}
+				</div>
 			</div>
 		</div>
 	);

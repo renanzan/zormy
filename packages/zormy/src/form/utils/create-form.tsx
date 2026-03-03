@@ -41,7 +41,7 @@ export const createForm = <
 			...props,
 			methods: methods as unknown as UseFormReturn<FormValuesType>,
 		};
-		return <Form {...(formProps as FormProps<FormValuesType, TContextOnly>)} />;
+		return <Form {...(formProps as FormProps<FormValuesType, TContextOnly, TFields>)} />;
 	};
 
 	return {

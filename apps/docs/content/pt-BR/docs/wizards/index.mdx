@@ -1,0 +1,73 @@
+---
+title: Wizards
+description: Formulários multi-step no Zormy — configuração, steps, navegação, condicionais e auto-save
+---
+
+import { minimumWizardCode } from "../../snippets/minimum-wizard";
+
+# Wizards
+
+Wizards organizam formulários em **múltiplos passos** (steps), com validação por etapa e navegação (próximo/voltar). O Zormy oferece tipagem forte para steps e campos.
+
+## Conceitos
+
+1. **Steps** — array de definições `{ name, fields }`.
+2. **Configuração** — `createWizardConfig({ steps: [...] })` (e opcionalmente `shouldIncludeStep`).
+3. **Componentes** — `createWizardComponents(config)` retorna `{ Wizard, Step, WizardNav, WizardNavBack, WizardNavNext }`.
+4. **Hook** — `useWizard({ steps: [...], defaultValues, onComplete, ... })`.
+5. **Render** — `<Wizard methods={wizard}>` e `<Step step="personal">` com os campos e botões de navegação.
+
+## Exemplo mínimo
+
+<CodeExample code={minimumWizardCode} editorHeight={460} />
+
+<Callout type="tip">
+	Mantenha `wizardConfig` **fora do componente** (no módulo ou acima do componente) para referências estáveis e melhor performance.
+</Callout>
+
+Para **useWizard vs createWizard**, veja [Hooks](/docs/wizards/hooks). Para **auto-save** ao avançar de step, veja [Auto save](/docs/wizards/auto-save).
+
+## Navegação
+
+O objeto retornado por `useWizard` inclui: `currentStep`, `currentStepIndex`, `steps`, `totalSteps`, `isFirstStep` / `isLastStep`, `next()`, `back()`, `goToStep(step)`.
+
+### Componentes de navegação (WizardNav)
+
+Para evitar condicionais manuais nos botões Voltar/Próximo, use a família **WizardNav** (todos com prop `as` para renderização polimórfica):
+
+- **WizardNav** — container (padrão `as="div"`) do grupo de botões.
+- **WizardNavBack** — botão "Voltar"; só renderiza quando `!isFirstStep`. Padrão `as="button"`, `type="button"`, `onClick={back}`.
+- **WizardNavNext** — botão "Próximo" ou "Finalizar": no último step renderiza `type="submit"` e exibe `submitLabel`; senão `type="button"`, `onClick={next}` e exibe `nextLabel`.
+
+Exemplo:
+
+```tsx
+const { Wizard, Step, WizardNav, WizardNavBack, WizardNavNext } = createWizardComponents(config);
+
+<Wizard methods={wizard}>
+  <Step step="personal">
+    <NameField />
+    <WizardNav as="div" className="flex gap-3">
+      <WizardNavBack as="button">Voltar</WizardNavBack>
+      <WizardNavNext as="button" nextLabel="Próximo" submitLabel="Finalizar" />
+    </WizardNav>
+  </Step>
+  <Step step="contact">
+    <EmailField />
+    <WizardNav as="div" className="flex gap-3">
+      <WizardNavBack as="button">Voltar</WizardNavBack>
+      <WizardNavNext as="button" nextLabel="Próximo" submitLabel="Finalizar" />
+    </WizardNav>
+  </Step>
+</Wizard>
+```
+
+## Steps condicionais
+
+Use `shouldIncludeStep` em `createWizardConfig` para steps que aparecem ou desaparecem conforme os valores do formulário.
+
+## Contexto do wizard
+
+Use `useWizardContext()` em componentes filhos para acessar o wizard (ex.: botões de navegação).
+
+Para a API completa (incluindo `WizardProvider`, tipos e auto-save), veja [Referência API](/docs/api-reference).

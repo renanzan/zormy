@@ -1,0 +1,61 @@
+---
+title: Campos com props customizadas
+description: Passar props customizadas para campos e defaultProps no extend
+---
+
+# Campos com props customizadas
+
+Campos Zormy são componentes React. Você pode definir **props customizadas** (ex.: `label`, `placeholder`, `disabled`) e passá-las ao renderizar o campo. Também pode definir **props padrão** em `.extend({ props: { ... } })`.
+
+## Tipando props customizadas
+
+A função `render` recebe o contexto do react-hook-form e um segundo argumento `props` (suas props customizadas). O tipo é inferido pelo que você passa em `render`:
+
+```tsx
+const NameField = field("name")
+	.schema(z.string().min(3))
+	.render(({ register, fieldState }, props: { label?: string; placeholder?: string }) => (
+		<div>
+			<label>{props?.label ?? "Nome"}</label>
+			<input placeholder={props?.placeholder} {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
+
+// Uso:
+<NameField label="Nome completo" placeholder="João Silva" />
+```
+
+## Props padrão com `.extend()`
+
+Com `abstractField()` ou ao reutilizar um campo, você pode definir props padrão para cada campo concreto:
+
+```tsx
+const BaseInput = abstractField()
+	.schema(z.string())
+	.render(({ register, fieldState }, props: { label: string }) => (
+		<div>
+			<label>{props.label}</label>
+			<input {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
+
+const NameField = BaseInput.extend({
+	key: "name",
+	props: { label: "Nome" },
+});
+const EmailField = BaseInput.extend({
+	key: "email",
+	props: { label: "Email" },
+});
+
+// Uso: props são opcionais se você definiu padrões
+<NameField />
+<EmailField />
+<NameField label="Label customizado" />  // sobrescreve o padrão
+```
+
+## Sobrescrevendo no uso
+
+As props passadas ao renderizar o componente têm prioridade sobre as props padrão de `.extend({ props })`. Assim você sempre pode sobrescrever por instância.

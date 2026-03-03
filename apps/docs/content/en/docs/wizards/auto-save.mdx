@@ -1,0 +1,83 @@
+---
+title: Auto save
+description: Saving wizard step data automatically when advancing to the next step
+---
+
+# Auto save
+
+When a wizard has multiple steps, you may want to **persist each step’s data** (e.g. to an API) when the user moves to the next step, instead of only submitting at the end. Zormy supports this via the `autoSave` option on `useWizard`.
+
+## How it works
+
+- You pass an `autoSave` function to `useWizard`.
+- When the user clicks “Next” (or “Finish”), the current step is validated. If it’s valid, `autoSave` is called with the **valid data for that step** and the wizard state.
+- You can call your API inside `autoSave` (e.g. `await saveStep(step, validChangedData)`).
+- The wizard exposes `useAutoSaveContext()` so you can show “Saving…”, “Saved”, or error in the UI.
+
+## Basic setup
+
+```tsx
+import { useWizard, createWizardConfig, createWizardComponents, useAutoSaveContext } from "zormy";
+
+const config = createWizardConfig({
+	steps: ["personal", "contact"] as const,
+	fields: {
+		personal: [NameField],
+		contact: [EmailField],
+	},
+});
+
+const { Wizard, Step } = createWizardComponents(config);
+
+function MyWizard() {
+	const wizard = useWizard({
+		...config,
+		defaultValues: { name: "", email: "" },
+		autoSave: async ({ step, validChangedData }) => {
+			await fetch("/api/save-step", {
+				method: "POST",
+				body: JSON.stringify({ step, data: validChangedData }),
+			});
+		},
+		onComplete: (data) => console.log("All data:", data),
+	});
+
+	return (
+		<Wizard methods={wizard} onSubmit={wizard.handleSubmit()}>
+			<Step step="personal"><NameField /></Step>
+			<Step step="contact"><EmailField /></Step>
+			{/* Next / Back / Submit buttons */}
+		</Wizard>
+	);
+}
+```
+
+## Showing save status
+
+Use `useAutoSaveContext()` inside the wizard to show whether the last save is pending, succeeded, or failed:
+
+```tsx
+function AutoSaveIndicator() {
+	const autoSave = useAutoSaveContext();
+
+	return (
+		<div>
+			{autoSave.status === "saving" && <span>Saving...</span>}
+			{autoSave.status === "saved" && <span>Saved</span>}
+			{autoSave.status === "error" && <span>Error saving</span>}
+			{autoSave.lastSaved && (
+				<span>Last saved at {autoSave.lastSaved.toLocaleTimeString()}</span>
+			)}
+		</div>
+	);
+}
+```
+
+Render `AutoSaveIndicator` inside `<Wizard>` so it has access to the context.
+
+## When `autoSave` runs
+
+- **On “Next”:** after the current step validates, `autoSave` is called with that step’s key and its validated data.
+- **On “Finish”:** the last step is validated and submitted; you can still use `autoSave` for that step and use `onComplete` for the final submission.
+
+If validation fails, `autoSave` is not called for that step.

@@ -3,8 +3,6 @@ title: Dicas e Boas Práticas
 description: Dicas úteis para trabalhar com Zormy de forma eficiente
 ---
 
-import { Callout, Cards } from "nextra/components";
-
 # Dicas e Boas Práticas
 
 Guia com dicas práticas para usar o Zormy de forma eficiente e evitar problemas comuns.
@@ -12,7 +10,10 @@ Guia com dicas práticas para usar o Zormy de forma eficiente e evitar problemas
 ## Organização de Código
 
 <Callout type="tip" emoji="💡">
-	O Zormy se beneficia de uma estrutura que reflita as camadas de [Design de formulários](/docs/form-design): átomos (campos primitivos), moléculas (grupos), organismos (formulários/seções) e templates (wizards). Organize pastas e exports para aproveitar ao máximo a reutilização.
+	O Zormy se beneficia de uma estrutura que reflita as camadas de [Design de
+	formulários](/docs/form-design): átomos (campos primitivos), moléculas (grupos), organismos
+	(formulários/seções) e templates (wizards). Organize pastas e exports para aproveitar ao máximo a
+	reutilização.
 </Callout>
 
 ### Estrutura de projeto recomendada
@@ -143,12 +144,12 @@ Nos formulários ou steps do wizard, use o array `[StreetField, CityField, ZipFi
 
 ### Quando usar `field()` vs `abstractField()`
 
-| Situação | Use |
-| -------- | --- |
-| Campo único, específico (ex.: "aceito termos") | `field("acceptTerms").schema(...).render(...)` |
-| Vários campos com mesma UI e tipo (nome, e-mail, descrição) | `abstractField().schema(...).render(...)` + `.extend({ key })` em cada um |
+| Situação                                                           | Use                                                                             |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| Campo único, específico (ex.: "aceito termos")                     | `field("acceptTerms").schema(...).render(...)`                                  |
+| Vários campos com mesma UI e tipo (nome, e-mail, descrição)        | `abstractField().schema(...).render(...)` + `.extend({ key })` em cada um       |
 | Grupo de campos que sempre vêm juntos (endereço, telefone com DDD) | Vários `field("...")` no mesmo arquivo + export de array ou componente de seção |
-| Schema ou UI depende de outro campo | `field("...").dependsOn(OutroCampo).schema((formValues) => ...).render(...)` |
+| Schema ou UI depende de outro campo                                | `field("...").dependsOn(OutroCampo).schema((formValues) => ...).render(...)`    |
 
 ### Estrutura por feature (alternativa)
 

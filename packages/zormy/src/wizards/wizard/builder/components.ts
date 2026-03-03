@@ -2,6 +2,11 @@ import { createElement } from "react";
 
 import { Step } from "../../../components/Step";
 import { Wizard } from "../../../components/Wizard";
+import {
+	WizardNav,
+	WizardNavBack,
+	WizardNavNext,
+} from "../../../components/WizardNav";
 
 import type { ComponentPropsWithoutRef, ElementType, ReactElement, ReactNode } from "react";
 import type { FieldValues, SubmitHandler, UseFormReturn } from "react-hook-form";
@@ -82,6 +87,28 @@ export type WizardComponents<TConfig> =
 					Step: <TAs extends ElementType = "div">(
 						props: TypedStepProps<Steps, TAs>
 					) => React.ReactElement;
+					/**
+					 * Container para botões de navegação (use com WizardNavBack e WizardNavNext).
+					 *
+					 * @example
+					 * ```tsx
+					 * <WizardNav as="div" className="flex gap-3">
+					 *   <WizardNavBack as="button">Voltar</WizardNavBack>
+					 *   <WizardNavNext as="button" nextLabel="Próximo" submitLabel="Finalizar" />
+					 * </WizardNav>
+					 * ```
+					 */
+					WizardNav: <TAs extends ElementType = "div">(
+						props: import("../../../components/WizardNav").WizardNavProps<TAs>
+					) => React.ReactElement;
+					/** Botão Voltar (só renderiza quando !isFirstStep). */
+					WizardNavBack: <TAs extends ElementType = "button">(
+						props: import("../../../components/WizardNav").WizardNavBackProps<TAs>
+					) => React.ReactElement | null;
+					/** Botão Próximo ou Finalizar (submit no último step). */
+					WizardNavNext: <TAs extends ElementType = "button">(
+						props: import("../../../components/WizardNav").WizardNavNextProps<TAs>
+					) => React.ReactElement;
 				}
 			: never
 		: never;
@@ -120,6 +147,10 @@ const TypedStepImpl = <Steps extends readonly string[], TAs extends ElementType 
 ): ReactElement => {
 	return createElement(Step<TAs>, props as unknown as TypedStepProps<Steps, TAs>);
 };
+
+const TypedWizardNavImpl = WizardNav;
+const TypedWizardNavBackImpl = WizardNavBack;
+const TypedWizardNavNextImpl = WizardNavNext;
 
 /**
  * Cria componentes Wizard e Step tipados baseados em uma configuração de wizard.
@@ -165,5 +196,8 @@ export function createWizardComponents<TConfig>(_config: TConfig): WizardCompone
 	return {
 		Wizard: TypedWizardImpl,
 		Step: TypedStepImpl,
+		WizardNav: TypedWizardNavImpl,
+		WizardNavBack: TypedWizardNavBackImpl,
+		WizardNavNext: TypedWizardNavNextImpl,
 	} as unknown as WizardComponents<TConfig>;
 }

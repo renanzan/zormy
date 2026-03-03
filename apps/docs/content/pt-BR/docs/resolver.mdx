@@ -1,0 +1,54 @@
+---
+title: React Hook Form (resolver)
+description: Como o Zormy se integra ao react-hook-form via zormyResolver
+---
+
+# Compatibilidade com React Hook Form (resolver)
+
+O Zormy é construído em cima do **React Hook Form**. A validação é feita por um **resolver** que monta um schema Zod a partir dos seus campos e o repassa ao `zodResolver` do `@hookform/resolvers`.
+
+## Usando `zormyResolver`
+
+O `zormyResolver` recebe um array de campos Zormy e retorna um resolver compatível com `useForm`:
+
+```tsx
+import { useForm } from "react-hook-form";
+import { zormyResolver, field, Form } from "zormy";
+import { z } from "zod";
+
+const NameField = field("name")
+	.schema(z.string().min(3))
+	.render(({ register, fieldState }) => (
+		<div>
+			<input {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
+
+function MyForm() {
+	const form = useForm({
+		resolver: zormyResolver({ fields: [NameField] }),
+		defaultValues: { name: "" },
+	});
+
+	return (
+		<Form methods={form} onSubmit={form.handleSubmit((data) => console.log(data))}>
+			<NameField />
+			<button type="submit">Enviar</button>
+		</Form>
+	);
+}
+```
+
+## O que o resolver faz
+
+- **Monta um shape Zod** a partir do `getZodSchema(formValues)` de cada campo, então schemas dinâmicos (que dependem de outros campos) funcionam.
+- **Suporta chaves aninhadas** (ex.: `"user.email"`): o shape é aninhado e os valores validados como objeto aninhado.
+- **Usa `zodResolver`** do `@hookform/resolvers/zod` por baixo, então refinamentos assíncronos (ex.: `.refine()` retornando `Promise`) são suportados.
+
+## Quando usar diretamente
+
+- Você precisa de controle total do `useForm` (ex.: `mode`, `shouldUnregister`, etc.).
+- Está integrando campos Zormy em um formulário que já usa `useForm`.
+
+Caso contrário, **`useZormy`** é mais simples: injeta o `zormyResolver` e infere o tipo do formulário. Veja [useForm vs useZormy vs createForm](/docs/forms/hooks).

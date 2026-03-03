@@ -1,59 +1,56 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { intl } from "@/translations";
 import { motion } from "framer-motion";
-import { getLandingT } from "@/translations/landing";
+import { useParams } from "next/navigation";
 
-const highlightMini = (code: string) => {
-	return code.split("\n").map((line, i) => {
-		const highlighted = line
-			.replace(/(const|import|from|return)/g, '<span class="code-keyword">$1</span>')
-			.replace(/('.*?'|".*?")/g, '<span class="code-string">$1</span>')
-			.replace(/(field|createForm|saveUser)/g, '<span class="code-function">$1</span>')
-			.replace(
-				/(z\.string|z\.email|onChange|value|error|data)/g,
-				'<span class="code-type">$1</span>'
-			)
-			.replace(/(\/\/.*)/g, '<span class="code-comment">$1</span>');
+import { highlightCode } from "./CodePreview";
 
-		return <div key={i} dangerouslySetInnerHTML={{ __html: highlighted }} />;
-	});
-};
+import type { LandingLocale } from "@/translations";
 
 const HowItWorks = () => {
 	const params = useParams();
-	const lang = (params?.lang as string) ?? "en";
-	const t = getLandingT(lang);
+	const lang = (params?.lang as LandingLocale) ?? "en";
+	const t = intl("landing", lang);
 
 	const steps = [
 		{
 			number: "01",
 			title: t.howStep1Title,
-			code: `const EmailField = field({
-  schema: z.string().email(),
-  render: ({ value, onChange, error }) => (
-    <input value={value} onChange={onChange} />
-  ),
-})`,
+			code: `import { field } from 'zormy';
+			
+const EmailField = field("email")
+	.schema(z.string().refine((value) => value.includes("@"), "Email must contain @"))
+	.render(({ register, fieldState }) => (
+		<div>
+			<input placeholder="Email" {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	))`,
 		},
 		{
 			number: "02",
 			title: t.howStep2Title,
-			code: `const MyForm = createForm({
-  fields: {
-    email: EmailField,
-    name: NameField,
-  },
-})`,
+			code: `import { createForm } from 'zormy';
+import { EmailField, NameField } from './fields';
+			
+const { Form } = createForm({ fields: [EmailField, NameField] })`,
 		},
 		{
 			number: "03",
 			title: t.howStep3Title,
-			code: `<MyForm onSubmit={(data) => {
+			code: `import { Form } from './Form';
+import { EmailField, NameField } from './fields';
+			
+<Form onSubmit={(data) => {
   // data: { email: string; name: string }
   ${t.howStep3Comment}
   saveUser(data)
-}} />`,
+}}>
+	<EmailField />
+	<NameField />
+	<button type="submit">Submit</button>
+</Form>`,
 		},
 	];
 
@@ -75,11 +72,10 @@ const HowItWorks = () => {
 					className="text-center mb-16"
 				>
 					<h2 className="text-3xl sm:text-4xl font-bold mb-4">
-						{t.howTitle}<span className="text-gradient">{t.howTitleHighlight}</span>
+						{t.howTitle}
+						<span className="text-gradient">{t.howTitleHighlight}</span>
 					</h2>
-					<p className="text-muted-foreground text-lg max-w-xl mx-auto">
-						{t.howSubtitle}
-					</p>
+					<p className="text-muted-foreground text-lg max-w-xl mx-auto">{t.howSubtitle}</p>
 				</motion.div>
 
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -106,7 +102,7 @@ const HowItWorks = () => {
 									<div className="w-2 h-2 rounded-full bg-accent/50" />
 									<div className="w-2 h-2 rounded-full bg-primary/50" />
 								</div>
-								<div className="p-4 code-block text-xs leading-6">{highlightMini(step.code)}</div>
+								<div className="p-4 code-block text-xs leading-6">{highlightCode(step.code)}</div>
 							</motion.div>
 						</motion.div>
 					))}

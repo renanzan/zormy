@@ -22,7 +22,7 @@ describe("createWizard - API para criar wizards", () => {
 				.schema(z.string().email())
 				.render(() => null);
 
-			const { Wizard, Step, methods } = createWizard({
+			const { Wizard, Step, WizardNav, WizardNavBack, WizardNavNext, methods } = createWizard({
 				steps: [
 					{ name: "step1", fields: [NameField] },
 					{ name: "step2", fields: [EmailField] },
@@ -35,6 +35,9 @@ describe("createWizard - API para criar wizards", () => {
 			// @ts-expect-error - methods não deve ser uma propriedade do Wizard pois é injetado automaticamente
 			expectTypeOf<WizardProps["methods"]>();
 			expectTypeOf<StepProps["step"]>().toEqualTypeOf<"step1" | "step2">();
+			expectTypeOf(WizardNav).toBeFunction();
+			expectTypeOf(WizardNavBack).toBeFunction();
+			expectTypeOf(WizardNavNext).toBeFunction();
 			expectTypeOf(methods.steps).toEqualTypeOf<["step1", "step2"]>();
 
 			const values = methods.watch();

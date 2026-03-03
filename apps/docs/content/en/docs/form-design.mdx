@@ -3,8 +3,6 @@ title: Form Design
 description: Atomic design–inspired approach applied to forms with Zormy
 ---
 
-import { Callout, Cards } from "nextra/components";
-
 # Form Design
 
 Zormy proposes a **new way to handle forms**: instead of treating each screen as a monolithic block (loose schemas, inputs tied to the page), you build forms from **reusable, composable units** — an approach inspired by **atomic design**, but applied to the form domain.
@@ -57,16 +55,17 @@ The **page** is the concrete instance: a checkout wizard, a multi-step signup, a
 
 ## Layer summary
 
-| Layer        | In Zormy                                                                 | Example                                       |
-| ------------ | ------------------------------------------------------------------------ | --------------------------------------------- |
-| **Atom**     | `field(key)` or `abstractField().extend({ key })` with schema + render   | `NameField`, `EmailField`, `BaseTextField`    |
-| **Molecule** | Several fields grouped (same array or component that renders them)      | Address (street, city, zip)                  |
-| **Organism** | Form or section: array of fields + `<Form>` / step                       | Signup form, “Personal data” step             |
-| **Template** | Wizard config: steps + fields per step                                   | `createWizardConfig` for checkout            |
-| **Page**     | Wizard/Form instance with defaultValues and callbacks                    | “Checkout” page, “User signup” page          |
+| Layer        | In Zormy                                                               | Example                                    |
+| ------------ | ---------------------------------------------------------------------- | ------------------------------------------ |
+| **Atom**     | `field(key)` or `abstractField().extend({ key })` with schema + render | `NameField`, `EmailField`, `BaseTextField` |
+| **Molecule** | Several fields grouped (same array or component that renders them)     | Address (street, city, zip)                |
+| **Organism** | Form or section: array of fields + `<Form>` / step                     | Signup form, “Personal data” step          |
+| **Template** | Wizard config: steps + fields per step                                 | `createWizardConfig` for checkout          |
+| **Page**     | Wizard/Form instance with defaultValues and callbacks                  | “Checkout” page, “User signup” page        |
 
 <Callout type="info">
-	Layers are a **way to organize** code and thinking. Zormy does not require specific folders or names; you can adopt this hierarchy in your project structure and documentation.
+	Layers are a **way to organize** code and thinking. Zormy does not require specific folders or
+	names; you can adopt this hierarchy in your project structure and documentation.
 </Callout>
 
 ## Next steps

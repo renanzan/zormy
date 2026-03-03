@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { intl } from "@/translations";
 import { motion } from "framer-motion";
 import { ArrowRight, Check, Copy, Github } from "lucide-react";
 import Link from "next/link";
-import { getLandingT } from "@/translations/landing";
+import { useParams } from "next/navigation";
+
+import type { LandingLocale } from "@/translations";
 
 const FloatingOrb = ({ className, delay = 0 }: { className: string; delay?: number }) => (
 	<motion.div
@@ -28,8 +30,8 @@ const FloatingOrb = ({ className, delay = 0 }: { className: string; delay?: numb
 
 const HeroSection = () => {
 	const params = useParams();
-	const lang = (params?.lang as string) ?? "en";
-	const t = getLandingT(lang);
+	const lang = (params?.lang as LandingLocale) ?? "en";
+	const t = intl("landing", lang);
 	const base = `/${lang}`;
 	const [copied, setCopied] = useState(false);
 	const installCmd = "pnpm add zormy zod react-hook-form";
@@ -71,7 +73,8 @@ const HeroSection = () => {
 					transition={{ duration: 0.5, delay: 0.1 }}
 					className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6 max-w-4xl mx-auto"
 				>
-					{t.heroTitle}<span className="text-gradient">{t.heroTitleHighlight}</span>
+					{t.heroTitle}
+					<span className="text-gradient">{t.heroTitleHighlight}</span>
 				</motion.h1>
 
 				{/* Subtitle */}

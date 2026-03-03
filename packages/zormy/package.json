@@ -1,6 +1,6 @@
 {
 	"name": "zormy",
-	"version": "0.0.13",
+	"version": "1.0.0",
 	"private": false,
 	"description": "Formulários reutilizáveis para a plataforma Incentiv",
 	"type": "module",

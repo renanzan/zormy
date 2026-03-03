@@ -1,0 +1,83 @@
+---
+title: Auto save
+description: Salvar dados do step automaticamente ao avançar no wizard
+---
+
+# Auto save
+
+Em um wizard com vários steps, você pode querer **persistir os dados de cada step** (ex.: numa API) quando o usuário avança, em vez de enviar só no final. O Zormy suporta isso pela opção `autoSave` do `useWizard`.
+
+## Como funciona
+
+- Você passa uma função `autoSave` para `useWizard`.
+- Quando o usuário clica em “Próximo” (ou “Finalizar”), o step atual é validado. Se for válido, `autoSave` é chamada com os **dados validados desse step** e o estado do wizard.
+- Dentro de `autoSave` você pode chamar sua API (ex.: `await saveStep(step, validChangedData)`).
+- O wizard expõe `useAutoSaveContext()` para mostrar “Salvando…”, “Salvo” ou erro na UI.
+
+## Configuração básica
+
+```tsx
+import { useWizard, createWizardConfig, createWizardComponents, useAutoSaveContext } from "zormy";
+
+const config = createWizardConfig({
+	steps: ["personal", "contact"] as const,
+	fields: {
+		personal: [NameField],
+		contact: [EmailField],
+	},
+});
+
+const { Wizard, Step } = createWizardComponents(config);
+
+function MyWizard() {
+	const wizard = useWizard({
+		...config,
+		defaultValues: { name: "", email: "" },
+		autoSave: async ({ step, validChangedData }) => {
+			await fetch("/api/save-step", {
+				method: "POST",
+				body: JSON.stringify({ step, data: validChangedData }),
+			});
+		},
+		onComplete: (data) => console.log("Todos os dados:", data),
+	});
+
+	return (
+		<Wizard methods={wizard} onSubmit={wizard.handleSubmit()}>
+			<Step step="personal"><NameField /></Step>
+			<Step step="contact"><EmailField /></Step>
+			{/* Botões Próximo / Voltar / Enviar */}
+		</Wizard>
+	);
+}
+```
+
+## Mostrando status de salvamento
+
+Use `useAutoSaveContext()` dentro do wizard para exibir se o último save está pendente, concluído ou com erro:
+
+```tsx
+function AutoSaveIndicator() {
+	const autoSave = useAutoSaveContext();
+
+	return (
+		<div>
+			{autoSave.status === "saving" && <span>Salvando...</span>}
+			{autoSave.status === "saved" && <span>Salvo</span>}
+			{autoSave.status === "error" && <span>Erro ao salvar</span>}
+			{autoSave.lastSaved && (
+				<span>Último save: {autoSave.lastSaved.toLocaleTimeString()}</span>
+			)}
+		</div>
+	);
+}
+```
+
+Renderize `AutoSaveIndicator` dentro de `<Wizard>` para ter acesso ao contexto.
+
+## Quando o `autoSave` é chamado
+
+- **Em “Próximo”:** após validar o step atual, `autoSave` é chamada com a chave do step e os dados validados.
+- **Em “Finalizar”:** o último step é validado e enviado; você pode usar `autoSave` para esse step e `onComplete` para o envio final.
+
+Se a validação falhar, `autoSave` não é chamada para aquele step.

@@ -3,9 +3,7 @@ title: Forms
 description: Forms in Zormy — Form, useForm, zormyResolver, and validation mode
 ---
 
-import { Callout } from "nextra/components";
-
-import { simpleFormCode } from "../snippets/simple-form";
+import { simpleFormCode } from "../../snippets/simple-form";
 
 # Forms
 
@@ -46,20 +44,7 @@ Form supports **two modes**: with **`methods`** (you pass the return value of `u
 | `contextOnly`   | `boolean`              | If `true`, does not render `<form>`, only the context (useful for custom wrappers or Radix Slot) |
 | `children`      | `ReactNode`            | Form content                                                                                     |
 
-**Example with `contextOnly`** (without `<form>` element):
-
-```tsx
-<Form methods={form} contextOnly>
-	<CustomWrapper>
-		<NameField />
-		<button type="button" onClick={form.handleSubmit(handleSubmit)}>
-			Submit
-		</button>
-	</CustomWrapper>
-</Form>
-```
-
-When `contextOnly` is `true`, HTML props passed to `Form` are **not** automatically forwarded to the child — you control the wrapper.
+For **useForm vs useZormy vs createForm**, see [Hooks](/docs/forms/hooks).
 
 ## Validation mode (`mode`)
 
@@ -70,16 +55,8 @@ When `contextOnly` is `true`, HTML props passed to `Form` are **not** automatica
 | `"onChange"`  | Validates on every change (common default)                      |
 | `"onBlur"`    | Validates when leaving the field                                |
 | `"onSubmit"`  | Validates only on submit                                        |
-| `"onTouched"` | Validates after the field is “touched” and then on every change |
+| `"onTouched"` | Validates after the field is "touched" and then on every change |
 | `"all"`       | Validates on onChange and onBlur                                |
-
-```tsx
-const form = useForm({
-	resolver: zormyResolver({ fields: [NameField] }),
-	defaultValues: { name: "" },
-	mode: "onBlur", // validates when leaving the field
-});
-```
 
 ## `defaultValues`
 
@@ -87,9 +64,5 @@ They must cover **all field keys** (including nested ones). Examples:
 
 - Fields `"name"` and `"email"` → `defaultValues: { name: "", email: "" }`
 - Field `"user.name"` → `defaultValues: { user: { name: "" } }`
-
-## react-hook-form re-exports
-
-Zormy re-exports `useForm`, `Controller`, `SubmitHandler`, and `FormProvider` for direct use. In practice, use Zormy’s `useForm` and `<Form>` to keep typing and context aligned. For custom controls (e.g., date picker), use Zormy’s `Controller` with the `control` from your `useForm`.
 
 For the complete API of `Form` and `zormyResolver`, see [API Reference](/docs/api-reference).

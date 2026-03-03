@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { field } from "../../../src/fields/field/builder/builder";
@@ -30,13 +30,19 @@ describe("createWizardComponents - testes unitários", () => {
 	const config = createWizardConfig({ steps: stepsConfig });
 
 	describe("retorno da função", () => {
-		it("deve retornar um objeto com Wizard e Step", () => {
+		it("deve retornar um objeto com Wizard, Step e componentes de navegação", () => {
 			const components = createWizardComponents(config);
 
 			expect(components).toHaveProperty("Wizard");
 			expect(components).toHaveProperty("Step");
+			expect(components).toHaveProperty("WizardNav");
+			expect(components).toHaveProperty("WizardNavBack");
+			expect(components).toHaveProperty("WizardNavNext");
 			expect(typeof components.Wizard).toBe("function");
 			expect(typeof components.Step).toBe("function");
+			expect(typeof components.WizardNav).toBe("function");
+			expect(typeof components.WizardNavBack).toBe("function");
+			expect(typeof components.WizardNavNext).toBe("function");
 		});
 
 		it("deve retornar objetos diferentes, mas componentes estáveis (mesma referência)", () => {
@@ -49,6 +55,194 @@ describe("createWizardComponents - testes unitários", () => {
 			// para evitar rerenders desnecessários quando usado dentro de render
 			expect(components1.Wizard).toBe(components2.Wizard);
 			expect(components1.Step).toBe(components2.Step);
+			expect(components1.WizardNav).toBe(components2.WizardNav);
+			expect(components1.WizardNavBack).toBe(components2.WizardNavBack);
+			expect(components1.WizardNavNext).toBe(components2.WizardNavNext);
+		});
+	});
+
+	describe("componente WizardNav", () => {
+		it("WizardNav deve renderizar container com filhos", () => {
+			const { Wizard, Step, WizardNav, WizardNavBack, WizardNavNext } =
+				createWizardComponents(config);
+
+			function TestComponent() {
+				const wizard = useWizard({
+					steps: stepsConfig,
+					defaultValues: { name: "", email: "" },
+				});
+
+				return (
+					<Wizard methods={wizard}>
+						<Step step="step1">
+							<div data-testid="step1">Step 1</div>
+							<WizardNav as="div" data-testid="nav-container" className="flex gap-3">
+								<WizardNavBack as="button">Voltar</WizardNavBack>
+								<WizardNavNext as="button" nextLabel="Próximo" submitLabel="Finalizar" />
+							</WizardNav>
+						</Step>
+					</Wizard>
+				);
+			}
+
+			render(<TestComponent />);
+
+			const nav = screen.getByTestId("nav-container");
+			expect(nav).toBeInTheDocument();
+			expect(nav.tagName).toBe("DIV");
+			expect(nav).toHaveClass("flex", "gap-3");
+		});
+
+		it("WizardNavBack não deve renderizar no primeiro step", () => {
+			const { Wizard, Step, WizardNav, WizardNavBack, WizardNavNext } =
+				createWizardComponents(config);
+
+			function TestComponent() {
+				const wizard = useWizard({
+					steps: stepsConfig,
+					defaultValues: { name: "", email: "" },
+				});
+
+				return (
+					<Wizard methods={wizard}>
+						<Step step="step1">
+							<WizardNav as="div">
+								<WizardNavBack as="button" data-testid="back-btn">
+									Voltar
+								</WizardNavBack>
+								<WizardNavNext as="button" data-testid="next-btn" />
+							</WizardNav>
+						</Step>
+					</Wizard>
+				);
+			}
+
+			render(<TestComponent />);
+
+			expect(screen.queryByTestId("back-btn")).not.toBeInTheDocument();
+			expect(screen.getByTestId("next-btn")).toBeInTheDocument();
+		});
+
+		it("WizardNavBack deve renderizar a partir do segundo step", async () => {
+			const { Wizard, Step, WizardNav, WizardNavBack, WizardNavNext } =
+				createWizardComponents(config);
+
+			function TestComponent() {
+				const wizard = useWizard({
+					steps: stepsConfig,
+					defaultValues: { name: "John", email: "j@x.com" },
+				});
+
+				return (
+					<Wizard methods={wizard}>
+						<Step step="step1">
+							<WizardNav as="div">
+								<WizardNavBack as="button" data-testid="back-btn">
+									Voltar
+								</WizardNavBack>
+								<WizardNavNext
+									as="button"
+									data-testid="next-btn"
+									nextLabel="Próximo"
+									submitLabel="Finalizar"
+								/>
+							</WizardNav>
+						</Step>
+						<Step step="step2">
+							<WizardNav as="div">
+								<WizardNavBack as="button" data-testid="back-btn">
+									Voltar
+								</WizardNavBack>
+								<WizardNavNext
+									as="button"
+									data-testid="submit-btn"
+									nextLabel="Próximo"
+									submitLabel="Finalizar"
+								/>
+							</WizardNav>
+						</Step>
+					</Wizard>
+				);
+			}
+
+			render(<TestComponent />);
+
+			// Step 1: sem back, com next
+			expect(screen.queryByTestId("back-btn")).not.toBeInTheDocument();
+			const nextBtn = screen.getByTestId("next-btn");
+			expect(nextBtn).toHaveAttribute("type", "button");
+			expect(nextBtn).toHaveTextContent("Próximo");
+
+			// Avançar para step 2 (next() é assíncrono)
+			fireEvent.click(nextBtn);
+			await waitFor(() => {
+				expect(screen.getByTestId("back-btn")).toBeInTheDocument();
+			});
+
+			// Step 2: com back e submit
+			const backBtn = screen.getByTestId("back-btn");
+			expect(backBtn).toBeInTheDocument();
+			expect(backBtn).toHaveAttribute("type", "button");
+			const submitBtn = screen.getByTestId("submit-btn");
+			expect(submitBtn).toHaveAttribute("type", "submit");
+			expect(submitBtn).toHaveTextContent("Finalizar");
+		});
+
+		it("WizardNavNext deve usar nextLabel e submitLabel conforme o step", () => {
+			const { Wizard, Step, WizardNavNext } = createWizardComponents(config);
+
+			function TestComponent() {
+				const wizard = useWizard({
+					steps: stepsConfig,
+					defaultValues: { name: "", email: "" },
+				});
+
+				return (
+					<Wizard methods={wizard}>
+						<Step step="step1">
+							<WizardNavNext
+								as="button"
+								data-testid="nav-next"
+								nextLabel="Go next"
+								submitLabel="Send"
+							/>
+						</Step>
+					</Wizard>
+				);
+			}
+
+			render(<TestComponent />);
+
+			const btn = screen.getByTestId("nav-next");
+			expect(btn).toHaveTextContent("Go next");
+			expect(btn).toHaveAttribute("type", "button");
+		});
+
+		it("WizardNav deve aceitar prop 'as' e renderizar o elemento correto", () => {
+			const { Wizard, Step, WizardNav, WizardNavBack, WizardNavNext } =
+				createWizardComponents(config);
+
+			function TestComponent() {
+				const wizard = useWizard({
+					steps: stepsConfig,
+					defaultValues: { name: "", email: "" },
+				});
+
+				return (
+					<Wizard methods={wizard}>
+						<Step step="step1">
+							<WizardNav as="nav" data-testid="nav-root">
+								<WizardNavNext as="button" data-testid="next-btn" />
+							</WizardNav>
+						</Step>
+					</Wizard>
+				);
+			}
+
+			render(<TestComponent />);
+
+			const nav = screen.getByTestId("nav-root");
+			expect(nav.tagName).toBe("NAV");
 		});
 	});
 

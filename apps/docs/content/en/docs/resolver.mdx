@@ -1,0 +1,54 @@
+---
+title: React Hook Form (resolver)
+description: How Zormy integrates with react-hook-form via zormyResolver
+---
+
+# Compatibility with React Hook Form (resolver)
+
+Zormy is built on top of **React Hook Form**. Validation is delegated to a **resolver** that builds a Zod schema from your fields and passes it to `@hookform/resolvers`'s `zodResolver`.
+
+## Using `zormyResolver`
+
+`zormyResolver` receives an array of Zormy fields and returns a resolver compatible with `useForm`:
+
+```tsx
+import { useForm } from "react-hook-form";
+import { zormyResolver, field, Form } from "zormy";
+import { z } from "zod";
+
+const NameField = field("name")
+	.schema(z.string().min(3))
+	.render(({ register, fieldState }) => (
+		<div>
+			<input {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
+
+function MyForm() {
+	const form = useForm({
+		resolver: zormyResolver({ fields: [NameField] }),
+		defaultValues: { name: "" },
+	});
+
+	return (
+		<Form methods={form} onSubmit={form.handleSubmit((data) => console.log(data))}>
+			<NameField />
+			<button type="submit">Submit</button>
+		</Form>
+	);
+}
+```
+
+## What the resolver does
+
+- **Builds a Zod shape** from each field's `getZodSchema(formValues)`, so dynamic schemas (that depend on other fields) work correctly.
+- **Supports nested keys** (e.g. `"user.email"`): the shape is nested and values are validated as nested objects.
+- **Uses `zodResolver`** from `@hookform/resolvers/zod` under the hood, so async refinements (e.g. `.refine()` returning a `Promise`) are supported.
+
+## When to use it directly
+
+- You need full control over `useForm` (e.g. custom `mode`, `shouldUnregister`, etc.).
+- You integrate Zormy fields into an existing form that already uses `useForm`.
+
+Otherwise, **`useZormy`** is simpler: it injects `zormyResolver` for you and infers the form type from the fields array. See [useForm vs useZormy vs createForm](/docs/forms/hooks).

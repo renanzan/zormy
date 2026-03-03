@@ -1,0 +1,16 @@
+---
+title: Dependent Fields
+description: Fields that appear based on other fields
+---
+
+import { dependentFieldsCode } from "../snippets/dependent-fields";
+
+# Dependent Fields
+
+<Callout type="tip">
+	Use `.dependsOn()` to create fields that appear or validate based on other fields
+</Callout>
+
+Example of a field that depends on another field. Check "Has password?" and fill it (or not) to see the validation:
+
+<CodeExample editorHeight={440} code={dependentFieldsCode} />

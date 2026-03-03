@@ -1,0 +1,55 @@
+/* ========== Code block styling ========== */
+.code-comment {
+	font-style: italic;
+	color: hsl(219, 10%, 40%); /* Cinza para comentários */
+}
+
+.code-block {
+	font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+	font-size: 0.85rem;
+	line-height: 1.7;
+}
+
+.code-string {
+	color: hsl(95, 38%, 62%); /* Verde para strings como "username" */
+}
+
+.code-tag {
+	color: hsl(355, 65%, 65%); /* Rosa/Vermelho para tags JSX como <input> e <Form> */
+}
+
+.code-keyword {
+	color: hsl(260, 70%, 68%); /* Roxo para import, const, return */
+}
+
+.code-property {
+	color: hsl(29, 54%, 61%); /* Laranja/Marrom para atributos como placeholder= */
+}
+
+.code-function {
+	color: hsl(207, 82%, 66%); /* Azul para funções como field(), render() e console.log */
+}
+
+.code-type {
+	color: hsl(39, 67%, 69%); /* Amarelo para Componentes como UsernameField e Form */
+}
+
+.code-punctuation {
+	color: hsl(215 20% 55%);
+}
+.code-variable {
+	color: hsl(210, 10%, 65%);
+}
+
+.code-bracket {
+	/* color: hsl(273, 65%, 70%); */
+	color: hsl(219, 14%, 71%); /* Cinza claro para chaves, colchetes e parênteses */
+}
+
+.code-punctuation {
+	color: #abb2bf; /* Cinza claro para pontuações e operadores lógicos &&, || */
+}
+
+.code-variable {
+	color: hsl(219, 14%, 71%); /* Uma variação sutil para variáveis de escopo */
+}

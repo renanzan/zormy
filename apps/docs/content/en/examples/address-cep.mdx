@@ -1,0 +1,34 @@
+---
+title: Address + CEP (API)
+description: Real-world example — address form with CEP lookup via ViaCEP API
+---
+
+import { addressCepCode } from "../snippets/address-cep";
+
+# Address form with CEP lookup
+
+This example shows a **real-world pattern**: an address form where the user enters a Brazilian postal code (CEP). When the CEP is valid (8 digits), the form calls the [ViaCEP](https://viacep.com.br) API and fills street, neighborhood, city, and state automatically.
+
+## Features
+
+- **Nested fields** for `address.*` (dot notation)
+- **`watch` + `useEffect`** to react to CEP changes
+- **`setValue`** to fill fields from the API response
+- **ViaCEP** public API (no key required)
+
+<Callout type="info">
+	In a sandbox (e.g. StackBlitz), the fetch to `viacep.com.br` may be allowed; if not, you can run the same code locally or mock the API for tests.
+</Callout>
+
+## Live example
+
+<CodeExample editorHeight={520} code={addressCepCode} />
+
+## Flow
+
+1. User types a CEP (e.g. `01310-100`).
+2. When the CEP has 8 digits, the effect runs and calls `https://viacep.com.br/ws/{cep}/json/`.
+3. The response is mapped to `setValue("address.street", ...)`, etc.
+4. User can edit any field before submitting.
+
+You can reuse this pattern for other APIs (e.g. company by CNPJ) by swapping the endpoint and the field mapping.

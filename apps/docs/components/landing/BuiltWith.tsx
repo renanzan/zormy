@@ -1,9 +1,11 @@
 "use client";
 
-import { getLandingT } from "@/translations/landing";
+import { intl } from "@/translations";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useParams } from "next/navigation";
+
+import type { LandingLocale } from "@/translations";
 
 const techs = [
 	{
@@ -26,8 +28,8 @@ const techs = [
 
 const BuiltWith = () => {
 	const params = useParams();
-	const lang = (params?.lang as string) ?? "en";
-	const t = getLandingT(lang);
+	const lang = (params?.lang as LandingLocale) ?? "en";
+	const t = intl("landing", lang);
 
 	return (
 		<section className="py-16 lg:py-24">

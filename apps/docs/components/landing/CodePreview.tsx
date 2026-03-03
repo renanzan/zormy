@@ -1,46 +1,81 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getLandingT } from "@/translations/landing";
+import { intl } from "@/translations";
 import { motion } from "framer-motion";
 import { useParams } from "next/navigation";
 
-const highlightCode = (code: string) => {
-	return code.split("\n").map((line, i) => {
-		// Escapa < e > do código para não serem interpretados como HTML (ex.: <span>{error}</span>)
-		const escaped = line.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-		// Ordem importa: strings primeiro para não casar com o HTML dos outros replaces
-		const highlighted = escaped
-			.replace(
-				/('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`)/g,
-				'<span class="code-string">$1</span>'
-			)
-			.replace(/(\/\/.*)/g, '<span class="code-comment">$1</span>')
-			.replace(
-				/(createForm|createWizard|field\(|step|console\.log|api\.createUser)/g,
-				'<span class="code-function">$1</span>'
-			)
-			.replace(
-				/(z\.string|z\.email|z\.min|.min|useForm|myForm|register|onChange|value|error|data|allData)/g,
-				'<span class="code-type">$1</span>'
-			)
-			.replace(/(import|from|const|return|export)/g, '<span class="code-keyword">$1</span>');
+import type { LandingLocale } from "@/translations";
 
-		return (
-			<div key={i} className="flex">
-				<span className="w-8 shrink-0 text-right pr-4 text-muted-foreground/40 select-none text-xs leading-7">
-					{i + 1}
-				</span>
-				<span className="whitespace-pre" dangerouslySetInnerHTML={{ __html: highlighted }} />
-			</div>
+export const highlightCode = (code: string) => {
+	const escaped = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+	const tokens: string[] = [];
+	const addToken = (match: string, className: string) => {
+		const id = `\x01${tokens.length}\x02`;
+		tokens.push(`<span class="${className}">${match}</span>`);
+		return id;
+	};
+
+	let processed = escaped
+		// 1. Comentários e Strings
+		.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, (m) => addToken(m, "code-comment"))
+		.replace(/('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\$]|\\.|(\$\{[^}]+\}))*`)/g, (m) =>
+			addToken(m, "code-string")
+		)
+
+		// 2. JSX Tags (Início e Fim: <input, />, >)
+		.replace(/(&lt;\/?[a-z][A-Z0-9]*|(?<!=)&gt;|\/&gt;)/gi, (m) => addToken(m, "code-tag"))
+
+		// 3. Keywords
+		.replace(
+			/\b(const|let|var|return|import|from|export|default|async|await|type|interface|as)\b/g,
+			(m) => addToken(m, "code-keyword")
+		)
+
+		// 4. ATRIBUTOS JSX E CHAVES DE OBJETO
+		.replace(/\b(\w+)(?==|:)/g, (m) => addToken(m, "code-property"))
+
+		// 5. FUNÇÕES E MÉTODOS
+		.replace(/(?:\b|(?<=\.))([a-z_][a-zA-Z0-9_]*)(?=\s*\()/g, (m) => addToken(m, "code-function"))
+
+		// 6. COMPONENTES E CLASSES
+		.replace(/\b([A-Z][a-zA-Z0-9]*)\b/g, (m) => addToken(m, "code-type"))
+
+		// 7. Brackets
+		.replace(/[{}()\[\]]/g, (m) => addToken(m, "code-bracket"))
+
+		// 8. Punctuation & Operators (COMPLETO)
+		// Adicionado: ..., ??, ?., comparações (!==, <=), matemática (+=, *) e operadores lógicos
+		.replace(
+			/(\.\.\.|&amp;&amp;|\|\||\?\?|=&gt;|&lt;=|&gt;=|&lt;|&gt;|!==|!=|===|==|=|\?\.|\+=|-=|\*=|\/=|\+|-|\*|\/|\.|\,|:|(?<!&(?:amp|lt|gt));|\!|\?)/g,
+			(m) => addToken(m, "code-punctuation")
+		)
+
+		// 9. VARIÁVEIS DE ESCOPO
+		.replace(/\b(value|onChange|error|data|props|fieldState|register)\b/g, (m) =>
+			addToken(m, "code-variable")
 		);
+
+	// Reinsere os tokens
+	tokens.forEach((token, i) => {
+		processed = processed.replace(new RegExp(`\\x01${i}\\x02`, "g"), token);
 	});
+
+	return processed.split("\n").map((line, i) => (
+		<div key={i} className="flex font-mono text-[13px] leading-6 group hover:bg-white/[0.02]">
+			<span className="w-10 shrink-0 text-right pr-4 text-gray-500/40 select-none border-r border-white/5 mr-4">
+				{i + 1}
+			</span>
+			<span className="whitespace-pre" dangerouslySetInnerHTML={{ __html: line || " " }} />
+		</div>
+	));
 };
 
 const CodePreview = () => {
 	const params = useParams();
-	const lang = (params?.lang as string) ?? "en";
-	const t = getLandingT(lang);
+	const lang = (params?.lang as LandingLocale) ?? "en";
+	const t = intl("landing", lang);
 
 	const simpleFormCode = `import { createForm, field } from 'zormy'
 import { z } from 'zod'
@@ -72,29 +107,46 @@ return (
 	</Form>
 );`;
 
-	const wizardCode = `import { createWizard, step } from 'zormy'
+	const wizardCode = `import { createWizard, step } from 'zormy';
 
-const Step1 = step({
-  fields: {
-    name: NameField,
-    email: EmailField
-  }
-})
+const { Wizard, Step, methods } = createWizard({
+	steps: ["step1", "step2"] as const,
+	fields: {
+		step1: [NameField, EmailField],
+		step2: [AddressField, PhoneField],
+	},
+	onComplete: (data) => {
+		// data: { name: string; email: string; address: string; phone: string }
+		${t.codePreviewCommentWizard}
+		api.createUser(data)
+	}
+});
 
-const Step2 = step({
-  fields: {
-    address: AddressField,
-    phone: PhoneField
-  }
-})
+return (
+	<Wizard>
+		<Step step="step1">
+			<NameField />
+			<EmailField />
+		</Step>
+		
+		<Step step="step2">
+			<AddressField />
+			<PhoneField />
+		</Step>
 
-const SignupWizard = createWizard({
-  steps: [Step1, Step2],
-  onComplete: (allData) => {
-    ${t.codePreviewCommentWizard}
-    api.createUser(allData)
-  }
-})`;
+		{!methods.isFirstStep && (
+			<button type="button" onClick={methods.back}>Back</button>
+		)}
+		
+		{!methods.isLastStep && (
+			<button type="button" onClick={methods.next}>Next</button>
+		)}
+		
+		{methods.isLastStep && (
+			<button type="submit">Submit</button>
+		)}
+	</Wizard>
+);`;
 
 	return (
 		<section id="code-preview" className="py-20 lg:py-32">

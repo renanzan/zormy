@@ -3,8 +3,6 @@ title: Design de formulários
 description: Abordagem inspirada em atomic design aplicada a formulários com Zormy
 ---
 
-import { Callout, Cards } from "nextra/components";
-
 # Design de formulários
 
 O Zormy propõe uma **nova forma de lidar com formulários**: em vez de tratar cada tela como um bloco monolítico (schemas soltos, inputs acoplados à página), você constrói formulários a partir de **unidades reutilizáveis e composáveis** — uma abordagem inspirada no **atomic design**, mas aplicada ao domínio de formulários.
@@ -57,16 +55,17 @@ A **página** é a instância concreta: um wizard de checkout, um cadastro em m�
 
 ## Resumo das camadas
 
-| Camada     | No Zormy                                                                 | Exemplo                                      |
-| ---------- | ------------------------------------------------------------------------ | -------------------------------------------- |
-| **Átomo**  | `field(key)` ou `abstractField().extend({ key })` com schema + render    | `NameField`, `EmailField`, `BaseTextField`   |
-| **Molécula** | Vários campos agrupados (mesmo array ou componente que renderiza vários) | Endereço (rua, cidade, CEP)                  |
-| **Organismo** | Form ou seção: array de campos + `<Form>` / step                          | Formulário de cadastro, step “Dados pessoais” |
-| **Template** | Config de wizard: steps + fields por step                                | `createWizardConfig` do checkout             |
-| **Página** | Wizard/Form instanciado com defaultValues e callbacks                    | Página “Checkout”, “Cadastro de usuário”     |
+| Camada        | No Zormy                                                                 | Exemplo                                       |
+| ------------- | ------------------------------------------------------------------------ | --------------------------------------------- |
+| **Átomo**     | `field(key)` ou `abstractField().extend({ key })` com schema + render    | `NameField`, `EmailField`, `BaseTextField`    |
+| **Molécula**  | Vários campos agrupados (mesmo array ou componente que renderiza vários) | Endereço (rua, cidade, CEP)                   |
+| **Organismo** | Form ou seção: array de campos + `<Form>` / step                         | Formulário de cadastro, step “Dados pessoais” |
+| **Template**  | Config de wizard: steps + fields por step                                | `createWizardConfig` do checkout              |
+| **Página**    | Wizard/Form instanciado com defaultValues e callbacks                    | Página “Checkout”, “Cadastro de usuário”      |
 
 <Callout type="info">
-	Camadas são uma **forma de organizar** o código e o pensamento. O Zormy não exige pastas ou nomes específicos; você pode adotar essa hierarquia na estrutura de pastas e na documentação do projeto.
+	Camadas são uma **forma de organizar** o código e o pensamento. O Zormy não exige pastas ou nomes
+	específicos; você pode adotar essa hierarquia na estrutura de pastas e na documentação do projeto.
 </Callout>
 
 ## Próximos passos

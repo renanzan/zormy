@@ -1,0 +1,109 @@
+---
+title: useWizard vs createWizard
+description: Two ways to build multi-step wizards with Zormy
+---
+
+# useWizard vs createWizard
+
+Zormy offers two APIs for multi-step wizards: **`useWizard`** (hook + config + components) and **`createWizard`** (all-in-one factory). Both support conditional steps, default values, and auto-save.
+
+## `useWizard` + `createWizardConfig` + `createWizardComponents`
+
+You define the config once, then create the Wizard/Step components and use the hook in your tree.
+
+```tsx
+import {
+	useWizard,
+	createWizardConfig,
+	createWizardComponents,
+	field,
+} from "zormy";
+import { z } from "zod";
+
+const NameField = field("name")
+	.schema(z.string().min(3))
+	.render(({ register, fieldState }) => (
+		<div>
+			<input {...register()} />
+			{fieldState.error && <span>{fieldState.error.message}</span>}
+		</div>
+	));
+
+const config = createWizardConfig({
+	steps: ["personal", "contact"] as const,
+	fields: {
+		personal: [NameField],
+		contact: [EmailField],
+	},
+});
+
+const { Wizard, Step } = createWizardComponents(config);
+
+function MyWizard() {
+	const wizard = useWizard({
+		...config,
+		defaultValues: { name: "", email: "" },
+		onComplete: (data) => console.log(data),
+	});
+
+	return (
+		<Wizard methods={wizard} onSubmit={wizard.handleSubmit()}>
+			<Step step="personal"><NameField /></Step>
+			<Step step="contact"><EmailField /></Step>
+			{/* buttons: Back, Next, Submit */}
+		</Wizard>
+	);
+}
+```
+
+**Use when:** You want to reuse the same config in multiple components, or need the hook and components separately (e.g. for testing or composition). Steps are typed from the config.
+
+---
+
+## `createWizard`
+
+A single call that returns both the Wizard component and the hook result, with the config inlined.
+
+```tsx
+import { createWizard, field } from "zormy";
+import { z } from "zod";
+
+const NameField = field("name")
+	.schema(z.string().min(3))
+	.render(({ register, fieldState }) => (
+		<div><input {...register()} />{fieldState.error?.message}</div>
+	));
+
+const { Wizard, Step, methods } = createWizard({
+	steps: ["personal", "contact"] as const,
+	fields: {
+		personal: [NameField],
+		contact: [EmailField],
+	},
+	defaultValues: { name: "", email: "" },
+	onComplete: (data) => console.log(data),
+});
+
+function MyWizard() {
+	return (
+		<Wizard methods={methods} onSubmit={methods.handleSubmit()}>
+			<Step step="personal"><NameField /></Step>
+			<Step step="contact"><EmailField /></Step>
+		</Wizard>
+	);
+}
+```
+
+**Use when:** You have one wizard in one place and prefer less boilerplate. The config is not reused elsewhere.
+
+---
+
+## Comparison
+
+| | useWizard + createWizardConfig + createWizardComponents | createWizard |
+|--|----------------------------------------------------------|--------------|
+| Config | Explicit; reusable | Inlined in the call |
+| Hook vs component | You call `useWizard` in your component | `methods` returned once (no hook in tree) |
+| Flexibility | High (e.g. different defaultValues per usage) | Simpler, one definition |
+
+Both support `shouldIncludeStep`, `defaultValues` (sync/async), `onComplete`, `onStepSubmit`, `autoSave`, and `controlledStep` / `onStepChange`. Choose `useWizard` when you need to reuse the config or access the wizard state in multiple components; choose `createWizard` for a single, self-contained wizard.

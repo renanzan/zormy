@@ -1,0 +1,142 @@
+---
+title: useForm vs useZormy vs createForm
+description: Quando usar cada API para construir formulários com Zormy
+---
+
+# useForm vs useZormy vs createForm
+
+O Zormy oferece três formas de conectar campos a um formulário. Escolha conforme o nível de uso direto do React Hook Form que você precisa.
+
+## `useForm` + `zormyResolver`
+
+Você controla a instância do formulário e passa o resolver manualmente.
+
+```tsx
+import { useForm } from "react-hook-form";
+import { Form, zormyResolver } from "zormy";
+
+const form = useForm({
+	resolver: zormyResolver({ fields: [NameField, EmailField] }),
+	defaultValues: { name: "", email: "" },
+	mode: "onBlur",
+});
+
+return (
+	<Form methods={form} onSubmit={form.handleSubmit(onSubmit)}>
+		<NameField />
+		<EmailField />
+		<button type="submit">Enviar</button>
+	</Form>
+);
+```
+
+**Use quando:** Precisar de todas as opções do `useForm` (ex.: `shouldUnregister`) ou for integrar Zormy em um formulário já existente. Veja [React Hook Form (resolver)](/docs/resolver).
+
+---
+
+## `useZormy`
+
+Igual ao `useForm`, mas o resolver é injetado a partir do array `fields`. O tipo do formulário é inferido dos campos.
+
+```tsx
+import { Form, useZormy } from "zormy";
+
+const fields = [NameField, EmailField];
+
+const form = useZormy({
+	fields,
+	defaultValues: { name: "", email: "" },
+	mode: "onBlur",
+});
+
+const onSubmit = (data: FieldsToObject<typeof fields>) => {
+	console.log(data);
+};
+
+return (
+	<Form methods={form} onSubmit={form.handleSubmit(onSubmit)}>
+		<NameField />
+		<EmailField />
+		<button type="submit">Enviar</button>
+	</Form>
+);
+```
+
+**Use quando:** Estiver montando um formulário a partir de uma lista de campos Zormy e quiser tipagem forte com pouco código.
+
+---
+
+## `createForm`
+
+Retorna um `methods` e um componente `Form` já ligado a essa instância.
+
+```tsx
+import { createForm } from "zormy";
+
+const { methods, Form } = createForm({
+	fields: [NameField, EmailField],
+	defaultValues: { name: "", email: "" },
+});
+
+return (
+	<Form
+		onSubmit={(data) => {
+			// data: { name: string; email: string }
+			console.log(data);
+		}}
+	>
+		<NameField />
+		<EmailField />
+		<button type="submit">Enviar</button>
+	</Form>
+);
+```
+
+**Use quando:** Quiser uma única “definição” de formulário (campos + defaultValues) e um componente já conectado.
+
+---
+
+## `Form`
+
+Componente de mais alto nível do Zormy: ele já cuida de toda integração com React Hook Form, validação e tipagem dos dados dos campos. Basta passar a lista de fields, os valores iniciais e a função de submit – não precisa instanciar hooks.
+
+> **Vantagens:**
+>
+> - Dispensa escrever `useForm` ou `useZormy`, reduzindo boilerplate.
+> - Tipagem inferida automaticamente dos fields.
+> - Aceita os mesmos campos que o hook `useZormy` nas props: `fields`, `defaultValues`, `mode`, `onSubmit` etc.
+> - Perfeito para a maioria dos casos de uso simples e diretos.
+
+```tsx
+import { Form } from "zormy";
+
+const MeuComponente = () => (
+	<Form
+		fields={[NameField, EmailField]}
+		defaultValues={{ name: "", email: "" }}
+		onSubmit={(data) => {
+			// data: { name: string; email: string }
+			console.log(data);
+		}}
+	>
+		<NameField />
+		<EmailField />
+		<button type="submit">Enviar</button>
+	</Form>
+);
+```
+
+**Quando usar:**  
+Sempre que você quiser montar um formulário tipado rapidamente sem se preocupar com instanciar hooks ou passar handlers manualmente. Ideal para 90% dos formulários típicos.
+
+---
+
+## Resumo
+
+| API                         | Resolver   | Tipo a partir dos fields | Melhor para                                  |
+| --------------------------- | ---------- | ------------------------ | -------------------------------------------- |
+| `useForm` + `zormyResolver` | Você passa | Manual / genérico        | Controle total, formulários existentes       |
+| `useZormy`                  | Injetado   | Inferido                 | Formulários novos com campos Zormy           |
+| `createForm`                | Injetado   | Inferido                 | Formulário único + componente em um só lugar |
+
+O componente `<Form>` também aceita `fields` e opcionalmente `defaultValues`/`mode` e usa `useZormy` internamente, então você pode dispensar tanto `useForm` quanto `useZormy` quando não precisar da instância do form.

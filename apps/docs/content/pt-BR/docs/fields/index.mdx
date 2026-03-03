@@ -1,0 +1,54 @@
+---
+title: Fields
+description: Campos reutilizáveis no Zormy — chave, schema, render, dependências e aninhamento
+---
+
+import { fieldExampleCode } from "../../snippets/field-example";
+
+# Fields
+
+Campos no Zormy são **componentes reutilizáveis** que encapsulam:
+
+- **Chave** — identificador único no formulário (ex: `"name"`, `"user.email"`)
+- **Schema** — validação Zod (estática ou dinâmica)
+- **Renderização** — como o campo é exibido na UI
+
+## Criando um campo: `field(key)`
+
+Use o builder fluente `field("chave")`:
+
+<CodeExample editorHeight={360} code={fieldExampleCode} />
+
+No `render`, você recebe `register`, `fieldState`, `control`, `getValues`, `setValue`, `watch` e outras funções do react-hook-form, tipadas para esse campo. Use `register()` sem argumentos para usar a chave do campo; para sobrescrever: `register({ name: "outra.chave" })`.
+
+## Campo abstrato: `abstractField()`
+
+Quando vários campos compartilham o mesmo tipo e UI, crie um **template** com `abstractField()` e derive campos com `.extend({ key })`. Veja [Campos abstratos](/docs/fields/abstract) e [Props customizadas](/docs/fields/custom-props).
+
+## Campos com dependências: `.dependsOn()`
+
+Para schemas que dependem de outros campos, use `.dependsOn(OutroCampo)` e `.schema()` com uma **função** que recebe `formValues` — mesmo padrão do exemplo em inglês (HasPasswordField / PasswordField).
+
+<Callout type="warning">
+	Inclua **todos** os campos (incluindo os usados em `dependsOn`) no array `fields` do
+	`zormyResolver` e, em wizards, no step correto.
+</Callout>
+
+## Campos aninhados (dot notation)
+
+Chaves com ponto criam estrutura aninhada. Use o mesmo padrão para `address.street`, `profile.bio`, etc.
+
+## Hook `useField` (opcional)
+
+Use `useField(key)` dentro de `<Form>` ou `FormProvider` para acessar o contexto com tipagem forte.
+
+## Resumo
+
+| Conceito              | Uso                                                            |
+| --------------------- | -------------------------------------------------------------- |
+| Campo simples         | `field("key").schema(z...).render(...)`                        |
+| Template reutilizável | `abstractField().schema(...).render(...)` + `.extend({ key })` |
+| Schema condicional    | `.dependsOn(OutroCampo).schema((formValues) => z...)`          |
+| Estrutura aninhada    | Chave `"a.b.c"` e `defaultValues: { a: { b: { c: "" } } }`     |
+
+Para regras Zod e mensagens de erro, veja [Integração Zod](/docs/zod-integration). Para a API completa, veja [Referência API](/docs/api-reference).

@@ -18,7 +18,8 @@ export const createWizard = <TStepsConfig extends NonEmptyStepsConfig>(
 
 	const methods = useWizard(args);
 
-	const { Wizard: RawWizard, Step } = createWizardComponents(config);
+	const { Wizard: RawWizard, Step, WizardNav, WizardNavBack, WizardNavNext } =
+		createWizardComponents(config);
 
 	// Cria um Wizard que injeta methods automaticamente, omitindo a prop 'methods' do consumidor.
 	// Assertion: useWizard retorna UseFormReturn<WizardFormData<TStepFieldsMap>> e RawWizard espera
@@ -34,5 +35,8 @@ export const createWizard = <TStepsConfig extends NonEmptyStepsConfig>(
 		config,
 		Wizard,
 		Step,
+		WizardNav,
+		WizardNavBack,
+		WizardNavNext,
 	};
 };

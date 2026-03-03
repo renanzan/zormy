@@ -1,0 +1,108 @@
+---
+title: Multi-Step Wizard
+description: Form divided into multiple steps
+---
+
+# Multi-Step Wizard
+
+<Callout type="info">
+	Wizards allow you to split complex forms into smaller, more manageable steps. Use
+	`createWizardConfig` and `createWizardComponents` for strong typing.
+</Callout>
+
+Complete example of a multi-step wizard:
+
+```tsx
+import { z } from "zod";
+import { createWizardComponents, createWizardConfig, field, useWizard } from "zormy";
+
+const NameField = field("name")
+	.schema(z.string().min(3, "Name must be at least 3 characters"))
+	.render(({ register, fieldState }) => (
+		<div>
+			<label>Name</label>
+			<input {...register()} />
+			{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
+		</div>
+	));
+
+const EmailField = field("email")
+	.schema(z.string().email("Invalid email"))
+	.render(({ register, fieldState }) => (
+		<div>
+			<label>Email</label>
+			<input type="email" {...register()} />
+			{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
+		</div>
+	));
+
+const PasswordField = field("password")
+	.schema(z.string().min(8, "Password must be at least 8 characters"))
+	.render(({ register, fieldState }) => (
+		<div>
+			<label>Password</label>
+			<input type="password" {...register()} />
+			{fieldState.error && <span style={{ color: "red" }}>{fieldState.error.message}</span>}
+		</div>
+	));
+
+// Configure the wizard (outside the component to keep references stable)
+const wizardConfig = createWizardConfig({
+	steps: ["personal", "credentials"] as const,
+	fields: {
+		personal: [NameField],
+		credentials: [EmailField, PasswordField],
+	},
+});
+
+const { Wizard, Step } = createWizardComponents(wizardConfig);
+
+function MultiStepWizard() {
+	const wizard = useWizard({
+		...wizardConfig,
+		defaultValues: {
+			name: "",
+			email: "",
+			password: "",
+		},
+		onComplete: (data) => {
+			alert(JSON.stringify(data, null, 2));
+		},
+	});
+
+	return (
+		<Wizard methods={wizard} onSubmit={wizard.handleSubmit()}>
+			<div>
+				<p>
+					Step {wizard.currentStepIndex + 1} of {wizard.totalSteps}
+				</p>
+				<p>Current step: {wizard.currentStep}</p>
+			</div>
+
+			<Step step="personal">
+				<NameField />
+			</Step>
+
+			<Step step="credentials">
+				<EmailField />
+				<PasswordField />
+			</Step>
+
+			<div style={{ marginTop: "1rem" }}>
+				{!wizard.isFirstStep && (
+					<button type="button" onClick={wizard.back} style={{ marginRight: "0.5rem" }}>
+						Back
+					</button>
+				)}
+				{wizard.isLastStep ? (
+					<button type="submit">Finish</button>
+				) : (
+					<button type="button" onClick={wizard.next}>
+						Next
+					</button>
+				)}
+			</div>
+		</Wizard>
+	);
+}
+```

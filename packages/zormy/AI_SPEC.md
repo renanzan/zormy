@@ -42,7 +42,7 @@ Peer dependencies: `react` (^18), `react-hook-form` (^7.71.1), `zod` (^3.25.28),
 | `Form`                                                      | `<Form methods={form}>` ou `<Form fields={[...]} defaultValues? mode? />` — fornece contexto; com `fields` usa useZormy internamente |
 | `useForm`                                                   | Re-export do react-hook-form (para tipagem consistente)                                   |
 | `createWizardConfig({ steps: [{ name, fields }, ...], shouldIncludeStep? })` | Configuração do wizard (array de steps com nome e campos)                          |
-| `createWizardComponents(config)`                             | Retorna `{ Wizard, Step }` tipados                                                       |
+| `createWizardComponents(config)`                             | Retorna `{ Wizard, Step, WizardNav, WizardNavBack, WizardNavNext }` tipados              |
 | `useWizard({ steps: [{ name, fields }, ...], defaultValues, onComplete?, ... })` | Hook do wizard (form + navegação entre steps)                                    |
 | `useWizardContext`                                          | Acesso ao contexto do wizard                                                              |
 | `useAutoSaveContext`, `AutoSaveStatus`                      | Auto-save no wizard                                                                       |
@@ -149,9 +149,9 @@ const EmailField = BaseText.extend({ key: "email" });
 
 1. Definir steps como array de `{ name, fields }`: cada item tem o nome do step e o array de campos.
 2. `createWizardConfig({ steps: [{ name: "personal", fields: [NameField] }, { name: "contact", fields: [EmailField] }], shouldIncludeStep? })`.
-3. `createWizardComponents(config)` → `{ Wizard, Step }`.
+3. `createWizardComponents(config)` → `{ Wizard, Step, WizardNav, WizardNavBack, WizardNavNext }`.
 4. `useWizard({ steps: [...], defaultValues, onComplete?, onStepSubmit?, initialStep?, mode?, autoSave?, ... })`.
-5. Renderizar: `<Wizard methods={wizard}>` e dentro `<Step step="personal">` etc.; usar `wizard.next`, `wizard.back` para navegação. Não passar `onComplete` no `<Wizard>` — o submit do form chama `wizard.next()` e o `onComplete` de `useWizard` recebe **todos os dados acumulados**.
+5. Renderizar: `<Wizard methods={wizard}>` e dentro `<Step step="personal">` etc. Para botões de navegação sem condicionais: `<WizardNav>`, `<WizardNavBack>` e `<WizardNavNext>` (prop `as` para customizar o elemento). Não passar `onComplete` no `<Wizard>` — o submit do form chama `wizard.next()` e o `onComplete` de `useWizard` recebe **todos os dados acumulados**.
 
 Callbacks:
 - **`onComplete(data)`** — chamado só ao finalizar o wizard (último step); `data` = todos os dados de todos os steps (acumulados internamente, pois só o step atual está montado).
@@ -163,7 +163,7 @@ const stepsConfig = [
 	{ name: "contact", fields: [EmailField] },
 ];
 const config = createWizardConfig({ steps: stepsConfig });
-const { Wizard, Step } = createWizardComponents(config);
+const { Wizard, Step, WizardNav, WizardNavBack, WizardNavNext } = createWizardComponents(config);
 
 function MyWizard() {
 	const wizard = useWizard({
@@ -176,12 +176,17 @@ function MyWizard() {
 		<Wizard methods={wizard}>
 			<Step step="personal">
 				<NameField />
-				<button type="button" onClick={wizard.next}>Próximo</button>
+				<WizardNav as="div" className="flex gap-3">
+					<WizardNavBack as="button">Voltar</WizardNavBack>
+					<WizardNavNext as="button" nextLabel="Próximo" submitLabel="Finalizar" />
+				</WizardNav>
 			</Step>
 			<Step step="contact">
 				<EmailField />
-				<button type="button" onClick={wizard.back}>Voltar</button>
-				<button type="submit">Finalizar</button>
+				<WizardNav as="div" className="flex gap-3">
+					<WizardNavBack as="button">Voltar</WizardNavBack>
+					<WizardNavNext as="button" nextLabel="Próximo" submitLabel="Finalizar" />
+				</WizardNav>
 			</Step>
 		</Wizard>
 	);
@@ -190,6 +195,7 @@ function MyWizard() {
 
 - `defaultValues` deve cobrir todas as chaves de todos os campos de todos os steps.
 - Steps condicionais: use `shouldIncludeStep: (step, formValues) => boolean` em `createWizardConfig`.
+- **Wizards dinâmicos** (steps/campos definidos em runtime, ex.: JSON ou API): monte o array `steps: [{ name, fields }, ...]`, garanta que tenha pelo menos um step (ex.: `if (stepsConfig.length === 0) return null`) e use `stepsConfig as unknown as NonEmptyStepsConfig` ao passar para `createWizardConfig` e `useWizard`. O tipo `NonEmptyStepsConfig` é exportado para esse uso; a inferência forte fica relaxada nesses cenários.
 
 ---
 
