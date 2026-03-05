@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { Analytics } from "@vercel/analytics/next";
 import { SetHtmlLang } from "@/components/SetHtmlLang";
 import "./globals.css";
 
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 			<body className="flex flex-col min-h-screen">
 				<SetHtmlLang />
 				{children}
+				<Analytics />
 			</body>
 		</html>
 	);
