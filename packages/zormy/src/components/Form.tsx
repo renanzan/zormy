@@ -9,23 +9,29 @@ import type { FieldValues, SubmitHandler, UseFormProps, UseFormReturn } from "re
 import type { FieldsToObject } from "../fields/field/types/extractors";
 import type { FieldComponentBase } from "../fields/field/types/field";
 
-/** Props quando o formulário recebe `methods` (useForm/useZormy externo). */
-type FormPropsWithMethods<
-	TFieldValues extends FieldValues = FieldValues,
-	TContextOnly extends boolean = false,
-> = TContextOnly extends true
-	? {
+/**
+ * Props quando o formulário recebe `methods` (useForm/useZormy externo).
+ *
+ * União discriminada em `contextOnly` (literal `true` vs ausente/`false`) para o TypeScript
+ * inferir a variante correta sem genérico `TContextOnly` no `<Form />`.
+ */
+type FormPropsWithMethods<TFieldValues extends FieldValues = FieldValues> =
+	| ({
 			methods: UseFormReturn<TFieldValues>;
 			onSubmit?: SubmitHandler<TFieldValues>;
 			contextOnly: true;
 			children: ReactNode;
-		} & Omit<ComponentPropsWithoutRef<"form">, "children" | "onSubmit" | "fields" | "ref">
-	: {
+		} & Omit<ComponentPropsWithoutRef<"form">, "children" | "onSubmit" | "fields" | "ref">)
+	| ({
 			methods: UseFormReturn<TFieldValues>;
 			onSubmit?: SubmitHandler<TFieldValues>;
 			contextOnly?: false | undefined;
 			children?: ReactNode;
-		} & Omit<ComponentPropsWithoutRef<"form">, "onSubmit" | "fields" | "ref">;
+		} & Omit<ComponentPropsWithoutRef<"form">, "onSubmit" | "fields" | "ref">);
+
+/** Props do `<Form />` apenas no modo `methods` (útil para utilitários de tipo). */
+export type FormMethodsProps<TFieldValues extends FieldValues = FieldValues> =
+	FormPropsWithMethods<TFieldValues>;
 
 /** Props quando o formulário recebe `fields` (useZormy interno). */
 type FormPropsWithFields<TFields extends readonly FieldComponentBase[]> = {
@@ -47,19 +53,19 @@ type FormPropsWithFields<TFields extends readonly FieldComponentBase[]> = {
  * - **`fields`**: array de campos Zormy; o Form usa useZormy internamente (defaultValues, mode, etc. opcionais).
  *
  * @template TFieldValues - Tipo dos valores do formulário (quando usa `methods`).
- * @template TContextOnly - Se true, exige `children` ReactElement e não renderiza `<form>`.
  * @template TFields - Array de campos (quando usa `fields`).
+ *
+ * Com `methods`, use `contextOnly={true}` (literal) para exigir `children`; sem isso, `children` é opcional.
  */
 export type FormProps<
 	TFieldValues extends FieldValues = FieldValues,
-	TContextOnly extends boolean = false,
 	TFields extends readonly FieldComponentBase[] = readonly FieldComponentBase[],
 > =
-	| FormPropsWithMethods<TFieldValues, TContextOnly>
+	| FormPropsWithMethods<TFieldValues>
 	| (FormPropsWithFields<TFields> & { methods?: undefined });
 
-function FormWithMethods<TFieldValues extends FieldValues, TContextOnly extends boolean>(
-	props: FormPropsWithMethods<TFieldValues, TContextOnly>
+function FormWithMethods<TFieldValues extends FieldValues>(
+	props: FormPropsWithMethods<TFieldValues>
 ) {
 	const { methods, contextOnly, children, onSubmit, ...formProps } = props;
 	if (contextOnly) {
@@ -136,13 +142,20 @@ function FormWithFields<TFields extends readonly FieldComponentBase[]>(
  * </Form>
  * ```
  */
+export function Form<TFields extends readonly FieldComponentBase[]>(
+	props: FormPropsWithFields<TFields> & { methods?: undefined },
+): ReactElement;
+
+export function Form<TFieldValues extends FieldValues>(
+	props: FormPropsWithMethods<TFieldValues>,
+): ReactElement;
+
 export function Form<
 	TFieldValues extends FieldValues = FieldValues,
-	TContextOnly extends boolean = false,
 	TFields extends readonly FieldComponentBase[] = readonly FieldComponentBase[],
->(props: FormProps<TFieldValues, TContextOnly, TFields>) {
+>(props: FormProps<TFieldValues, TFields>): ReactElement {
 	if ("fields" in props && props.fields !== undefined) {
 		return <FormWithFields {...(props as FormPropsWithFields<TFields>)} />;
 	}
-	return <FormWithMethods {...(props as FormPropsWithMethods<TFieldValues, TContextOnly>)} />;
+	return <FormWithMethods {...(props as FormPropsWithMethods<TFieldValues>)} />;
 }

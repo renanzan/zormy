@@ -5,20 +5,31 @@ import { get, useFormContext } from "react-hook-form";
 
 import type { TypeOf, ZodType } from "zod";
 import type {
-	ArrayPath,
-	Control,
 	FieldErrors,
 	Path,
-	PathValue,
 	RegisterOptions,
 	UseFormRegisterReturn,
 	UseFormReturn,
 } from "react-hook-form";
-import type {
-	KeyToNested,
-	KeyToPath,
-	MergeFieldWithDeps,
-} from "../../../resolver/types/nested-helpers";
+import type { KeyToNested, MergeFieldWithDeps } from "../../../resolver/types/nested-helpers";
+
+/**
+ * Tipo dos valores do formulário no contexto de um campo: objeto aninhado da key + dependências.
+ * Deve ser o mesmo genérico passado a `useFormContext` para que `setError`, `clearErrors`, `reset`, etc.
+ * recebam `FieldPath` corretos.
+ *
+ * Não usar `UseFormReturn<{ [key in Key]: TypeOf<Schema> } | DepsTypes>`: a união faz o `FieldPath<T>`
+ * do react-hook-form distribuir de forma que paths válidos somem e métodos como `setError` aceitam
+ * só `root` / `root.*`. O merge (`KeyToNested` + dependências) espelha o objeto real do formulário.
+ *
+ * `Omit<UseFormReturn<…>, "register" | …> & { … }` permanece necessário: `register`, `getValues`,
+ * `setValue` e `watch` têm assinaturas próprias; intersectar `UseFormReturn` com um objeto que
+ * redefine esses métodos produz interseção de *call signatures* (inutilizável), não substituição.
+ */
+type UseFieldFormValues<Key extends string, Schema extends ZodType, DepsTypes> = MergeFieldWithDeps<
+	KeyToNested<Key, TypeOf<Schema>>,
+	DepsTypes
+>;
 
 /**
  * Tipo customizado para o método register do zormy.
@@ -75,62 +86,13 @@ export type UseFieldReturn<
 	Key extends string,
 	Schema extends ZodType,
 	DepsTypes = Record<string, never>,
-> = Omit<
-	UseFormReturn<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>,
-	"register" | "getValues" | "setValue" | "watch"
-> & {
+> = Omit<UseFormReturn<UseFieldFormValues<Key, Schema, DepsTypes>>, "register"> & {
 	/** Método register customizado que usa a chave do campo por padrão */
 	register: ZormyRegister;
 	/** Estado do campo incluindo erros de validação */
 	fieldState: FieldState<Key, Schema, DepsTypes>;
-	/** Control tipado para uso com Controller do react-hook-form.
-	 * Quando a chave contém pontos, é tipado como Control<any> para permitir
-	 * que o Controller infira corretamente paths aninhados.
-	 */
-	control: Key extends `${string}.${string}`
-		? Control<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>
-		: Control<{ [key in Key]: TypeOf<Schema> }>;
-	/** Método getValues tipado para o campo específico */
-	getValues: <
-		T extends
-			| KeyToPath<Key>
-			| Path<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>
-			| ArrayPath<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>,
-	>(
-		path: T
-	) => T extends KeyToPath<Key>
-		? TypeOf<Schema>
-		: T extends
-					| Path<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>
-					| ArrayPath<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>
-			? PathValue<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>, T>
-			: never;
-	/** Método setValue tipado para o campo específico */
-	setValue: (
-		name: Key,
-		value: TypeOf<Schema> | null,
-		options?: Parameters<
-			UseFormReturn<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>["setValue"]
-		>[2]
-	) => void;
-	/** Método watch: observa o campo ou qualquer path do formulário (incl. chaves de dependências). */
-	watch: {
-		/** Observa todo o formulário */
-		(): MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>;
-		/** Observa um path específico (próprio campo ou dependências) */
-		<T extends KeyToPath<Key> | Path<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>>(
-			name: T
-		): T extends KeyToPath<Key>
-			? TypeOf<Schema> | undefined
-			: PathValue<
-					MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>,
-					T & Path<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>
-				>;
-	};
 	/** Valores padrão (defaultValues) completos do formulário */
-	defaultValues:
-		| Partial<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>
-		| undefined;
+	defaultValues: Partial<UseFieldFormValues<Key, Schema, DepsTypes>> | undefined;
 };
 
 /**
@@ -170,7 +132,7 @@ export const useField = <
 >(
 	key: Key
 ): UseFieldReturn<Key, Schema, DepsTypes> => {
-	type FormType = MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>;
+	type FormType = UseFieldFormValues<Key, Schema, DepsTypes>;
 	const context = useFormContext<FormType>();
 
 	if (!context) {
@@ -189,11 +151,8 @@ export const useField = <
 			const { name, ...options } = args ?? {};
 
 			return context.register(
-				(name ?? key) as Path<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>,
-				options as RegisterOptions<
-					MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>,
-					Path<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>
-				>
+				(name ?? key) as Path<FormType>,
+				options as RegisterOptions<FormType, Path<FormType>>
 			);
 		},
 		[context, key]
@@ -207,83 +166,10 @@ export const useField = <
 			: undefined,
 	};
 
-	const getValues = useCallback(
-		<
-			T extends
-				| KeyToPath<Key>
-				| Path<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>
-				| ArrayPath<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>,
-		>(
-			path: T
-		): T extends KeyToPath<Key>
-			? TypeOf<Schema>
-			: T extends
-						| Path<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>
-						| ArrayPath<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>
-				? PathValue<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>, T>
-				: never => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			return context.getValues(path as any) as T extends KeyToPath<Key>
-				? TypeOf<Schema>
-				: T extends
-							| Path<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>
-							| ArrayPath<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>
-					? PathValue<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>, T>
-					: never;
-		},
-		[context]
-	);
-
-	const setValue = useCallback(
-		(name: Key, value: TypeOf<Schema> | null, options?: Parameters<typeof context.setValue>[2]) => {
-			return context.setValue(
-				name as unknown as Path<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>,
-				(value ?? undefined) as PathValue<
-					MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>,
-					Path<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>
-				>,
-				options
-			);
-		},
-		[context, key]
-	);
-
-	const watch = useCallback(
-		(name?: Key | Path<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>) => {
-			if (name === undefined) {
-				return context.watch() as MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>;
-			}
-			// Se o nome for exatamente igual à chave do campo, retorna o tipo do schema
-			if (typeof name === "string" && name === (key as string)) {
-				return context.watch(
-					name as unknown as Path<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>
-				) as TypeOf<Schema> | undefined;
-			}
-			// Caso contrário, retorna o valor do caminho
-			return context.watch(
-				name as unknown as Path<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>
-			);
-		},
-		[context, key]
-	) as UseFieldReturn<Key, Schema, DepsTypes>["watch"];
-
-	// Quando a chave contém pontos, o react-hook-form espera uma estrutura aninhada
-	// mas o zormy tipa como KeyToNested<Key, TypeOf<Schema>>. Precisamos fazer o control
-	// ser compatível com paths aninhados para que o Controller possa inferir corretamente.
-	const control = context.control as Key extends `${string}.${string}`
-		? Control<FormType>
-		: Control<{ [key in Key]: TypeOf<Schema> }>;
-
 	return {
 		...context,
 		register,
 		fieldState,
-		control: control as UseFieldReturn<Key, Schema, DepsTypes>["control"],
-		getValues,
-		setValue,
-		watch,
-		defaultValues: context.formState.defaultValues as
-			| Partial<MergeFieldWithDeps<KeyToNested<Key, TypeOf<Schema>>, DepsTypes>>
-			| undefined,
+		defaultValues: context.formState.defaultValues as Partial<FormType> | undefined,
 	};
 };

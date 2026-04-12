@@ -47,7 +47,7 @@ describe("Type Safety - field.dependsOn variantes", () => {
 				});
 		});
 
-		it("watch do próprio campo retorna TypeOf<Schema> | undefined", () => {
+		it("watch do próprio campo retorna TypeOf<Schema>", () => {
 			const AgeField = field("age")
 				.schema(z.number())
 				.render(() => null);
@@ -57,7 +57,7 @@ describe("Type Safety - field.dependsOn variantes", () => {
 				.schema(z.string())
 				.render(({ watch }) => {
 					const name = watch("name");
-					expectTypeOf(name).toEqualTypeOf<string | undefined>();
+					expectTypeOf(name).toEqualTypeOf<string>();
 					return null;
 				});
 		});
@@ -263,7 +263,7 @@ describe("Type Safety - field.dependsOn variantes", () => {
 				.render(({ watch, getValues }) => {
 					const nameW = watch("name");
 					const nameG = getValues("name");
-					expectTypeOf(nameW).toEqualTypeOf<string | undefined>();
+					expectTypeOf(nameW).toEqualTypeOf<string>();
 					expectTypeOf(nameG).toEqualTypeOf<string>();
 					return null;
 				});

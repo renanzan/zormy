@@ -11,7 +11,11 @@ import { expectTypeOf } from "vitest";
 
 import { field } from "../../../src/fields/field/builder/builder";
 
-import type { DependencyKey, FieldResult } from "../../../src/fields/dependency/types/extractors";
+import type {
+	DependencyKey,
+	ExtractDependencyTypes,
+	FieldResult,
+} from "../../../src/fields/dependency/types/extractors";
 import type {
 	FieldKey,
 	FieldsToObject,
@@ -19,6 +23,13 @@ import type {
 } from "../../../src/fields/field/types/extractors";
 
 describe("Type Safety - Extractors", () => {
+	describe("ExtractDependencyTypes", () => {
+		it("array vazio de dependências deve ser Record<string, never> (evita inferência never em MergeUnionTypes)", () => {
+			type Empty = ExtractDependencyTypes<[]>;
+			expectTypeOf<Empty>().toEqualTypeOf<Record<string, never>>();
+		});
+	});
+
 	describe("FieldKey", () => {
 		it("deve extrair a chave literal de um campo simples", () => {
 			const NameField = field("name")

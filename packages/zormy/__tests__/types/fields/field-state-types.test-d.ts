@@ -47,6 +47,18 @@ describe("Type Safety - FieldState e Control", () => {
 			});
 	});
 
+	it("setError e clearErrors aceitam fieldState.key em campo com key pontilhada (paths aninhados no form values)", () => {
+		const CardNumberField = field("payment.cardNumber")
+			.schema(z.string())
+			.render(({ fieldState, setError, clearErrors }) => {
+				type PathArg = Parameters<typeof setError>[0];
+				expectTypeOf(fieldState.key).toMatchTypeOf<PathArg>();
+				setError(fieldState.key, { type: "manual", message: "inválido" });
+				clearErrors(fieldState.key);
+				return null;
+			});
+	});
+
 	it("deve ter control tipado com a key do field", () => {
 		const NameField = field("name")
 			.schema(z.string())
@@ -68,6 +80,7 @@ describe("Type Safety - FieldState e Control", () => {
 		const CardNumberField = field("payment.cardNumber")
 			.schema(z.string())
 			.render(({ control }) => {
+				const controlCheck: Control<{ payment: { cardNumber: string } }> = control;
 				// Para campos aninhados, control deve estar disponível
 				// Verifica que control não é null ou undefined
 				const isDefined: typeof control extends null | undefined ? never : true = true;

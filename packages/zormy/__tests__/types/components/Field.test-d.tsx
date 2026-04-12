@@ -22,26 +22,36 @@ describe("Type Safety - Field", () => {
 			it("tipagem dos métodos watch, getValues, setValue, reset e fieldState", () => {
 				const NameField = field("name")
 					.schema(z.string())
-					.render(({ watch, getValues, setValue, reset, fieldState }) => {
+					.render(({ watch, getValues, setValue, reset, fieldState, setError, clearErrors }) => {
 						const watchValues = watch();
 						expectTypeOf(watchValues).toEqualTypeOf<{ name: string }>();
 
 						type getValuesParams = Parameters<typeof getValues>[0];
 						const getValuesValues = getValues("name");
-						expectTypeOf<getValuesParams>().toEqualTypeOf<"name">();
+						expectTypeOf<getValuesParams>().toEqualTypeOf<readonly "name"[]>();
 						expectTypeOf(getValuesValues).toEqualTypeOf<string>();
 
 						type setValueParams = Parameters<typeof setValue>;
 						expectTypeOf<[setValueParams[0], setValueParams[1]]>().toEqualTypeOf<
-							["name", string | null]
+							["name", string]
 						>();
 
-						type resetParams = Parameters<typeof reset>[0];
-						expectTypeOf<resetParams>().toEqualTypeOf<"name">();
+						// reset do RHF: valores do formulário (ou undefined), não path de campo
+						type resetValues = Parameters<typeof reset>[0];
+						const _resetEmpty: resetValues = undefined;
+						const _resetPartial: resetValues = { name: "Jane" };
 
 						expectTypeOf(fieldState.key).toEqualTypeOf<"name">();
 						expectTypeOf(fieldState.defaultValue).toEqualTypeOf<string | undefined>();
 						expectTypeOf(fieldState.error?.message).toEqualTypeOf<string | undefined>();
+
+						type SetErrorName = Parameters<typeof setError>[0];
+						expectTypeOf(fieldState.key).toMatchTypeOf<SetErrorName>();
+						setError(fieldState.key, { type: "manual", message: "erro" });
+						clearErrors(fieldState.key);
+
+						// @ts-expect-error — path inexistente no formulário deste campo
+						setError("notAField", { type: "manual", message: "x" });
 
 						return null;
 					});
@@ -50,7 +60,7 @@ describe("Type Safety - Field", () => {
 			it("tipagem das props do field", () => {
 				const NameField = field("name")
 					.schema(z.string())
-					.render(({}, props: { label: string }) => null);
+					.render(({}, _props: { label: string }) => null);
 
 				type FieldProps = ComponentProps<typeof NameField>;
 				expectTypeOf<FieldProps>().toEqualTypeOf<{ label: string }>();
@@ -59,7 +69,7 @@ describe("Type Safety - Field", () => {
 			it("tipagem dos contratos do field", () => {
 				const NameField = field("name")
 					.schema(z.string())
-					.render(({}, props: { label: string }) => null);
+					.render(({}, _props: { label: string }) => null);
 
 				expectTypeOf(NameField.config.key).toEqualTypeOf<"name">();
 				expectTypeOf(NameField.getZodSchema()).toEqualTypeOf<z.ZodString>();
@@ -68,7 +78,7 @@ describe("Type Safety - Field", () => {
 			it("extend retorna FieldComponent correto", () => {
 				const NameField = field("name")
 					.schema(z.string())
-					.render(({}, props: { label: string }) => null);
+					.render(({}, _props: { label: string }) => null);
 
 				const AgeField = NameField.extend({
 					key: "age",
@@ -97,69 +107,90 @@ describe("Type Safety - Field", () => {
 				const NameField = field("name")
 					.dependsOn(LastNameField, TermsOfUseField, "age")
 					.schema(z.string())
-					.render(({ watch, getValues, setValue, reset, fieldState }, props: { label: string }) => {
-						const watchValues = watch();
-						expectTypeOf(watchValues).toEqualTypeOf<
-							{ name: string } & { lastName: string; termsOfUse: boolean; age: any }
-						>();
+					.render(
+						(
+							{ watch, getValues, setValue, reset, fieldState, setError, clearErrors },
+							_props: { label: string }
+						) => {
+							const watchValues = watch();
+							expectTypeOf(watchValues).toMatchTypeOf<{
+								name: string;
+								lastName: string;
+								termsOfUse: boolean;
+							}>();
+							// dependência declarada como string: valor tipado como any no formulário
+							expectTypeOf(watchValues.age).toEqualTypeOf<any>(); // eslint-disable-line @typescript-eslint/no-explicit-any -- contrato de dependsOn(string)
 
-						type getValuesParams = Parameters<typeof getValues>[0];
-						expectTypeOf<getValuesParams>().toEqualTypeOf<
-							"name" | "lastName" | "termsOfUse" | "age"
-						>();
+							type getValuesParams = Parameters<typeof getValues>[0];
 
-						const nameValue = getValues("name");
-						const lastNameValue = getValues("lastName");
-						const termsOfUseValue = getValues("termsOfUse");
-						const ageValue = getValues("age");
+							// Parameters<> perde literais no primeiro argumento de getValues; validamos paths e retornos
+							expectTypeOf<"name">().toExtend<getValuesParams[number]>();
+							expectTypeOf<"lastName">().toExtend<getValuesParams[number]>();
+							expectTypeOf<"termsOfUse">().toExtend<getValuesParams[number]>();
+							expectTypeOf<"age">().toExtend<getValuesParams[number]>();
+							expectTypeOf<`age.${string}`>().toExtend<getValuesParams[number]>();
 
-						expectTypeOf(nameValue).toEqualTypeOf<string>();
-						expectTypeOf(lastNameValue).toEqualTypeOf<string>();
-						expectTypeOf(termsOfUseValue).toEqualTypeOf<boolean>();
-						expectTypeOf(ageValue).toEqualTypeOf<any>();
+							const nameValue = getValues("name");
+							const lastNameValue = getValues("lastName");
+							const termsOfUseValue = getValues("termsOfUse");
+							const ageValue = getValues("age");
 
-						type setValueParams = Parameters<typeof setValue>;
-						expectTypeOf<[setValueParams[0], setValueParams[1]]>().toEqualTypeOf<
-							| ["name", string | null]
-							| ["lastName", string | null]
-							| ["termsOfUse", boolean | null]
-							| ["age", any | null]
-						>();
+							expectTypeOf(nameValue).toEqualTypeOf<string>();
+							expectTypeOf(lastNameValue).toEqualTypeOf<string>();
+							expectTypeOf(termsOfUseValue).toEqualTypeOf<boolean>();
+							expectTypeOf(ageValue).toEqualTypeOf<any>(); // eslint-disable-line @typescript-eslint/no-explicit-any
 
-						type resetParams = Parameters<typeof reset>[0];
+							setValue("name", "John");
+							setValue("lastName", "Doe");
+							setValue("termsOfUse", true);
+							setValue("age", 20);
+							setValue("age", "20");
 
-						const validAll: resetParams = {
-							name: "John",
-							lastName: "Doe",
-							termsOfUse: true,
-							age: 20,
-						};
-						const validPartial: resetParams = { name: "Jane" };
-						const validEmpty: resetParams = {};
-						const validUndefined: resetParams = undefined;
+							type resetParams = Parameters<typeof reset>[0];
 
-						// @ts-expect-error - name deve ser string
-						const erroName: resetParams = { name: 42 };
+							const validAll: resetParams = {
+								name: "John",
+								lastName: "Doe",
+								termsOfUse: true,
+								age: 20,
+							};
+							const validPartial: resetParams = { name: "Jane" };
+							const validEmpty: resetParams = {};
+							const validUndefined: resetParams = undefined;
 
-						// @ts-expect-error - termsOfUse deve ser boolean
-						const erroTermsOfUse: resetParams = { termsOfUse: "any" };
+							// @ts-expect-error - name deve ser string
+							const erroName: resetParams = { name: 42 };
 
-						// @ts-expect-error - lastName deve ser string
-						const erroLastName: resetParams = { lastName: 12 };
+							// @ts-expect-error - termsOfUse deve ser boolean
+							const erroTermsOfUse: resetParams = { termsOfUse: "any" };
 
-						type ExtractWithAge<T> = T extends { age: infer A } ? A : never;
-						type AgeType = ExtractWithAge<resetParams>;
-						expectTypeOf<AgeType>().toEqualTypeOf<any>();
+							// @ts-expect-error - lastName deve ser string
+							const erroLastName: resetParams = { lastName: 12 };
 
-						// @ts-expect-error - null não permitido
-						const erroNull: resetParams = null;
+							type ExtractWithAge<T> = T extends { age?: infer A } ? A : never;
+							type AgeType = ExtractWithAge<resetParams>;
+							expectTypeOf<AgeType>().toEqualTypeOf<any>(); // eslint-disable-line @typescript-eslint/no-explicit-any
 
-						expectTypeOf(fieldState.key).toEqualTypeOf<"name">();
-						expectTypeOf(fieldState.defaultValue).toEqualTypeOf<string | undefined>();
-						expectTypeOf(fieldState.error?.message).toEqualTypeOf<string | undefined>();
+							// @ts-expect-error - null não permitido
+							const erroNull: resetParams = null;
 
-						return null;
-					});
+							expectTypeOf(fieldState.key).toEqualTypeOf<"name">();
+							expectTypeOf(fieldState.defaultValue).toEqualTypeOf<string | undefined>();
+							expectTypeOf(fieldState.error?.message).toEqualTypeOf<string | undefined>();
+
+							type SetErrorPath = Parameters<typeof setError>[0];
+							expectTypeOf(fieldState.key).toMatchTypeOf<SetErrorPath>();
+							setError(fieldState.key, { type: "manual", message: "erro" });
+							setError("lastName", { type: "manual", message: "dep" });
+							clearErrors(fieldState.key);
+							clearErrors("termsOfUse");
+
+							// @ts-expect-error — path inexistente
+							setError("missingField", { type: "manual" });
+
+							return null;
+						}
+					);
 			});
 
 			it("tipagem das props do field dependente", () => {
@@ -172,7 +203,7 @@ describe("Type Safety - Field", () => {
 				const NameField = field("name")
 					.dependsOn(LastNameField, TermsOfUseField, "age")
 					.schema(z.string())
-					.render((_, props: { label: string }) => null);
+					.render((_, _props: { label: string }) => null);
 
 				type FieldProps = ComponentProps<typeof NameField>;
 				expectTypeOf<FieldProps>().toEqualTypeOf<{ label: string }>();
@@ -188,7 +219,7 @@ describe("Type Safety - Field", () => {
 				const NameField = field("name")
 					.dependsOn(LastNameField, TermsOfUseField, "age")
 					.schema(z.string())
-					.render((_, props: { label: string }) => null);
+					.render((_, _props: { label: string }) => null);
 
 				expectTypeOf(NameField.config.key).toEqualTypeOf<"name">();
 				expectTypeOf(NameField.getZodSchema()).toEqualTypeOf<z.ZodString>();

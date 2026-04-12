@@ -20,6 +20,7 @@ export { zormyResolver } from "./resolver/resolver";
 export type { FieldKey, FieldsToObject, FieldValue } from "./fields/field/types/extractors";
 
 export { Form } from "./components/Form";
+export type { FormMethodsProps, FormProps } from "./components/Form";
 export { useZormy } from "./form/hooks/useZormy";
 export { createForm } from "./form/utils/create-form";
 

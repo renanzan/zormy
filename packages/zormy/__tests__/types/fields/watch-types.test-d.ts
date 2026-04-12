@@ -11,7 +11,7 @@ import { field } from "../../../src/fields/field/builder/builder";
 describe("Type Safety - Método watch", () => {
 	it("deve retornar tipo correto ao observar o próprio campo", () => {
 		const NameField = field("name")
-			.schema(z.string())
+			.schema(z.string().optional())
 			.render(({ watch }) => {
 				const name = watch("name");
 				expectTypeOf(name).toEqualTypeOf<string | undefined>();

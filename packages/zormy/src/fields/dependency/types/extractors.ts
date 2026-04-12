@@ -135,13 +135,16 @@ export type FieldResult<Field, Dependencies extends readonly any[] = []> =
  * @remarks
  * - **Tuples são preferidos**: Arrays inferidos como tuples preservam ordem e têm melhor inferência
  * - **Arrays genéricos funcionam**: Mas podem resultar em uniões que precisam ser mescladas
+ * - **Array vazio (`[]`)**: Retorna `Record<string, never>` (evita `never` vindo de `MergeUnionTypes<never>` ao inferir o elemento do array)
  * - **Keys com pontos**: São automaticamente convertidas em objetos aninhados
  * - **Mesclagem inteligente**: Propriedades com mesmo caminho são mescladas recursivamente
  */
-export type ExtractDependencyTypes<Dependencies> = Dependencies extends
-	| [infer First, ...infer Rest]
-	| readonly [infer First, ...infer Rest]
-	? MergeNested<FieldToNested<First>, ExtractDependencyTypes<Rest>>
-	: Dependencies extends readonly (infer U)[] | (infer U)[]
-		? MergeUnionTypes<U>
-		: Record<string, never>;
+export type ExtractDependencyTypes<Dependencies> = Dependencies extends readonly []
+	? Record<string, never>
+	: Dependencies extends
+				| [infer First, ...infer Rest]
+				| readonly [infer First, ...infer Rest]
+		? MergeNested<FieldToNested<First>, ExtractDependencyTypes<Rest>>
+		: Dependencies extends readonly (infer U)[] | (infer U)[]
+			? MergeUnionTypes<U>
+			: Record<string, never>;

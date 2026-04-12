@@ -23,6 +23,7 @@
 		"src/**/*.tsx",
 		"index.ts",
 		"__tests__/**/*.test-d.ts",
+		"__tests__/**/*.test-d.tsx",
 		"__tests__/**/*.test.tsx"
 	],
 	"exclude": ["node_modules", "**/node_modules", "dist", "**/*.tsbuildinfo", "__test__"]

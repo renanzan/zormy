@@ -1,4 +1,4 @@
-import { Form } from "../../components/Form";
+import { Form, type FormMethodsProps } from "../../components/Form";
 import { useZormy } from "../hooks/useZormy";
 
 import type { FC } from "react";
@@ -23,25 +23,19 @@ export const createForm = <
 
 	type FormValuesType = FormValues<TFields>;
 
-	// União das duas variantes (contextOnly true e false) para o Form aceitar ambos os usos
-	type FormPropsWithMethodsTrue = Extract<
-		FormProps<FormValuesType, true>,
+	/** Lado `methods` do Form (ambas variantes de contextOnly), sem a prop `methods`. */
+	type FormPropsWithMethodsSide = Extract<
+		FormProps<FormValuesType, TFields>,
 		{ methods: UseFormReturn<FormValuesType> }
 	>;
-	type FormPropsWithMethodsFalse = Extract<
-		FormProps<FormValuesType, false>,
-		{ methods: UseFormReturn<FormValuesType> }
-	>;
-	type FormPropsWithoutMethods =
-		| Omit<FormPropsWithMethodsTrue, "methods">
-		| Omit<FormPropsWithMethodsFalse, "methods">;
+	type FormPropsWithoutMethods = Omit<FormPropsWithMethodsSide, "methods">;
 
 	const RawForm: FC<FormPropsWithoutMethods> = (props) => {
 		const formProps = {
 			...props,
 			methods: methods as unknown as UseFormReturn<FormValuesType>,
 		};
-		return <Form {...(formProps as FormProps<FormValuesType, TContextOnly, TFields>)} />;
+		return <Form {...(formProps as FormMethodsProps<FormValuesType>)} />;
 	};
 
 	return {

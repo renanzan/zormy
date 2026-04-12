@@ -5,15 +5,15 @@
  * modo com `methods`, modo com `fields` (useZormy interno) e contextOnly.
  */
 
-import React from "react";
 import { z } from "zod";
 import { describe, expectTypeOf, it } from "vitest";
 
 import { Form } from "../../../src/components/Form";
 import { field } from "../../../src/fields/field/builder/builder";
 
-import type { ComponentProps, ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { FieldValues, UseFormReturn } from "react-hook-form";
+import type { FormMethodsProps } from "../../../src/components/Form";
 
 declare function getUseFormReturn<T extends FieldValues>(): UseFormReturn<T>;
 
@@ -31,13 +31,13 @@ describe("Type Safety - Componente Form", () => {
 		<Form methods={methods} contextOnly={undefined} />;
 
 		// Tipo do props.children no modo padrão: ReactNode | undefined
-		type FormDefaultProps = ComponentProps<typeof Form<{ name: string }, false>>;
+		type FormDefaultProps = FormMethodsProps<{ name: string }>;
 		expectTypeOf<FormDefaultProps["children"]>().toMatchTypeOf<ReactNode | undefined>();
 	});
 
 	it("deve aceitar contextOnly: true e exigir ReactElement filho", () => {
 		const methods = getUseFormReturn<{ foo: string }>();
-		// contextOnly={true} com children ReactElement é válido (genérico explícito evita inferência incorreta)
+		// contextOnly={true} (literal) exige children — sem genéricos explícitos no Form
 		<Form methods={methods} contextOnly={true}>
 			<div />
 		</Form>;
@@ -77,7 +77,7 @@ describe("Type Safety - Componente Form", () => {
 			<></>
 		</Form>;
 		// Props do Form no modo padrão: methods é UseFormReturn<TFieldValues>
-		type FormPropsDefault = ComponentProps<typeof Form<{ name: string }, false>>;
+		type FormPropsDefault = FormMethodsProps<{ name: string }>;
 		type MethodsProp = FormPropsDefault["methods"];
 		const _methodsCheck: MethodsProp = getUseFormReturn<{ name: string }>();
 		void _methodsCheck;

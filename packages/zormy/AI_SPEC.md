@@ -40,6 +40,7 @@ Peer dependencies: `react` (^18), `react-hook-form` (^7.71.1), `zod` (^3.25.28),
 | `zormyResolver({ fields })`                                 | Resolver para `useForm`; recebe array de campos e infere tipo do formulário               |
 | `useZormy({ fields, ...useFormOptions })`                   | Hook que injeta `zormyResolver` e infere tipo a partir do array de campos (sem passar `resolver`) |
 | `Form`                                                      | `<Form methods={form}>` ou `<Form fields={[...]} defaultValues? mode? />` — fornece contexto; com `fields` usa useZormy internamente |
+| `FormProps`, `FormMethodsProps<T>`                          | Tipos do `<Form />`: união dos modos, ou só modo `methods` (ex.: utilitários de tipo)      |
 | `useForm`                                                   | Re-export do react-hook-form (para tipagem consistente)                                   |
 | `createWizardConfig({ steps: [{ name, fields }, ...], shouldIncludeStep? })` | Configuração do wizard (array de steps com nome e campos)                          |
 | `createWizardComponents(config)`                             | Retorna `{ Wizard, Step, WizardNav, WizardNavBack, WizardNavNext }` tipados              |
@@ -48,7 +49,7 @@ Peer dependencies: `react` (^18), `react-hook-form` (^7.71.1), `zod` (^3.25.28),
 | `useAutoSaveContext`, `AutoSaveStatus`                      | Auto-save no wizard                                                                       |
 | `Controller`, `SubmitHandler`                               | Re-export do react-hook-form                                                              |
 
-Tipos úteis: `FieldKey`, `FieldsToObject`, `FieldValue`.
+Tipos úteis: `FieldKey`, `FieldsToObject`, `FieldValue`, `FormProps`, `FormMethodsProps`.
 
 ---
 

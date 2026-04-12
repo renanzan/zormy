@@ -51,7 +51,7 @@ Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
 
     ### `useField<Key, Schema>(key)`
 
-    Hook para acessar o contexto do formulário com tipagem forte para um campo. Deve ser usado dentro de `FormProvider` ou `<Form>`. Retorna `register`, `fieldState`, `control`, `getValues`, `setValue`, `watch` tipados para o campo.
+    Hook para acessar o contexto do formulário com tipagem forte para um campo. Deve ser usado dentro de `FormProvider` ou `<Form>`. Retorna `register`, `fieldState`, `control`, `getValues`, `setValue`, `watch` tipados para o campo; os demais métodos do react-hook-form (por exemplo `setError`, `clearErrors`, `reset`, `trigger`) usam o mesmo tipo de valores do formulário do campo e dependências, de modo que paths como `fieldState.key` são aceitos em `setError`/`clearErrors`.
 
     | Parâmetro | Tipo | Descrição |
     |-----------|------|-----------|
@@ -78,9 +78,11 @@ Referência completa da API do Zormy com exemplos práticos e tipos TypeScript.
     | `defaultValues` | `DeepPartial<FormValues>` | ❌ | Valores iniciais (apenas com `fields`) |
     | `mode` | `"onChange"` \| `"onBlur"` \| `"onSubmit"` \| ... | ❌ | Modo de validação (apenas com `fields`) |
     | `onSubmit` | `(data: FormValues) => void` | ❌ | Callback chamado com os dados validados no submit |
-    | `contextOnly` | `boolean` | ❌ | Se true, fornece apenas o contexto sem envolver em `<form>` |
-    | `children` | `ReactNode` | ❌ | Conteúdo do formulário |
-    | `...formProps` | `ComponentPropsWithoutRef<"form">` | ❌ | Props do elemento `<form>` |
+    | `contextOnly` | `true` ou `false` / omitido | ❌ | Com **`methods`**, use o literal **`true`** para modo só contexto (sem `<form>`); aí `children` é obrigatório. Omitido ou `false`: `children` opcional. |
+    | `children` | `ReactNode` | ❌* | Obrigatório quando `methods` + `contextOnly={true}`; caso contrário opcional |
+    | `...formProps` | `ComponentPropsWithoutRef<"form">` | ❌ | Props do elemento `<form>` (modo com `<form>`) |
+
+    **Tipos exportados:** `FormProps` (união dos dois modos) e `FormMethodsProps<TFieldValues>` (apenas modo `methods`) — úteis para utilitários de tipo.
 
     **Exemplo com `methods`:**
     ```tsx

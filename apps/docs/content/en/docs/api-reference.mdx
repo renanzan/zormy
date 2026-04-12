@@ -78,9 +78,11 @@ Complete API reference for Zormy with practical examples and TypeScript types.
     | `defaultValues` | `DeepPartial<FormValues>` | ❌ | Initial values (only with `fields`) |
     | `mode` | `"onChange"` \| `"onBlur"` \| `"onSubmit"` \| ... | ❌ | Validation mode (only with `fields`) |
     | `onSubmit` | `(data: FormValues) => void` | ❌ | Callback called with validated data on submit |
-    | `contextOnly` | `boolean` | ❌ | If true, provides only context without wrapping in `<form>` |
-    | `children` | `ReactNode` | ❌ | Form content |
-    | `...formProps` | `ComponentPropsWithoutRef<"form">` | ❌ | `<form>` element props |
+    | `contextOnly` | `true` or `false` / omitted | ❌ | With **`methods`**, use the literal **`true`** for context-only mode (no `<form>`); then `children` is required. Omitted or `false`: `children` optional. |
+    | `children` | `ReactNode` | ❌* | Required when `methods` + `contextOnly={true}`; otherwise optional |
+    | `...formProps` | `ComponentPropsWithoutRef<"form">` | ❌ | `<form>` element props (when rendering `<form>`) |
+
+    **Exported types:** `FormProps` (union of both modes) and `FormMethodsProps<TFieldValues>` (`methods` mode only) — useful for type utilities.
 
     **Example with `methods`:**
     ```tsx

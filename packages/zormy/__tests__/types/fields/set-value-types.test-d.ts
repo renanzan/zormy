@@ -11,7 +11,7 @@ import { field } from "../../../src/fields/field/builder/builder";
 describe("Type Safety - Método setValue", () => {
 	it("deve aceitar valor do tipo correto do schema", () => {
 		const NameField = field("name")
-			.schema(z.string())
+			.schema(z.string().nullable())
 			.render(({ setValue }) => {
 				setValue("name", "João");
 				setValue("name", null);
@@ -23,7 +23,7 @@ describe("Type Safety - Método setValue", () => {
 
 	it("deve aceitar valor do tipo correto para schema number", () => {
 		const AgeField = field("age")
-			.schema(z.number())
+			.schema(z.number().nullable())
 			.render(({ setValue }) => {
 				setValue("age", 25);
 				setValue("age", null);
@@ -35,7 +35,7 @@ describe("Type Safety - Método setValue", () => {
 
 	it("deve aceitar valor do tipo correto para schema boolean", () => {
 		const IsActiveField = field("isActive")
-			.schema(z.boolean())
+			.schema(z.boolean().nullable())
 			.render(({ setValue }) => {
 				setValue("isActive", true);
 				setValue("isActive", false);
@@ -48,7 +48,7 @@ describe("Type Safety - Método setValue", () => {
 
 	it("deve aceitar valor do tipo correto para schema enum", () => {
 		const MethodField = field("method")
-			.schema(z.enum(["credit", "debit", "pix"]))
+			.schema(z.enum(["credit", "debit", "pix"]).nullable())
 			.render(({ setValue }) => {
 				setValue("method", "credit");
 				setValue("method", "debit");
@@ -62,7 +62,7 @@ describe("Type Safety - Método setValue", () => {
 
 	it("deve aceitar valor do tipo correto para schema optional", () => {
 		const PhoneField = field("phone")
-			.schema(z.string().optional())
+			.schema(z.string().optional().nullable())
 			.render(({ setValue }) => {
 				setValue("phone", "123456789");
 				setValue("phone", null);
@@ -85,7 +85,7 @@ describe("Type Safety - Método setValue", () => {
 				if (age && age > 18) {
 					return z.string().min(3);
 				}
-				return z.string().optional();
+				return z.string().optional().nullable();
 			})
 			.render(({ setValue }) => {
 				// O tipo do schema pode ser string ou string | undefined
