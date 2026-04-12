@@ -27,6 +27,9 @@ describe("createWizard - API para criar wizards", () => {
 					{ name: "step1", fields: [NameField] },
 					{ name: "step2", fields: [EmailField] },
 				] as const,
+				onComplete: (data) => {
+					expectTypeOf(data).toEqualTypeOf<{ name: string; email: string }>();
+				},
 			});
 
 			type WizardProps = ComponentProps<typeof Wizard>;

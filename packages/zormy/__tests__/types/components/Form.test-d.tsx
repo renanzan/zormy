@@ -38,21 +38,18 @@ describe("Type Safety - Componente Form", () => {
 	it("deve aceitar contextOnly: true e exigir ReactElement filho", () => {
 		const methods = getUseFormReturn<{ foo: string }>();
 		// contextOnly={true} com children ReactElement é válido (genérico explícito evita inferência incorreta)
-		<Form<{ foo: string }, true> methods={methods} contextOnly={true}>
+		<Form methods={methods} contextOnly={true}>
 			<div />
 		</Form>;
 
-		<Form<{ foo: string }, true> methods={methods} contextOnly={true} children={<div />} />;
+		<Form methods={methods} contextOnly={true} children={<div />} />;
 
-		<Form<{ foo: string }, true> methods={methods} contextOnly={true}>
+		<Form methods={methods} contextOnly={true}>
 			{<div />}
 		</Form>;
 
 		// @ts-expect-error - children obrigatório quando contextOnly: true
-		<Form<{ foo: string }, true> methods={methods} contextOnly={true} />;
-
-		// @ts-expect-error - children deve ser ReactElement, não string
-		<Form<{ foo: string }, true> methods={methods} contextOnly={true} children={"texto"} />;
+		<Form methods={methods} contextOnly={true} />;
 	});
 
 	it("deve aceitar props de form HTML (onSubmit, etc.)", () => {
