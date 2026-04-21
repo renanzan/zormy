@@ -1,0 +1,5 @@
+{
+	"$schema": "./node_modules/deps-guard/src/deps-guard.schema.json",
+	"critical": ["react", "react-dom", "next", "typescript"],
+	"ignore": ["zod"]
+}

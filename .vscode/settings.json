@@ -52,7 +52,7 @@
   "conventionalCommits.promptCI": false,
 
   "files.exclude": {
-    "**/node_modules": true,
+    // "**/node_modules": true,
     "**/.prettierignore": true,
     "**/.prettierrc.json": true,
     "**/.eslintignore": true,

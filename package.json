@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
-		"check-deps": "node scripts/check-deps.js",
+		"check-deps": "deps-guard",
 		"build": "pnpm run check-deps && pnpm --filter \"zormy\" build",
 		"dev": "pnpm run check-deps && pnpm --filter \"@zormy/example\" dev",
 		"dev:docs": "pnpm run check-deps && pnpm --filter \"@zormy/docs\" dev",
@@ -15,9 +15,10 @@
 		"format:check": "prettier --check ."
 	},
 	"devDependencies": {
-		"@tailwindcss/postcss": "^4.1.18",
 		"@ianvs/prettier-plugin-sort-imports": "^4.7.1",
 		"@next/eslint-plugin-next": "^16.1.6",
+		"@tailwindcss/postcss": "^4.1.18",
+		"deps-guard": "^0.0.1",
 		"enquirer": "^2.4.1",
 		"eslint": "^10.0.2",
 		"eslint-config-prettier": "^10.1.8",
