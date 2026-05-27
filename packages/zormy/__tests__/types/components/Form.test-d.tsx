@@ -12,10 +12,11 @@ import { Form } from "../../../src/components/Form";
 import { field } from "../../../src/fields/field/builder/builder";
 
 import type { ReactNode } from "react";
-import type { FieldValues, UseFormReturn } from "react-hook-form";
+import type { FieldValues } from "react-hook-form";
 import type { FormMethodsProps } from "../../../src/components/Form";
+import type { ZormyFormMethods } from "../../../src/form/types/form-methods";
 
-declare function getUseFormReturn<T extends FieldValues>(): UseFormReturn<T>;
+declare function getUseFormReturn<T extends FieldValues>(): ZormyFormMethods<T>;
 
 describe("Type Safety - Componente Form", () => {
 	it("deve aceitar props padrão (renderiza <form>)", () => {
@@ -64,19 +65,18 @@ describe("Type Safety - Componente Form", () => {
 		</Form>;
 	});
 
-	it("deve inferir tipos de methods (UseFormReturn)", () => {
+	it("deve inferir tipos de methods (ZormyFormMethods)", () => {
 		const methods = getUseFormReturn<{ test: string }>();
-		// methods deve ser atribuível a UseFormReturn<{ test: string }>
-		const _typed: UseFormReturn<{ test: string }> = methods;
+		const _typed: ZormyFormMethods<{ test: string }> = methods;
 		void _typed;
 	});
 
-	it("deve exigir methods compatível com UseFormReturn<TFieldValues>", () => {
+	it("deve exigir methods compatível com ZormyFormMethods<TFieldValues>", () => {
 		const methods = getUseFormReturn<{ name: string; email: string }>();
 		<Form methods={methods}>
 			<></>
 		</Form>;
-		// Props do Form no modo padrão: methods é UseFormReturn<TFieldValues>
+		// Props do Form no modo padrão: methods é ZormyFormMethods<TFieldValues>
 		type FormPropsDefault = FormMethodsProps<{ name: string }>;
 		type MethodsProp = FormPropsDefault["methods"];
 		const _methodsCheck: MethodsProp = getUseFormReturn<{ name: string }>();

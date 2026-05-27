@@ -14,7 +14,8 @@ import { createWizardComponents } from "../../../src/wizards/wizard/builder/comp
 import { createWizardConfig } from "../../../src/wizards/wizard/builder/config";
 
 import type { ComponentProps, ReactNode } from "react";
-import type { SubmitHandler, UseFormReturn } from "react-hook-form";
+import type { SubmitHandler } from "react-hook-form";
+import type { ZormyFormMethods } from "../../../src/form/types/form-methods";
 import type {
 	TypedStepProps,
 	TypedWizardProps,
@@ -109,12 +110,12 @@ describe("Type Safety - createWizardComponents", () => {
 
 			const { Wizard } = createWizardComponents(config);
 
-			// Verifica que o tipo de methods é UseFormReturn com FormData correto
+			// Verifica que o tipo de methods é ZormyFormMethods com FormData correto
 			type ExpectedFormData = ExtractWizardFormData<typeof config>;
 			type Props = TypedWizardProps<ExpectedFormData, false>;
 
 			// Verifica compatibilidade usando variáveis tipadas
-			const _validMethods: UseFormReturn<ExpectedFormData> = {} as UseFormReturn<ExpectedFormData>;
+			const _validMethods: ZormyFormMethods<ExpectedFormData> = {} as ZormyFormMethods<ExpectedFormData>;
 			const _props: Props = {
 				methods: _validMethods,
 			};
@@ -127,7 +128,7 @@ describe("Type Safety - createWizardComponents", () => {
 			};
 
 			// Verifica tipos usando expectTypeOf
-			expectTypeOf(_props.methods).toExtend<UseFormReturn<ExpectedFormData>>();
+			expectTypeOf(_props.methods).toExtend<ZormyFormMethods<ExpectedFormData>>();
 		});
 
 		it("deve inferir tipos corretamente para campos aninhados", () => {
@@ -162,11 +163,11 @@ describe("Type Safety - createWizardComponents", () => {
 			}>();
 
 			// Verifica compatibilidade de methods
-			const _validMethods: UseFormReturn<FormData> = {} as UseFormReturn<FormData>;
+			const _validMethods: ZormyFormMethods<FormData> = {} as ZormyFormMethods<FormData>;
 			const _props: Props = {
 				methods: _validMethods,
 			};
-			expectTypeOf(_props.methods).toExtend<UseFormReturn<FormData>>();
+			expectTypeOf(_props.methods).toExtend<ZormyFormMethods<FormData>>();
 		});
 	});
 
@@ -394,7 +395,7 @@ describe("Type Safety - createWizardComponents", () => {
 
 			type FormData = ExtractWizardFormData<typeof config>;
 			type WizardPropsType = TypedWizardProps<FormData, false>;
-			const _validMethods: UseFormReturn<FormData> = {} as UseFormReturn<FormData>;
+			const _validMethods: ZormyFormMethods<FormData> = {} as ZormyFormMethods<FormData>;
 			const _wizardProps: WizardPropsType = {
 				methods: _validMethods,
 			};
@@ -424,9 +425,9 @@ describe("Type Safety - createWizardComponents", () => {
 			type FormData = ExtractWizardFormData<typeof config>;
 			type Props = TypedWizardProps<FormData, false>;
 
-			// O methods do Wizard deve aceitar UseFormReturn com FormData
-			// useWizard retorna UseWizardFormReturn que estende UseFormReturn
-			const _validMethods: UseFormReturn<FormData> = {} as UseFormReturn<FormData>;
+			// O methods do Wizard deve aceitar ZormyFormMethods com FormData
+			// useWizard retorna UseWizardFormReturn que estende ZormyFormMethods
+			const _validMethods: ZormyFormMethods<FormData> = {} as ZormyFormMethods<FormData>;
 			const _wizardProps: Props = {
 				methods: _validMethods,
 			};
@@ -435,9 +436,9 @@ describe("Type Safety - createWizardComponents", () => {
 			// Verifica que pode receber o retorno direto de useWizard
 			type UseWizardFormReturnType = UseWizardFormReturn<FormData, (typeof config)["steps"]>;
 
-			// UseWizardFormReturn deve ser compatível com UseFormReturn
+			// UseWizardFormReturn deve ser compatível com ZormyFormMethods
 			const _wizardFormReturn: UseWizardFormReturnType = {} as UseWizardFormReturnType;
-			expectTypeOf(_wizardFormReturn).toExtend<UseFormReturn<FormData>>();
+			expectTypeOf(_wizardFormReturn).toExtend<ZormyFormMethods<FormData>>();
 		});
 	});
 
@@ -476,18 +477,18 @@ describe("Type Safety - createWizardComponents", () => {
 
 			const { Wizard } = createWizardComponents(config);
 
-			// O tipo de methods deve ser UseFormReturn com FormData correto
+			// O tipo de methods deve ser ZormyFormMethods com FormData correto
 			type ExpectedFormData = ExtractWizardFormData<typeof config>;
 			type Props = TypedWizardProps<ExpectedFormData, false>;
 
-			// Verifica que methods aceita UseFormReturn com FormData correto
-			const _validForm: UseFormReturn<ExpectedFormData> = {} as UseFormReturn<ExpectedFormData>;
+			// Verifica que methods aceita ZormyFormMethods com FormData correto
+			const _validForm: ZormyFormMethods<ExpectedFormData> = {} as ZormyFormMethods<ExpectedFormData>;
 			const _valid: Props = {
 				methods: _validForm,
 			};
 
 			// Cria um form com tipo incorreto - deve ser rejeitado
-			const wrongForm: UseFormReturn<{ wrong: string }> = {} as UseFormReturn<{ wrong: string }>;
+			const wrongForm: ZormyFormMethods<{ wrong: string }> = {} as ZormyFormMethods<{ wrong: string }>;
 			// FormData incorreto - wrongForm não tem o tipo correto
 			// O erro é esperado, então não usamos @ts-expect-error aqui
 			// O TypeScript já está rejeitando corretamente o tipo
