@@ -41,6 +41,7 @@ Peer dependencies: `react` (^18), `react-hook-form` (^7.71.1), `zod` (^3.25.28),
 | `useZormy({ fields, ...useFormOptions })`                   | Hook que injeta `zormyResolver` e infere tipo a partir do array de campos (sem passar `resolver`) |
 | `Form`                                                      | `<Form methods={form}>` ou `<Form fields={[...]} defaultValues? mode? />` — fornece contexto; com `fields` usa useZormy internamente |
 | `FormProps`, `FormMethodsProps<T>`                          | Tipos do `<Form />`: união dos modos, ou só modo `methods` (ex.: utilitários de tipo)      |
+| `ZormyFormMethods<T>`                                       | Tipo de `methods` aceito por `Form`/`Wizard`/`createForm`; compatível com `useZormy` e RHF `^7.71.1` |
 | `useForm`                                                   | Re-export do react-hook-form (para tipagem consistente)                                   |
 | `createWizardConfig({ steps: [{ name, fields }, ...], shouldIncludeStep? })` | Configuração do wizard (array de steps com nome e campos)                          |
 | `createWizardComponents(config)`                             | Retorna `{ Wizard, Step, WizardNav, WizardNavBack, WizardNavNext }` tipados              |
@@ -49,7 +50,9 @@ Peer dependencies: `react` (^18), `react-hook-form` (^7.71.1), `zod` (^3.25.28),
 | `useAutoSaveContext`, `AutoSaveStatus`                      | Auto-save no wizard                                                                       |
 | `Controller`, `SubmitHandler`                               | Re-export do react-hook-form                                                              |
 
-Tipos úteis: `FieldKey`, `FieldsToObject`, `FieldValue`, `FormProps`, `FormMethodsProps`.
+Tipos úteis: `FieldKey`, `FieldsToObject`, `FieldValue`, `FormProps`, `FormMethodsProps`, `ZormyFormMethods`.
+
+**Tipagem `methods`:** `useZormy` retorna `UseFormReturn` com três genéricos (`TTransformedValues` = valores do form). Em RHF &lt; 7.71, `UseFormReturn<T>` (um genérico) assume `TTransformedValues = undefined`, o que quebra `<Form methods={form} />`. Use `ZormyFormMethods<T>` ao tipar props customizadas ou mantenha `react-hook-form` `^7.71.1` (peer do pacote).
 
 ---
 

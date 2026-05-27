@@ -131,6 +131,14 @@ Whenever you want to quickly set up a strongly-typed form without worrying about
 
 ---
 
+## Typing `methods`
+
+The `methods` prop on `<Form />` and `<Wizard />` accepts the return value of `useZormy` and of `useForm` with `zormyResolver`. The exported type **`ZormyFormMethods<T>`** spells out the `UseFormReturn` generics explicitly, avoiding assignment errors on RHF `7.50`–`7.70` (where `UseFormReturn<T>` defaults `TTransformedValues` to `undefined`).
+
+Keep **`react-hook-form` `^7.71.1`** (Zormy peer dependency) or type custom props with `ZormyFormMethods<YourValues>`.
+
+---
+
 ## Summary
 
 | API                         | Resolver   | Types from fields | Best suited for                              |

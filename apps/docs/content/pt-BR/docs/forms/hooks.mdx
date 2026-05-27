@@ -131,6 +131,14 @@ Sempre que você quiser montar um formulário tipado rapidamente sem se preocupa
 
 ---
 
+## Tipagem de `methods`
+
+A prop `methods` de `<Form />` e `<Wizard />` aceita o retorno de `useZormy` e de `useForm` com `zormyResolver`. O tipo exportado **`ZormyFormMethods<T>`** declara explicitamente os genéricos de `UseFormReturn` do React Hook Form, evitando erro de atribuição quando o projeto usa RHF `7.50`–`7.70` (onde `UseFormReturn<T>` assume `TTransformedValues = undefined`).
+
+Mantenha **`react-hook-form` `^7.71.1`** (peer dependency do Zormy) ou tipize props customizadas com `ZormyFormMethods<SeuTipo>`.
+
+---
+
 ## Resumo
 
 | API                         | Resolver   | Tipo a partir dos fields | Melhor para                                  |
