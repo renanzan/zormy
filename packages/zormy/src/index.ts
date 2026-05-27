@@ -22,6 +22,7 @@ export type { FieldKey, FieldsToObject, FieldValue } from "./fields/field/types/
 export { Form } from "./components/Form";
 export type { FormMethodsProps, FormProps } from "./components/Form";
 export { useZormy } from "./form/hooks/useZormy";
+export type { ZormyFormMethods } from "./form/types/form-methods";
 export { createForm } from "./form/utils/create-form";
 
 export { createWizardComponents } from "./wizards/wizard/builder/components";

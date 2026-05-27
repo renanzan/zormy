@@ -5,7 +5,8 @@ import { FormProvider } from "react-hook-form";
 import { WizardProvider } from "../wizards/wizard/context";
 
 import type { ComponentPropsWithoutRef, FormEvent, ReactElement } from "react";
-import type { FieldValues, SubmitHandler, UseFormReturn } from "react-hook-form";
+import type { FieldValues, SubmitHandler } from "react-hook-form";
+import type { ZormyFormMethods } from "../form/types/form-methods";
 import type { UseWizardFormReturn } from "../wizards/wizard/types/hooks";
 
 /**
@@ -22,14 +23,14 @@ export type FormProps<
 	TContextOnly extends boolean = false,
 > = TContextOnly extends true
 	? {
-			methods: UseFormReturn<TFieldValues>;
+			methods: ZormyFormMethods<TFieldValues>;
 			/** Fornece apenas o contexto do formulário em vez de envolver em um <form>. Veja descrição acima. */
 			contextOnly: true;
 			/** Elemento filho único que recebe as props do formulário. */
 			children: ReactElement;
 		}
 	: {
-			methods: UseFormReturn<TFieldValues>;
+			methods: ZormyFormMethods<TFieldValues>;
 			/** Renderiza formulário padrão <form> (valor default). */
 			contextOnly?: false | undefined;
 			onSubmit?: SubmitHandler<TFieldValues>;
@@ -95,7 +96,9 @@ export const Wizard = <
 									(methods as { next: (opts?: { shouldFocus?: boolean }) => Promise<void> }).next?.();
 								}
 							: onSubmit
-								? methods.handleSubmit(onSubmit)
+								? methods.handleSubmit(
+										onSubmit as Parameters<ZormyFormMethods<TFieldValues>["handleSubmit"]>[0],
+									)
 								: undefined
 					}
 					{...restFormProps}

@@ -3,6 +3,7 @@
 	"compilerOptions": {
 		"composite": false,
 		"emitDeclarationOnly": false,
-		"noEmit": false
+		"noEmit": false,
+		"ignoreDeprecations": "6.0"
 	}
 }

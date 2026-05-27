@@ -2,14 +2,16 @@ import { createElement } from "react";
 
 import { Step } from "../../../components/Step";
 import { Wizard } from "../../../components/Wizard";
-import {
-	WizardNav,
-	WizardNavBack,
-	WizardNavNext,
-} from "../../../components/WizardNav";
+import { WizardNav, WizardNavBack, WizardNavNext } from "../../../components/WizardNav";
 
 import type { ComponentPropsWithoutRef, ElementType, ReactElement, ReactNode } from "react";
-import type { FieldValues, SubmitHandler, UseFormReturn } from "react-hook-form";
+import type { FieldValues, SubmitHandler } from "react-hook-form";
+import type {
+	WizardNavBackProps,
+	WizardNavNextProps,
+	WizardNavProps,
+} from "../../../components/WizardNav";
+import type { ZormyFormMethods } from "../../../form/types/form-methods";
 import type { ExtractWizardFormData } from "../types/extractors";
 import type { StepFieldsMap, WizardConfig } from "../types/wizard";
 
@@ -25,14 +27,14 @@ export type TypedWizardProps<
 	TContextOnly extends boolean = false,
 > = TContextOnly extends true
 	? {
-			methods: UseFormReturn<TFieldValues>;
+			methods: ZormyFormMethods<TFieldValues>;
 			/** Fornece apenas o contexto do formulário em vez de envolver em um <form>. */
 			contextOnly: true;
 			/** Elemento filho único que recebe as props do formulário. */
 			children: ReactElement;
 		}
 	: {
-			methods: UseFormReturn<TFieldValues>;
+			methods: ZormyFormMethods<TFieldValues>;
 			/** Renderiza formulário padrão <form> (valor default). */
 			contextOnly?: false | undefined;
 			/** Handler de submit do formulário. */
@@ -99,15 +101,15 @@ export type WizardComponents<TConfig> =
 					 * ```
 					 */
 					WizardNav: <TAs extends ElementType = "div">(
-						props: import("../../../components/WizardNav").WizardNavProps<TAs>
+						props: WizardNavProps<TAs>
 					) => React.ReactElement;
 					/** Botão Voltar (só renderiza quando !isFirstStep). */
 					WizardNavBack: <TAs extends ElementType = "button">(
-						props: import("../../../components/WizardNav").WizardNavBackProps<TAs>
+						props: WizardNavBackProps<TAs>
 					) => React.ReactElement | null;
 					/** Botão Próximo ou Finalizar (submit no último step). */
 					WizardNavNext: <TAs extends ElementType = "button">(
-						props: import("../../../components/WizardNav").WizardNavNextProps<TAs>
+						props: WizardNavNextProps<TAs>
 					) => React.ReactElement;
 				}
 			: never

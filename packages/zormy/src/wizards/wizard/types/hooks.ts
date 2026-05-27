@@ -6,7 +6,8 @@
  */
 
 import type z from "zod";
-import type { DefaultValues, FieldValues, FormState, Path, UseFormReturn } from "react-hook-form";
+import type { DefaultValues, FieldValues, FormState, Path } from "react-hook-form";
+import type { ZormyFormMethods } from "../../../form/types/form-methods";
 import type { UseStepMachineArgs } from "../../step/hooks/use-step-machine";
 import type {
 	StepStateWithMetadata,
@@ -125,7 +126,7 @@ export type UseWizardFormReturn<
 	restartFlow: () => void;
 	/** Indica se o step está sendo controlado externamente */
 	isControlled: boolean;
-} & UseFormReturn<TFieldValues> & {
+} & ZormyFormMethods<TFieldValues> & {
 		// Propriedades específicas do wizard
 		/** Estado de todos os steps do wizard */
 		wizardState: WizardStateItem<Steps>[];
@@ -157,7 +158,7 @@ export type UseWizardFormReturn<
 			(): void;
 		};
 		/** Reinicia o wizard */
-		resetWizard: (...params: Parameters<UseFormReturn<TFieldValues>["reset"]>) => void;
+		resetWizard: (...params: Parameters<ZormyFormMethods<TFieldValues>["reset"]>) => void;
 		/** Força atualização do wizardState (útil após carregar defaultValues assíncronos) */
 		forceUpdateWizardState: () => void;
 	};

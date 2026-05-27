@@ -6,6 +6,7 @@ import { useZormy } from "../form/hooks/useZormy";
 
 import type { ComponentPropsWithoutRef, ReactElement, ReactNode } from "react";
 import type { FieldValues, SubmitHandler, UseFormProps, UseFormReturn } from "react-hook-form";
+import type { ZormyFormMethods } from "../form/types/form-methods";
 import type { FieldsToObject } from "../fields/field/types/extractors";
 import type { FieldComponentBase } from "../fields/field/types/field";
 
@@ -17,13 +18,13 @@ import type { FieldComponentBase } from "../fields/field/types/field";
  */
 type FormPropsWithMethods<TFieldValues extends FieldValues = FieldValues> =
 	| ({
-			methods: UseFormReturn<TFieldValues>;
+			methods: ZormyFormMethods<TFieldValues>;
 			onSubmit?: SubmitHandler<TFieldValues>;
 			contextOnly: true;
 			children: ReactNode;
 		} & Omit<ComponentPropsWithoutRef<"form">, "children" | "onSubmit" | "fields" | "ref">)
 	| ({
-			methods: UseFormReturn<TFieldValues>;
+			methods: ZormyFormMethods<TFieldValues>;
 			onSubmit?: SubmitHandler<TFieldValues>;
 			contextOnly?: false | undefined;
 			children?: ReactNode;
@@ -76,7 +77,11 @@ function FormWithMethods<TFieldValues extends FieldValues>(
 			<form
 				{...formProps}
 				onSubmit={
-					onSubmit ? methods.handleSubmit(onSubmit as SubmitHandler<TFieldValues>) : undefined
+					onSubmit
+						? methods.handleSubmit(
+								onSubmit as Parameters<ZormyFormMethods<TFieldValues>["handleSubmit"]>[0],
+							)
+						: undefined
 				}
 			>
 				{children}

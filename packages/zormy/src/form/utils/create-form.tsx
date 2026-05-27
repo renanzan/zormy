@@ -2,7 +2,8 @@ import { Form, type FormMethodsProps } from "../../components/Form";
 import { useZormy } from "../hooks/useZormy";
 
 import type { FC } from "react";
-import type { UseFormProps, UseFormReturn } from "react-hook-form";
+import type { UseFormProps } from "react-hook-form";
+import type { ZormyFormMethods } from "../types/form-methods";
 import type { FormProps } from "../../components/Form";
 import type { FieldsToObject } from "../../fields/field/types/extractors";
 import type { FieldComponentBase } from "../../fields/field/types/field";
@@ -26,14 +27,14 @@ export const createForm = <
 	/** Lado `methods` do Form (ambas variantes de contextOnly), sem a prop `methods`. */
 	type FormPropsWithMethodsSide = Extract<
 		FormProps<FormValuesType, TFields>,
-		{ methods: UseFormReturn<FormValuesType> }
+		{ methods: ZormyFormMethods<FormValuesType> }
 	>;
 	type FormPropsWithoutMethods = Omit<FormPropsWithMethodsSide, "methods">;
 
 	const RawForm: FC<FormPropsWithoutMethods> = (props) => {
 		const formProps = {
 			...props,
-			methods: methods as unknown as UseFormReturn<FormValuesType>,
+			methods,
 		};
 		return <Form {...(formProps as FormMethodsProps<FormValuesType>)} />;
 	};
